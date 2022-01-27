@@ -1,0 +1,16 @@
+﻿using SDG.Unturned;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace SpeedMann.Unturnov.Models
+{
+    public class ItemJarWrapper
+    {
+        public ItemJar itemJar;
+        public byte index;
+        public byte page;
+    }
+}
