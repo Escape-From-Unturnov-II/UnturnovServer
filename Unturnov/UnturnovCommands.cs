@@ -13,17 +13,17 @@ namespace SpeedMann.Unturnov
     {
         public string Help
         {
-            get { return "Unturnov"; }
+            get { return "unturnov"; }
         }
 
         public string Name
         {
-            get { return "Unturnov"; }
+            get { return "unturnov"; }
         }
 
         public string Syntax
         {
-            get { return "<Unturnov>"; }
+            get { return "<unturnov>"; }
         }
 
         public List<string> Aliases
@@ -40,7 +40,7 @@ namespace SpeedMann.Unturnov
         {
             get
             {
-                return new List<string>() { "Unturnov" };
+                return new List<string>() { "unturnov" };
             }
         }
 
@@ -56,22 +56,6 @@ namespace SpeedMann.Unturnov
             {
                 switch (command[0].ToLower())
                 {
-                    case "autocraft":
-                        int index = 0;
-                        if (command.Length == 2)
-                        {
-                            int.TryParse(command[1], out index);
-                        }
-                        if (Unturnov.Conf.AutoCraft.Count() > index)
-                        {
-                            Unturnov.sendAutoCraft(player, Unturnov.Conf.AutoCraft[index]);
-                        }
-                        else
-                        {
-                            UnturnedChat.Say(caller, "Invalid Command parameters", UnityEngine.Color.red);
-                        }
-                        
-                        break;
                     default:
                         UnturnedChat.Say(caller, "Invalid Command parameters", UnityEngine.Color.red);
                         throw new WrongUsageOfCommandException(caller, this);

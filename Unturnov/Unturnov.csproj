@@ -90,7 +90,7 @@
     <Compile Include="Models\MagazineExtension.cs" />
     <Compile Include="UnturnovCommands.cs" />
     <Compile Include="Helper\UnturnedPatches.cs" />
-    <Compile Include="Models\CraftDescription.cs" />
+    <Compile Include="Models\CombineDescription.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Unturnov.cs" />
     <Compile Include="UnturnovConfiguration.cs" />

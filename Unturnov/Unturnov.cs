@@ -24,10 +24,9 @@ namespace SpeedMann.Unturnov
         public static Unturnov Inst;
         public static UnturnovConfiguration Conf;
 
-        private List<CSteamID> DisabledAutocraft;
-        private Dictionary<ushort, CraftDescription> AutoCraftDict;
+        private Dictionary<ushort, CombineDescription> AutoCombineDict;
         private Dictionary<ushort, ushort> MagazineTypes;
-        private List<CSteamID> MagReplaceBypass;
+        private List<CSteamID> ReplaceBypass;
 
         #region Load
         protected override void Load()
@@ -35,55 +34,29 @@ namespace SpeedMann.Unturnov
             Inst = this;
             Conf = Configuration.Instance;
 
-            UnturnedPrivateFields.Init();
-            MagReplaceBypass = new List<CSteamID>();
+            ReplaceBypass = new List<CSteamID>();
 
             MagazineTypes = createDictionaryFromMagazineExtensions(Conf.UnloadMagBlueprints);
-            //DisabledAutocraft = new List<CSteamID>();
-            //AutoCraftDict = createDictionaryFromAutoCraftlist(Conf.AutoCraft);
+            AutoCombineDict = createDictionaryFromAutoCombine(Conf.AutoCombine);
 
             printPluginInfo();
 
             Conf.updateConfig();
 
-            //U.Events.OnPlayerDisconnected += OnPlayerDisconnected;
-            //UnturnedPlayerEvents.OnPlayerUpdateGesture += OnGestureChanged;
             UnturnedPlayerEvents.OnPlayerInventoryAdded += OnInventoryUpdated;
             PlayerCrafting.onCraftBlueprintRequested += OnCraft;
             UnturnedPlayerEvents.OnPlayerDeath += OnPlayerDeath;
-
+            UseableConsumeable.onConsumePerformed += OnConsumed;
         }
         protected override void Unload()
         {
-            //U.Events.OnPlayerDisconnected -= OnPlayerDisconnected;
-            //UnturnedPlayerEvents.OnPlayerUpdateGesture -= OnGestureChanged;
             UnturnedPlayerEvents.OnPlayerInventoryAdded -= OnInventoryUpdated;
             PlayerCrafting.onCraftBlueprintRequested -= OnCraft;
             UnturnedPlayerEvents.OnPlayerDeath -= OnPlayerDeath;
+            UseableConsumeable.onConsumePerformed -= OnConsumed;
         }
         #endregion
 
-        private void OnPlayerDisconnected(UnturnedPlayer player)
-        {
-            DisabledAutocraft.Remove(player.CSteamID);
-        }
-        private void OnGestureChanged(UnturnedPlayer player, UnturnedPlayerEvents.PlayerGesture gesture)
-        {
-            if (gesture == UnturnedPlayerEvents.PlayerGesture.InventoryOpen)
-            {
-                if (!DisabledAutocraft.Contains(player.CSteamID))
-                    DisabledAutocraft.Add(player.CSteamID);
-                if (Conf.Debug)
-                {
-                    Logger.Log("Disabled AutoCrafting for: " + player.CharacterName);
-                }
-            }
-            else if (gesture == UnturnedPlayerEvents.PlayerGesture.InventoryClose)
-            {
-                DisabledAutocraft.Remove(player.CSteamID);
-                Logger.Log("Reanabled AutoCrafting for: " + player.CharacterName);
-            }
-        }
         private void OnPlayerDeath(UnturnedPlayer player, EDeathCause cause, ELimb limb, CSteamID murderer)
         {
             if(cause != EDeathCause.SUICIDE){
@@ -113,16 +86,41 @@ namespace SpeedMann.Unturnov
         }
         private void OnInventoryUpdated(UnturnedPlayer player, InventoryGroup inventoryGroup, byte inventoryIndex, ItemJar P)
         {
-            if (MagReplaceBypass.Contains(player.CSteamID))
+            if (ReplaceBypass.Contains(player.CSteamID))
             {
                 if (Conf.Debug)
                 {
                     Logger.Log("bypass replace");
                 }
-                MagReplaceBypass.Remove(player.CSteamID);
+                ReplaceBypass.Remove(player.CSteamID);
                 return;
             }
-            
+
+            #region auto combine
+            CombineDescription combine;
+            if (AutoCombineDict.TryGetValue(P.item.id, out combine))
+            {
+                List<InventorySearch> foundItems = player.Inventory.search(P.item.id, true, true);
+                if(foundItems.Count() >= combine.RequiredAmount)
+                {
+                    int results = foundItems.Count() / combine.RequiredAmount;
+                    int turns = combine.RequiredAmount;
+                    foreach (InventorySearch item in foundItems)
+                    {
+                        byte index = player.Inventory.getIndex(item.page, item.jar.x, item.jar.y);
+                        player.Inventory.removeItem(item.page, index);
+                    }
+                    for (byte i = 0; i < results; i++)
+                    {
+                        player.Inventory.forceAddItem(new Item(combine.ResultId, true), false);
+                    }
+                    Logger.Log($"combined {results}x {P.item.id} to {combine.ResultId}");
+                }
+                return;
+            }
+            #endregion
+
+            #region Mag load/unload logic
             MagazineExtension magazineExtension = Conf.UnloadMagBlueprints.Find(x => x.EmptyMagazineId == P.item.id);
             if (magazineExtension != null)
             {
@@ -151,19 +149,37 @@ namespace SpeedMann.Unturnov
                         player.Inventory.forceAddItem(replacement, false);
                     }
                 }
+                return;
             }
+            #endregion
         }
         private void OnCraft(PlayerCrafting crafting, ref ushort itemID, ref byte blueprintIndex, ref bool shouldAllow)
         {
 
             ushort itemId = itemID;
+            Blueprint blueprint = ((ItemAsset)Assets.find(EAssetType.ITEM, itemID)).blueprints[blueprintIndex];
+            UnturnedPlayer player = UnturnedPlayer.FromPlayer(crafting.player);
+
+            #region Check Disable Autocombine
+            if (blueprint.outputs.Length > 0)
+            {
+                foreach(BlueprintOutput outP in  blueprint.outputs)
+                {
+                    if (AutoCombineDict.ContainsKey(outP.id) && (!ReplaceBypass.Contains(player.CSteamID)))
+                    {
+                        ReplaceBypass.Add(player.CSteamID);
+                        return;
+                    }
+                }
+            }
+            #endregion
+
+            #region Load Mag
             MagazineExtension magExt = Conf.UnloadMagBlueprints.Find(x => x.EmptyMagazineId == itemId);
             if (magExt != null)
             {
                 // load mag
                 PlayerInventory inventory = crafting.player.inventory;
-                UnturnedPlayer player = UnturnedPlayer.FromPlayer(crafting.player);
-                Blueprint blueprint = ((ItemAsset)Assets.find(EAssetType.ITEM, itemID)).blueprints[blueprintIndex];
                 MagazineExtension.MagazineType magtype = null;
 
                 foreach (BlueprintSupply supply in blueprint.supplies)
@@ -176,7 +192,7 @@ namespace SpeedMann.Unturnov
                     }
                     if (ammount <= 0)
                     {
-                        return;
+                        break;
                     }
                     List<InventorySearch> itemList = inventory.search(itemID, true, true);
                     if (itemList.Count > 0)
@@ -186,65 +202,46 @@ namespace SpeedMann.Unturnov
 
                         magtype = magExt.MagazineTypeIds.Find(x => ((ItemAsset)Assets.find(EAssetType.ITEM, x.MagazineId)).blueprints[x.refillAmmoIndex].supplies[0].id == blueprint.supplies[0].id);
                         Item replacement = new Item(magtype.MagazineId, (byte)0, supplyList[0].jar.item.quality);
-                        if (!MagReplaceBypass.Contains(player.CSteamID))
+                        if (!ReplaceBypass.Contains(player.CSteamID))
                         {
-                            MagReplaceBypass.Add(player.CSteamID);
+                            ReplaceBypass.Add(player.CSteamID);
                         }
                         if (!inventory.tryAddItem(replacement, supplyList[0].jar.x, supplyList[0].jar.y, supplyList[0].page, supplyList[0].jar.rot))
                         {
                             inventory.forceAddItem(replacement, false);
                         }
                     }
-
-
-
                 }
                 if (magtype != null)
                 {
                     itemID = magtype.MagazineId;
                     blueprintIndex = magtype.refillAmmoIndex;
                 }
-
             }
+            #endregion
         }
 
-        #region HelperFunctions
-        private static bool findItems(PlayerInventory inventory, ushort itemId, int count, out List<ItemJarWrapper> items)
+        private void OnConsumed(Player instigatingPlayer, ItemConsumeableAsset consumeableAsset)
         {
-            items = new List<ItemJarWrapper>();
-
-            for (byte page = 0; page < PlayerInventory.PAGES; page++)
+            if (Conf.MultiUseItems.Contains(consumeableAsset.id))
             {
-                if (inventory.items[page] == null) continue;
-                byte itemc = inventory.getItemCount(page);
-                for (byte index = 0; index < itemc; index++)
+                byte page = instigatingPlayer.equipment.equippedPage;
+                byte x = instigatingPlayer.equipment.equipped_x;
+                byte y = instigatingPlayer.equipment.equipped_y;
+                byte index = instigatingPlayer.inventory.getIndex(page, x, y);
+                ItemJar itemJar = instigatingPlayer.inventory.getItem(page, index);
+
+                if (itemJar.item.amount > 1)
                 {
-                    ItemJar itemJ = inventory.getItem(page, index);
-                    if (itemJ.item.id == itemId)
-                    {
-                        items.Add(new ItemJarWrapper
-                        {
-                            page = page,
-                            index = index,
-                            itemJar = itemJ,
-                        });
-                        if (items.Count == count)
-                        {
-                            return true;
-                        }
-                    }
+                    instigatingPlayer.inventory.sendUpdateAmount(page, x, y, (byte)(itemJar.item.amount - 1));
+                }
+                else
+                {
+                    instigatingPlayer.inventory.removeItem(page, index);
                 }
             }
-            return false;
         }
-        public static void sendAutoCraft(UnturnedPlayer player, CraftDescription craftDesc)
-        {
-            if (Conf.Debug)
-            {
-                Logger.Log($"AutoCraft ItemId: {craftDesc.BlueprintItemId} BlueprintIndex: {craftDesc.BlueprintIndex}");
-            }
-            player.Player.crafting.sendCraft(craftDesc.BlueprintItemId, craftDesc.BlueprintIndex, true);
-        }
+        #region HelperFunctions
 
         private Dictionary<ushort, ushort> createDictionaryFromMagazineExtensions(List<MagazineExtension> magExtensions)
         {
@@ -272,31 +269,31 @@ namespace SpeedMann.Unturnov
             }
             return itemExtensionsDict;
         }
-        private Dictionary<ushort, CraftDescription> createDictionaryFromAutoCraftlist(List<CraftDescription> autoCraft)
+        private Dictionary<ushort, CombineDescription> createDictionaryFromAutoCombine(List<CombineDescription> autoCombine)
         {
-            Dictionary<ushort, CraftDescription> itemExtensionsDict = new Dictionary<ushort, CraftDescription>();
-            if (autoCraft != null)
+            Dictionary<ushort, CombineDescription> autoCombineDict = new Dictionary<ushort, CombineDescription>();
+            if (autoCombine != null)
             {
-                foreach (CraftDescription craftDesc in autoCraft)
+                foreach (CombineDescription craftDesc in autoCombine)
                 {
-                    if (craftDesc.ResourceItemId == 0)
+                    if (craftDesc.ItemId == 0)
                     {
                         Logger.LogWarning("Resource Item with invalid Id");
                         continue;
                     }
 
-                    if (itemExtensionsDict.ContainsKey(craftDesc.ResourceItemId))
+                    if (autoCombineDict.ContainsKey(craftDesc.ItemId))
                     {
-                        Logger.LogWarning("Resource Item with Id:" + craftDesc.ResourceItemId + " is a duplicate!");
+                        Logger.LogWarning("Resource Item with Id:" + craftDesc.ItemId + " is a duplicate!");
                     }
                     else
                     {
-                        itemExtensionsDict.Add(craftDesc.ResourceItemId, craftDesc);
+                        autoCombineDict.Add(craftDesc.ItemId, craftDesc);
                     }
 
                 }
             }
-            return itemExtensionsDict;
+            return autoCombineDict;
         }
         private void printPluginInfo()
         {

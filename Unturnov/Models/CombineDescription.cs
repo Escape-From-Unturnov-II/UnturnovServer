@@ -6,10 +6,10 @@ using System.Threading.Tasks;
 
 namespace SpeedMann.Unturnov.Models
 {
-    public class CraftDescription
+    public class CombineDescription
     {
-        public ushort ResourceItemId;
-        public ushort BlueprintItemId;
-        public byte BlueprintIndex;
+        public ushort ItemId;
+        public ushort RequiredAmount;
+        public ushort ResultId;
     }
 }

@@ -13,9 +13,10 @@ namespace SpeedMann.Unturnov
         public ushort DeathDropFlag;
         public List<MagazineExtension> UnloadMagBlueprints;
         public List<DeathDrop> DeathDrops;
-        [XmlIgnore]
-        public List<CraftDescription> AutoCraft = new List<CraftDescription>();
-       
+        public List<CombineDescription> AutoCombine;
+        [XmlArrayItem(ElementName = "ItemId")]
+        public List<ushort> MultiUseItems;
+
         public void LoadDefaults()
         {
             Debug = true;
@@ -65,23 +66,76 @@ namespace SpeedMann.Unturnov
                     }
                 },
             };
-            /*
-            AutoCraft = new List<CraftDescription>
+            AutoCombine = new List<CombineDescription>
             {
-                new CraftDescription()
+                new CombineDescription()
                 {
-                    ResourceItemId = 66,
-                    BlueprintItemId = 393,
-                    BlueprintIndex = 0,
+                    ItemId = 37001,
+                    RequiredAmount = 2,
+                    ResultId = 37002,
                 },
-                new CraftDescription()
+                new CombineDescription()
                 {
-                    ResourceItemId = 393,
-                    BlueprintItemId = 95,
-                    BlueprintIndex = 0,
-                }
+                    ItemId = 37002,
+                    RequiredAmount = 5,
+                    ResultId = 37003,
+                },
+                new CombineDescription()
+                {
+                    ItemId = 37003,
+                    RequiredAmount = 2,
+                    ResultId = 37004,
+                },
+                new CombineDescription()
+                {
+                    ItemId = 37004,
+                    RequiredAmount = 5,
+                    ResultId = 37005,
+                },
+                new CombineDescription()
+                {
+                    ItemId = 37005,
+                    RequiredAmount = 2,
+                    ResultId = 37006,
+                },
+                new CombineDescription()
+                {
+                    ItemId = 37006,
+                    RequiredAmount = 5,
+                    ResultId = 37007,
+                },
+                new CombineDescription()
+                {
+                    ItemId = 37007,
+                    RequiredAmount = 2,
+                    ResultId = 37008,
+                },
+                new CombineDescription()
+                {
+                    ItemId = 37008,
+                    RequiredAmount = 5,
+                    ResultId = 37009,
+                },
+                new CombineDescription()
+                {
+                    ItemId = 37009,
+                    RequiredAmount = 2,
+                    ResultId = 37010,
+                },
             };
-            */
+            MultiUseItems = new List<ushort>
+            {
+                37185,
+                37186,
+                37187,
+                37188,
+                37189,
+                37190,
+                37191,
+                37192,
+                37193,
+                37194,
+            };
         }
         public void updateConfig()
         {
