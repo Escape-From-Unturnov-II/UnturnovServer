@@ -47,6 +47,7 @@
     </Reference>
     <Reference Include="Newtonsoft.Json">
       <HintPath>F:\Program Files (x86)\Steam\SteamApps\common\Unturned\Unturned_Data\Managed\Newtonsoft.Json.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="Rocket.API">
       <HintPath>F:\Program Files (x86)\Steam\SteamApps\server\steamapps\common\U3DS\Modules\Rocket.Unturned\Rocket.API.dll</HintPath>
@@ -62,6 +63,7 @@
     </Reference>
     <Reference Include="SDG.NetPak.Runtime">
       <HintPath>F:\Program Files (x86)\Steam\SteamApps\common\Unturned\Unturned_Data\Managed\SDG.NetPak.Runtime.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="SDG.NetTransport">
       <HintPath>F:\Program Files (x86)\Steam\SteamApps\common\Unturned\Unturned_Data\Managed\SDG.NetTransport.dll</HintPath>
@@ -84,10 +86,13 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Helper\MessageHandler.cs" />
     <Compile Include="Helper\UnturnedPrivateFields.cs" />
+    <Compile Include="Models\GunAttachments.cs" />
     <Compile Include="Models\DeathDrop.cs" />
+    <Compile Include="Models\ItemExtension.cs" />
     <Compile Include="Models\ItemJarWrapper.cs" />
-    <Compile Include="Models\MagazineExtension.cs" />
+    <Compile Include="Models\EmptyMagazineExtension.cs" />
     <Compile Include="UnturnovCommands.cs" />
     <Compile Include="Helper\UnturnedPatches.cs" />
     <Compile Include="Models\CombineDescription.cs" />

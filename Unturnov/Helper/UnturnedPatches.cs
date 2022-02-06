@@ -13,11 +13,13 @@ namespace SpeedMann.Unturnov.Helper
 {
     class UnturnedPatches
     {
+        private static Harmony harmony;
+        private static string harmonyId = "SpeedMann.PvPRework";
         public static void Init()
         {
             try
             {
-                Harmony harmony = new Harmony("SpeedMann.Unturnov");
+                harmony = new Harmony(harmonyId);
                 harmony.PatchAll();
                 if (Unturnov.Conf.Debug)
                 {
@@ -31,7 +33,28 @@ namespace SpeedMann.Unturnov.Helper
             }
             catch (Exception e)
             {
-                Logger.LogError($"EventLoad: {e.Message}");
+                Logger.LogError($"ArmorPlus patches: {e.Message}");
+            }
+        }
+        public static void Cleanup()
+        {
+            try
+            {
+                harmony.UnpatchAll(harmonyId);
+
+                if (Unturnov.Conf.Debug)
+                {
+                    var myOriginalMethods = harmony.GetPatchedMethods();
+                    Logger.Log("Patched Methods:");
+                    foreach (var method in myOriginalMethods)
+                    {
+                        Logger.Log(" " + method.ToString());
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Logger.LogError($"ArmorPlus patches: {e.Message}");
             }
         }
 
@@ -46,34 +69,19 @@ namespace SpeedMann.Unturnov.Helper
 
         #region Patches
 
-
-        [HarmonyPatch(typeof(PlayerInventory), "ReceiveDragItem")]
-        class InventoryDrag
+        [HarmonyPatch(typeof(Provider), nameof(Provider.accept), new Type[] { typeof(SteamPending) })]
+        class ClientAcceptedPatch
         {
             [HarmonyPrefix]
-            internal static bool OnPreItemDraggedInvoker(PlayerInventory __instance, byte page_0, byte x_0, byte y_0,
-       ref byte page_1, ref byte x_1, ref byte y_1, ref byte rot_1)
+            internal static bool OnPreClientAcceptedInvoker(PlayerInventory __instance, SteamPending player)
             {
-                var shouldAllow = true;
-                OnPrePlayerDraggedItem?.Invoke(__instance, page_0, x_0, y_0, page_1, x_1, y_1, rot_1, ref shouldAllow);
-                return shouldAllow;
+                Logger.Log($"Client Backpack cosmetic: {player.backpackItem}");
+                player.backpackItem = 83000;
+                
+                return true;
             }
         }
-
-
-        [HarmonyPatch(typeof(PlayerInventory), "ReceiveSwapItem")]
-        class InventoryMove
-        {
-            [HarmonyPrefix]
-            internal static bool OnPreItemSwappedInvoker(PlayerInventory __instance, byte page_0, byte x_0, byte y_0,
-    byte rot_0, byte page_1, byte x_1, byte y_1, byte rot_1)
-            {
-                var shouldAllow = true;
-                OnPrePlayerSwappedItem?.Invoke(__instance, page_0, x_0, y_0, rot_0, page_1, x_1, y_1, rot_1,
-                    ref shouldAllow);
-                return shouldAllow;
-            }
-        }
+              
         #endregion
     }
 }

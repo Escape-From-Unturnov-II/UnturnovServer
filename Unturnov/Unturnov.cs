@@ -15,6 +15,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using static SpeedMann.Unturnov.Models.GunAttachments;
 using Logger = Rocket.Core.Logging.Logger;
 
 namespace SpeedMann.Unturnov
@@ -25,7 +26,10 @@ namespace SpeedMann.Unturnov
         public static UnturnovConfiguration Conf;
 
         private Dictionary<ushort, CombineDescription> AutoCombineDict;
-        private Dictionary<ushort, ushort> MagazineTypes;
+        private Dictionary<ushort, ushort> MagazineDict;
+        private Dictionary<ushort, ItemExtension> MultiUseDict;
+        private Dictionary<ushort, ItemExtension> GunModdingDict;
+        private Dictionary<CSteamID, GunAttachments> ModdedGunAttachments;
         private List<CSteamID> ReplaceBypass;
 
         #region Load
@@ -34,10 +38,17 @@ namespace SpeedMann.Unturnov
             Inst = this;
             Conf = Configuration.Instance;
 
-            ReplaceBypass = new List<CSteamID>();
+            UnturnedPrivateFields.Init();
+            UnturnedPatches.Init();
+            MessageHandler.Init();
 
-            MagazineTypes = createDictionaryFromMagazineExtensions(Conf.UnloadMagBlueprints);
+            ReplaceBypass = new List<CSteamID>();
+            ModdedGunAttachments = new Dictionary<CSteamID, GunAttachments>();
+
+            MagazineDict = createDictionaryFromMagazineExtensions(Conf.UnloadMagBlueprints);
             AutoCombineDict = createDictionaryFromAutoCombine(Conf.AutoCombine);
+            MultiUseDict = createDictionaryFromItemExtensions(Conf.MultiUseItems);
+            GunModdingDict = createDictionaryFromItemExtensions(Conf.GunModdingResults);
 
             printPluginInfo();
 
@@ -50,6 +61,8 @@ namespace SpeedMann.Unturnov
         }
         protected override void Unload()
         {
+            UnturnedPatches.Cleanup();
+
             UnturnedPlayerEvents.OnPlayerInventoryAdded -= OnInventoryUpdated;
             PlayerCrafting.onCraftBlueprintRequested -= OnCraft;
             UnturnedPlayerEvents.OnPlayerDeath -= OnPlayerDeath;
@@ -96,6 +109,70 @@ namespace SpeedMann.Unturnov
                 return;
             }
 
+            #region Weapon Modding
+            if (GunModdingDict.ContainsKey(P.item.id) && ModdedGunAttachments.TryGetValue(player.CSteamID, out GunAttachments attachments))
+            {
+                ModdedGunAttachments.Remove(player.CSteamID);
+                Asset asset = Assets.find(EAssetType.ITEM, P.item.id);
+                if (asset != null && asset is ItemGunAsset)
+                {
+                   
+                    ItemGunAsset gunAsset = (ItemGunAsset)asset;
+                    byte[] newState = gunAsset.getState();
+                    // remove mag and ammo
+                    newState[8] = 0;
+                    newState[0] = 0;
+                    newState[10] = 0;
+
+                    // check attachments
+                    foreach (ushort caliber in gunAsset.attachmentCalibers)
+                    {
+                        foreach (GunAttachment att in attachments.attachments)
+                        {
+                            if (!att.set && att.calibers != null && att.calibers.Contains(caliber))
+                            {
+                                att.SetAttachment(ref newState);
+                            }
+                        }
+                    }
+
+                    // check mag
+                    foreach (ushort caliber in gunAsset.magazineCalibers)
+                    {
+                        if (attachments.magAttachment.calibers != null && attachments.magAttachment.calibers.Contains(caliber))
+                        {
+                            attachments.magAttachment.SetAttachment(ref newState);
+                            break;
+                        }
+                    }
+                    // give incompatible attachments
+                    foreach (GunAttachment att in attachments.attachments)
+                    {
+                        if (!att.set)
+                        {
+                            Item item = new Item(att.id, true);
+                            if (!player.GiveItem(item))
+                            {
+                                player.Inventory.forceAddItem(item, false);
+                            }
+                        }
+                    }
+                    // give incompatible mag
+                    if (!attachments.magAttachment.set)
+                    {
+                        Item item = new Item(attachments.magAttachment.id, attachments.ammo, 100);
+                        if (!player.GiveItem(item))
+                        {
+                            player.Inventory.forceAddItem(item, false);
+                        }
+                    }
+                    
+                    byte index = player.Inventory.findIndex((byte)inventoryGroup, P.x, P.y, out byte found_x, out byte found_y);
+                    player.Inventory.sendUpdateInvState((byte)inventoryGroup, P.x, P.y, newState);
+                }
+            }
+            #endregion
+
             #region auto combine
             CombineDescription combine;
             if (AutoCombineDict.TryGetValue(P.item.id, out combine))
@@ -121,7 +198,7 @@ namespace SpeedMann.Unturnov
             #endregion
 
             #region Mag load/unload logic
-            MagazineExtension magazineExtension = Conf.UnloadMagBlueprints.Find(x => x.EmptyMagazineId == P.item.id);
+            EmptyMagazineExtension magazineExtension = Conf.UnloadMagBlueprints.Find(x => x.ItemId == P.item.id);
             if (magazineExtension != null)
             {
                 if (Conf.Debug)
@@ -129,16 +206,12 @@ namespace SpeedMann.Unturnov
                     Logger.Log("empty mag");
                 }
                
-                player.Inventory.sendUpdateAmount(((byte)inventoryGroup), P.x, P.y, (byte)0);
+                player.Inventory.sendUpdateAmount(((byte)inventoryGroup), P.x, P.y, 0);
                 return;
             }
             ushort emptyMagId;
-            if ((MagazineTypes.TryGetValue(P.item.id, out emptyMagId) && P.item.amount <= 0))
+            if ((MagazineDict.TryGetValue(P.item.id, out emptyMagId) && P.item.amount <= 0))
             {
-                if (Conf.Debug)
-                {
-                    Logger.Log("replace mag");
-                }
                 player.Inventory.removeItem((byte)inventoryGroup, inventoryIndex);
                 Item replacement = new Item(emptyMagId, (byte)0, P.item.quality);
 
@@ -159,28 +232,65 @@ namespace SpeedMann.Unturnov
             ushort itemId = itemID;
             Blueprint blueprint = ((ItemAsset)Assets.find(EAssetType.ITEM, itemID)).blueprints[blueprintIndex];
             UnturnedPlayer player = UnturnedPlayer.FromPlayer(crafting.player);
+            PlayerInventory inventory = crafting.player.inventory;
 
-            #region Check Disable Autocombine
-            if (blueprint.outputs.Length > 0)
+            #region Weapon Modding
+            GunAttachments attachments = null;
+            // find original Gun and its Attachments
+            foreach (BlueprintSupply supply in blueprint.supplies)
             {
-                foreach(BlueprintOutput outP in  blueprint.outputs)
+                if (GunModdingDict.ContainsKey(supply.id))
                 {
-                    if (AutoCombineDict.ContainsKey(outP.id) && (!ReplaceBypass.Contains(player.CSteamID)))
+                    List<InventorySearch> itemList = inventory.search(supply.id, true, true);
+                    if (itemList.Count > 0)
                     {
-                        ReplaceBypass.Add(player.CSteamID);
-                        return;
+                        Asset asset = Assets.find(EAssetType.ITEM, itemList[0].jar.item.id);
+                        if (asset != null && asset is ItemGunAsset)
+                        {
+                            attachments = new GunAttachments(itemList[0].jar.item.metadata);
+                            if (Conf.Debug)
+                            {
+                                Logger.Log($"Modded weapon with: sight {attachments.attachments[0].id}, tactical {attachments.attachments[1].id}, grip {attachments.attachments[2].id}, barrel {attachments.attachments[3].id}, mag {attachments.magAttachment.id}, ammo {attachments.ammo}");
+                            }
+                            byte index = player.Inventory.findIndex(itemList[0].page, itemList[0].jar.x, itemList[0].jar.y, out byte found_x,out byte found_y);
+                            player.Inventory.updateState(itemList[0].page, index, new byte[18]);
+                            break;
+                        }
                     }
+                }
+            }
+            // save attachments
+            if (attachments != null)
+            {
+                if (!ModdedGunAttachments.ContainsKey(player.CSteamID))
+                {
+                    ModdedGunAttachments.Add(player.CSteamID, attachments);
+                }
+                else
+                {
+                    ModdedGunAttachments[player.CSteamID] = attachments;
                 }
             }
             #endregion
 
+            #region Check Disable Autocombine
+            foreach (BlueprintOutput outP in blueprint.outputs)
+            {
+                if (AutoCombineDict.ContainsKey(outP.id) && (!ReplaceBypass.Contains(player.CSteamID)))
+                {
+                    ReplaceBypass.Add(player.CSteamID);
+                    return;
+                }
+            }
+
+            #endregion
+
             #region Load Mag
-            MagazineExtension magExt = Conf.UnloadMagBlueprints.Find(x => x.EmptyMagazineId == itemId);
+            EmptyMagazineExtension magExt = Conf.UnloadMagBlueprints.Find(x => x.ItemId == itemId);
             if (magExt != null)
             {
                 // load mag
-                PlayerInventory inventory = crafting.player.inventory;
-                MagazineExtension.MagazineType magtype = null;
+                EmptyMagazineExtension.LoadedMagazineVariant loadedMag = null;
 
                 foreach (BlueprintSupply supply in blueprint.supplies)
                 {
@@ -200,8 +310,8 @@ namespace SpeedMann.Unturnov
                         byte index = inventory.getIndex(itemList[0].page, itemList[0].jar.x, itemList[0].jar.y);
                         inventory.removeItem(itemList[0].page, index);
 
-                        magtype = magExt.MagazineTypeIds.Find(x => ((ItemAsset)Assets.find(EAssetType.ITEM, x.MagazineId)).blueprints[x.refillAmmoIndex].supplies[0].id == blueprint.supplies[0].id);
-                        Item replacement = new Item(magtype.MagazineId, (byte)0, supplyList[0].jar.item.quality);
+                        loadedMag = magExt.LoadedMagazines.Find(x => ((ItemAsset)Assets.find(EAssetType.ITEM, x.ItemId)).blueprints[x.RefillAmmoBlueprintIndex].supplies[0].id == blueprint.supplies[0].id);
+                        Item replacement = new Item(loadedMag.ItemId, (byte)0, supplyList[0].jar.item.quality);
                         if (!ReplaceBypass.Contains(player.CSteamID))
                         {
                             ReplaceBypass.Add(player.CSteamID);
@@ -212,10 +322,10 @@ namespace SpeedMann.Unturnov
                         }
                     }
                 }
-                if (magtype != null)
+                if (loadedMag != null)
                 {
-                    itemID = magtype.MagazineId;
-                    blueprintIndex = magtype.refillAmmoIndex;
+                    itemID = loadedMag.ItemId;
+                    blueprintIndex = loadedMag.RefillAmmoBlueprintIndex;
                 }
             }
             #endregion
@@ -223,7 +333,8 @@ namespace SpeedMann.Unturnov
 
         private void OnConsumed(Player instigatingPlayer, ItemConsumeableAsset consumeableAsset)
         {
-            if (Conf.MultiUseItems.Contains(consumeableAsset.id))
+
+            if (MultiUseDict.ContainsKey(consumeableAsset.id))
             {
                 byte page = instigatingPlayer.equipment.equippedPage;
                 byte x = instigatingPlayer.equipment.equipped_x;
@@ -243,25 +354,25 @@ namespace SpeedMann.Unturnov
         }
         #region HelperFunctions
 
-        private Dictionary<ushort, ushort> createDictionaryFromMagazineExtensions(List<MagazineExtension> magExtensions)
+        private Dictionary<ushort, ushort> createDictionaryFromMagazineExtensions(List<EmptyMagazineExtension> magExtensions)
         {
             Dictionary<ushort, ushort> itemExtensionsDict = new Dictionary<ushort, ushort>();
             if (magExtensions != null)
             {
-                foreach (MagazineExtension extension in magExtensions)
+                foreach (EmptyMagazineExtension extension in magExtensions)
                 {
-                    if (extension.MagazineTypeIds != null)
+                    if (extension.LoadedMagazines != null)
                     {
-                        foreach (MagazineExtension.MagazineType magType in extension.MagazineTypeIds)
+                        foreach (EmptyMagazineExtension.LoadedMagazineVariant magType in extension.LoadedMagazines)
                         {
-                            if (itemExtensionsDict.ContainsKey(magType.MagazineId))
+                            if (itemExtensionsDict.ContainsKey(magType.ItemId))
                             {
                                 Logger.LogWarning("Item with Id:" + magType + " is a duplicate!");
                             }
                             else
                             {
 
-                                itemExtensionsDict.Add(magType.MagazineId, extension.EmptyMagazineId);
+                                itemExtensionsDict.Add(magType.ItemId, extension.ItemId);
                             }
                         }
                     }
@@ -294,6 +405,29 @@ namespace SpeedMann.Unturnov
                 }
             }
             return autoCombineDict;
+        }
+        private Dictionary<ushort, T> createDictionaryFromItemExtensions<T>(List<T> itemExtensions) where T : ItemExtension
+        {
+            Dictionary<ushort, T> itemExtensionsDict = new Dictionary<ushort, T>();
+            if (itemExtensions != null)
+            {
+                foreach (T itemExtension in itemExtensions)
+                {
+                    if (itemExtension.ItemId == 0)
+                        continue;
+
+                    if (itemExtensionsDict.ContainsKey(itemExtension.ItemId))
+                    {
+                        Logger.LogWarning("Item with Id:" + itemExtension.ItemId + " is a duplicate!");
+                    }
+                    else
+                    {
+                        itemExtensionsDict.Add(itemExtension.ItemId, itemExtension);
+                    }
+
+                }
+            }
+            return itemExtensionsDict;
         }
         private void printPluginInfo()
         {

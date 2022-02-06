@@ -6,9 +6,8 @@ using System.Threading.Tasks;
 
 namespace SpeedMann.Unturnov.Models
 {
-    public class CombineDescription
+    public class CombineDescription : ItemExtension
     {
-        public ushort ItemId;
         public ushort RequiredAmount;
         public ushort ResultId;
     }

@@ -1,4 +1,7 @@
-﻿using SDG.Unturned;
+﻿using HarmonyLib;
+using SDG.NetPak;
+using SDG.NetTransport;
+using SDG.Unturned;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,24 +13,42 @@ namespace SpeedMann.Unturnov.Helper
 {
     public class UnturnedPrivateFields
     {
-        private static FieldInfo SendRefreshCrafting;
-        public static bool getRefreshCraftingSender(PlayerCrafting crafting, out ClientInstanceMethod result)
+        private static MethodInfo WriteConnectedMessageInfo;
+        private static FieldInfo WriterInfo;
+
+        public static bool TryGetNetMessagesWriter(out NetPakWriter writer)
         {
-            if (SendRefreshCrafting != null)
+            writer = null;
+            if (WriterInfo != null)
             {
-                result = (ClientInstanceMethod)SendRefreshCrafting.GetValue(crafting);
+                writer = (NetPakWriter)WriterInfo.GetValue(null);
                 return true;
             }
-            result = null;
             return false;
         }
 
+        public static bool WriteConnectedMessage(NetPakWriter writer, SteamPlayer aboutPlayer, SteamPlayer forPlayer)
+        {
+            if (WriteConnectedMessageInfo != null)
+            {
+                WriteConnectedMessageInfo.Invoke(null, new object[] { writer, aboutPlayer, forPlayer });
+                return true;
+            }
+            return false;
+        }
+
+        
         public static void Init()
         {
             Type type;
 
-            type = typeof(PlayerCrafting);
-            SendRefreshCrafting = type.GetField("SendRefreshCrafting", BindingFlags.NonPublic | BindingFlags.Instance);
+            type = typeof(Provider);
+            WriteConnectedMessageInfo = type.GetMethod("WriteConnectedMessage", BindingFlags.Static | BindingFlags.NonPublic);
+            
+            /*
+            type = AccessTools.TypeByName("SDG.Unturned.NetMessages");
+            WriterInfo = AccessTools.Field(type, "writer");
+            */
         }
     }
 }

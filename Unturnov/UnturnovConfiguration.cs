@@ -11,11 +11,12 @@ namespace SpeedMann.Unturnov
     {
         public bool Debug;
         public ushort DeathDropFlag;
-        public List<MagazineExtension> UnloadMagBlueprints;
+        public List<EmptyMagazineExtension> UnloadMagBlueprints;
         public List<DeathDrop> DeathDrops;
         public List<CombineDescription> AutoCombine;
         [XmlArrayItem(ElementName = "ItemId")]
-        public List<ushort> MultiUseItems;
+        public List<ItemExtension> MultiUseItems;
+        public List<ItemExtension> GunModdingResults;
 
         public void LoadDefaults()
         {
@@ -29,39 +30,39 @@ namespace SpeedMann.Unturnov
                   RequiredFalgValue = 0,
                 },
             };
-            UnloadMagBlueprints = new List<MagazineExtension>
+            UnloadMagBlueprints = new List<EmptyMagazineExtension>
             {
-                new MagazineExtension
+                new EmptyMagazineExtension
                 {
-                    EmptyMagazineId = 37775,
-                    MagazineTypeIds = new List<MagazineExtension.MagazineType>
+                    ItemId = 37775,
+                    LoadedMagazines = new List<EmptyMagazineExtension.LoadedMagazineVariant>
                     {
-                        new MagazineExtension.MagazineType
+                        new EmptyMagazineExtension.LoadedMagazineVariant
                         {
-                            MagazineId = 37994,
-                            refillAmmoIndex = 0,
+                            ItemId = 37994,
+                            RefillAmmoBlueprintIndex = 0,
                         },
-                        new MagazineExtension.MagazineType
+                        new EmptyMagazineExtension.LoadedMagazineVariant
                         {
-                            MagazineId = 37995,
-                            refillAmmoIndex = 0,
+                            ItemId = 37995,
+                            RefillAmmoBlueprintIndex = 0,
                         }
                     }
                 },
-                new MagazineExtension
+                new EmptyMagazineExtension
                 {
-                    EmptyMagazineId = 37776,
-                    MagazineTypeIds = new List<MagazineExtension.MagazineType>
+                    ItemId = 37776,
+                    LoadedMagazines = new List<EmptyMagazineExtension.LoadedMagazineVariant>
                     {
-                        new MagazineExtension.MagazineType
+                        new EmptyMagazineExtension.LoadedMagazineVariant
                         {
-                            MagazineId = 38000,
-                            refillAmmoIndex = 0,
+                            ItemId = 38000,
+                            RefillAmmoBlueprintIndex = 0,
                         },
-                        new MagazineExtension.MagazineType
+                        new EmptyMagazineExtension.LoadedMagazineVariant
                         {
-                            MagazineId = 38009,
-                            refillAmmoIndex = 0,
+                            ItemId = 38009,
+                            RefillAmmoBlueprintIndex = 0,
                         }
                     }
                 },
@@ -123,18 +124,63 @@ namespace SpeedMann.Unturnov
                     ResultId = 37010,
                 },
             };
-            MultiUseItems = new List<ushort>
+            MultiUseItems = new List<ItemExtension>
             {
-                37185,
-                37186,
-                37187,
-                37188,
-                37189,
-                37190,
-                37191,
-                37192,
-                37193,
-                37194,
+                new ItemExtension
+                {
+                    ItemId = 37185
+                },
+                new ItemExtension
+                {
+                    ItemId = 37186
+                },
+                new ItemExtension
+                {
+                    ItemId = 37187
+                },
+                new ItemExtension
+                {
+                    ItemId = 37188
+                },
+                new ItemExtension
+                {
+                    ItemId = 37189
+                },
+                new ItemExtension
+                {
+                    ItemId = 37190
+                },
+                new ItemExtension
+                {
+                    ItemId = 37191
+                },
+                new ItemExtension
+                {
+                    ItemId = 37192
+                },
+                new ItemExtension
+                {
+                    ItemId = 37193
+                },
+                new ItemExtension
+                {
+                    ItemId = 37194
+                },
+            };
+            GunModdingResults = new List<ItemExtension>
+            {
+                new ItemExtension
+                {
+                    ItemId = 38051
+                },
+                new ItemExtension
+                {
+                    ItemId = 38052
+                },
+                new ItemExtension
+                {
+                    ItemId = 38053
+                },
             };
         }
         public void updateConfig()

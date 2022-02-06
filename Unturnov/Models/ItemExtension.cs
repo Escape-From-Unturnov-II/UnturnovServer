@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace SpeedMann.Unturnov.Models
 {
-    public class DeathDrop : ItemExtension
+    public class ItemExtension
     {
-       
-        public short RequiredFalgValue;
+        public string Name;
+        public ushort ItemId;
     }
 }
