@@ -14,10 +14,11 @@ namespace SpeedMann.Unturnov
         public List<EmptyMagazineExtension> UnloadMagBlueprints;
         public List<DeathDrop> DeathDrops;
         public List<CombineDescription> AutoCombine;
-        [XmlArrayItem(ElementName = "ItemId")]
+        [XmlArrayItem(ElementName = "Item")]
         public List<ItemExtension> MultiUseItems;
+        [XmlArrayItem(ElementName = "Item")]
         public List<ItemExtension> GunModdingResults;
-
+        public List<OpenableItem> OpenableItems;
         public void LoadDefaults()
         {
             Debug = true;
@@ -30,6 +31,7 @@ namespace SpeedMann.Unturnov
                   RequiredFalgValue = 0,
                 },
             };
+
             UnloadMagBlueprints = new List<EmptyMagazineExtension>
             {
                 new EmptyMagazineExtension
@@ -181,6 +183,16 @@ namespace SpeedMann.Unturnov
                 {
                     ItemId = 38053
                 },
+            };
+            OpenableItems = new List<OpenableItem>
+            {
+                new OpenableItem
+                {
+                    Name = "KeyTool",
+                    ItemId = 50303,
+                    Height = 3,
+                    Width = 3,
+                }
             };
         }
         public void updateConfig()

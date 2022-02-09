@@ -41,6 +41,7 @@ namespace SpeedMann.Unturnov
             UnturnedPrivateFields.Init();
             UnturnedPatches.Init();
             MessageHandler.Init();
+            OpenableItemsHandler.Init();
 
             ReplaceBypass = new List<CSteamID>();
             ModdedGunAttachments = new Dictionary<CSteamID, GunAttachments>();
@@ -49,12 +50,14 @@ namespace SpeedMann.Unturnov
             AutoCombineDict = createDictionaryFromAutoCombine(Conf.AutoCombine);
             MultiUseDict = createDictionaryFromItemExtensions(Conf.MultiUseItems);
             GunModdingDict = createDictionaryFromItemExtensions(Conf.GunModdingResults);
+            
 
             printPluginInfo();
 
             Conf.updateConfig();
 
             UnturnedPlayerEvents.OnPlayerInventoryAdded += OnInventoryUpdated;
+            PlayerEquipment.OnInspectingUseable_Global += OnInspect;
             PlayerCrafting.onCraftBlueprintRequested += OnCraft;
             UnturnedPlayerEvents.OnPlayerDeath += OnPlayerDeath;
             UseableConsumeable.onConsumePerformed += OnConsumed;
@@ -64,6 +67,7 @@ namespace SpeedMann.Unturnov
             UnturnedPatches.Cleanup();
 
             UnturnedPlayerEvents.OnPlayerInventoryAdded -= OnInventoryUpdated;
+            PlayerEquipment.OnInspectingUseable_Global -= OnInspect;
             PlayerCrafting.onCraftBlueprintRequested -= OnCraft;
             UnturnedPlayerEvents.OnPlayerDeath -= OnPlayerDeath;
             UseableConsumeable.onConsumePerformed -= OnConsumed;
@@ -97,6 +101,14 @@ namespace SpeedMann.Unturnov
                 }
             }
         }
+
+        private void OnInspect(PlayerEquipment equipment)
+        {
+            equipment.state = OpenableItemsHandler.checkState(equipment.asset, equipment.state);
+            equipment.sendUpdateState();
+
+        }
+       
         private void OnInventoryUpdated(UnturnedPlayer player, InventoryGroup inventoryGroup, byte inventoryIndex, ItemJar P)
         {
             if (ReplaceBypass.Contains(player.CSteamID))
@@ -116,10 +128,10 @@ namespace SpeedMann.Unturnov
                 Asset asset = Assets.find(EAssetType.ITEM, P.item.id);
                 if (asset != null && asset is ItemGunAsset)
                 {
-                   
+
+                    // get initial state and remove mag and ammo
                     ItemGunAsset gunAsset = (ItemGunAsset)asset;
                     byte[] newState = gunAsset.getState();
-                    // remove mag and ammo
                     newState[8] = 0;
                     newState[0] = 0;
                     newState[10] = 0;
@@ -166,8 +178,6 @@ namespace SpeedMann.Unturnov
                             player.Inventory.forceAddItem(item, false);
                         }
                     }
-                    
-                    byte index = player.Inventory.findIndex((byte)inventoryGroup, P.x, P.y, out byte found_x, out byte found_y);
                     player.Inventory.sendUpdateInvState((byte)inventoryGroup, P.x, P.y, newState);
                 }
             }
@@ -197,20 +207,16 @@ namespace SpeedMann.Unturnov
             }
             #endregion
 
-            #region Mag load/unload logic
+            #region Mag change/unload logic
             EmptyMagazineExtension magazineExtension = Conf.UnloadMagBlueprints.Find(x => x.ItemId == P.item.id);
             if (magazineExtension != null)
             {
-                if (Conf.Debug)
-                {
-                    Logger.Log("empty mag");
-                }
-               
                 player.Inventory.sendUpdateAmount(((byte)inventoryGroup), P.x, P.y, 0);
                 return;
             }
-            ushort emptyMagId;
-            if ((MagazineDict.TryGetValue(P.item.id, out emptyMagId) && P.item.amount <= 0))
+
+            // change emptied mags to empty variant
+            if ((MagazineDict.TryGetValue(P.item.id, out ushort emptyMagId) && P.item.amount <= 0))
             {
                 player.Inventory.removeItem((byte)inventoryGroup, inventoryIndex);
                 Item replacement = new Item(emptyMagId, (byte)0, P.item.quality);
@@ -406,7 +412,7 @@ namespace SpeedMann.Unturnov
             }
             return autoCombineDict;
         }
-        private Dictionary<ushort, T> createDictionaryFromItemExtensions<T>(List<T> itemExtensions) where T : ItemExtension
+        internal static Dictionary<ushort, T> createDictionaryFromItemExtensions<T>(List<T> itemExtensions) where T : ItemExtension
         {
             Dictionary<ushort, T> itemExtensionsDict = new Dictionary<ushort, T>();
             if (itemExtensions != null)

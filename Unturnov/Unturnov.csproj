@@ -87,12 +87,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Helper\MessageHandler.cs" />
+    <Compile Include="Helper\OpenableItemsHandler.cs" />
     <Compile Include="Helper\UnturnedPrivateFields.cs" />
     <Compile Include="Models\GunAttachments.cs" />
     <Compile Include="Models\DeathDrop.cs" />
     <Compile Include="Models\ItemExtension.cs" />
     <Compile Include="Models\ItemJarWrapper.cs" />
     <Compile Include="Models\EmptyMagazineExtension.cs" />
+    <Compile Include="Models\OpenableItem.cs" />
     <Compile Include="UnturnovCommands.cs" />
     <Compile Include="Helper\UnturnedPatches.cs" />
     <Compile Include="Models\CombineDescription.cs" />
