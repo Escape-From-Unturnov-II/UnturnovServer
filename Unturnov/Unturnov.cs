@@ -41,7 +41,6 @@ namespace SpeedMann.Unturnov
             UnturnedPrivateFields.Init();
             UnturnedPatches.Init();
             MessageHandler.Init();
-            OpenableItemsHandler.Init();
 
             ReplaceBypass = new List<CSteamID>();
             ModdedGunAttachments = new Dictionary<CSteamID, GunAttachments>();
@@ -57,7 +56,6 @@ namespace SpeedMann.Unturnov
             Conf.updateConfig();
 
             UnturnedPlayerEvents.OnPlayerInventoryAdded += OnInventoryUpdated;
-            PlayerEquipment.OnInspectingUseable_Global += OnInspect;
             PlayerCrafting.onCraftBlueprintRequested += OnCraft;
             UnturnedPlayerEvents.OnPlayerDeath += OnPlayerDeath;
             UseableConsumeable.onConsumePerformed += OnConsumed;
@@ -67,7 +65,6 @@ namespace SpeedMann.Unturnov
             UnturnedPatches.Cleanup();
 
             UnturnedPlayerEvents.OnPlayerInventoryAdded -= OnInventoryUpdated;
-            PlayerEquipment.OnInspectingUseable_Global -= OnInspect;
             PlayerCrafting.onCraftBlueprintRequested -= OnCraft;
             UnturnedPlayerEvents.OnPlayerDeath -= OnPlayerDeath;
             UseableConsumeable.onConsumePerformed -= OnConsumed;
@@ -102,12 +99,6 @@ namespace SpeedMann.Unturnov
             }
         }
 
-        private void OnInspect(PlayerEquipment equipment)
-        {
-            equipment.state = OpenableItemsHandler.checkState(equipment.asset, equipment.state);
-            equipment.sendUpdateState();
-
-        }
        
         private void OnInventoryUpdated(UnturnedPlayer player, InventoryGroup inventoryGroup, byte inventoryIndex, ItemJar P)
         {
@@ -207,7 +198,7 @@ namespace SpeedMann.Unturnov
             }
             #endregion
 
-            #region Mag change/unload logic
+            #region Empty Mag logic
             EmptyMagazineExtension magazineExtension = Conf.UnloadMagBlueprints.Find(x => x.ItemId == P.item.id);
             if (magazineExtension != null)
             {

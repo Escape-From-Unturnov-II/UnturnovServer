@@ -18,7 +18,6 @@ namespace SpeedMann.Unturnov
         public List<ItemExtension> MultiUseItems;
         [XmlArrayItem(ElementName = "Item")]
         public List<ItemExtension> GunModdingResults;
-        public List<OpenableItem> OpenableItems;
         public void LoadDefaults()
         {
             Debug = true;
@@ -183,16 +182,6 @@ namespace SpeedMann.Unturnov
                 {
                     ItemId = 38053
                 },
-            };
-            OpenableItems = new List<OpenableItem>
-            {
-                new OpenableItem
-                {
-                    Name = "KeyTool",
-                    ItemId = 50303,
-                    Height = 3,
-                    Width = 3,
-                }
             };
         }
         public void updateConfig()

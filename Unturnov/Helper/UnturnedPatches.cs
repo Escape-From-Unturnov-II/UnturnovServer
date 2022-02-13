@@ -14,7 +14,7 @@ namespace SpeedMann.Unturnov.Helper
     class UnturnedPatches
     {
         private static Harmony harmony;
-        private static string harmonyId = "SpeedMann.PvPRework";
+        private static string harmonyId = "SpeedMann.Unturnov";
         public static void Init()
         {
             try
@@ -33,7 +33,7 @@ namespace SpeedMann.Unturnov.Helper
             }
             catch (Exception e)
             {
-                Logger.LogError($"ArmorPlus patches: {e.Message}");
+                Logger.LogError($"Unturnov patches: {e.Message}");
             }
         }
         public static void Cleanup()

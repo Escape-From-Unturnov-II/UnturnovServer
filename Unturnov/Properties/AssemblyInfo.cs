@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("SecureCases")]
+[assembly: AssemblyTitle("UnturnovPlugin")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("SecureCases")]
+[assembly: AssemblyProduct("UnturnovPlugin")]
 [assembly: AssemblyCopyright("SpeedMann")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
