@@ -59,25 +59,19 @@ namespace SpeedMann.Unturnov.Helper
         }
 
         #region Events
-        public delegate void PrePlayerDraggedItem(PlayerInventory inventory, byte page_0, byte x_0, byte y_0,
-           byte page_1, byte x_1, byte y_1, byte rot_1, ref bool shouldAllow);
-        public static event PrePlayerDraggedItem OnPrePlayerDraggedItem;
-        public delegate void PrePlayerSwappedItem(PlayerInventory inventory, byte page_0, byte x_0, byte y_0,
-           byte rot_0, byte page_1, byte x_1, byte y_1, byte rot_1, ref bool shouldAllow);
-        public static event PrePlayerSwappedItem OnPrePlayerSwappedItem;
+        public delegate void PreTryAddItemAuto(PlayerInventory inventory, Item item, ref bool autoEquipWeapon, ref bool autoEquipUseable, ref bool autoEquipClothing);
+        public static event PreTryAddItemAuto OnPreTryAddItemAuto;
         #endregion
 
         #region Patches
 
-        [HarmonyPatch(typeof(Provider), nameof(Provider.accept), new Type[] { typeof(SteamPending) })]
-        class ClientAcceptedPatch
+        [HarmonyPatch(typeof(PlayerInventory), nameof(PlayerInventory.tryAddItemAuto), new Type[] { typeof(Item), typeof(bool), typeof(bool), typeof(bool), typeof(bool) })]
+        class TryAddItemAutoPatch
         {
             [HarmonyPrefix]
-            internal static bool OnPreClientAcceptedInvoker(PlayerInventory __instance, SteamPending player)
+            internal static bool OnPreTryAddItemAutoInvoker(PlayerInventory __instance, Item item, ref bool autoEquipWeapon, ref bool autoEquipUseable, ref bool autoEquipClothing)
             {
-                Logger.Log($"Client Backpack cosmetic: {player.backpackItem}");
-                player.backpackItem = 83000;
-                
+                OnPreTryAddItemAuto?.Invoke(__instance, item, ref autoEquipWeapon, ref autoEquipUseable, ref autoEquipClothing);
                 return true;
             }
         }

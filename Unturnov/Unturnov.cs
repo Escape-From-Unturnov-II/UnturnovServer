@@ -55,6 +55,8 @@ namespace SpeedMann.Unturnov
 
             Conf.updateConfig();
 
+            UnturnedPatches.OnPreTryAddItemAuto += OnTryAddItem;
+
             UnturnedPlayerEvents.OnPlayerInventoryAdded += OnInventoryUpdated;
             PlayerCrafting.onCraftBlueprintRequested += OnCraft;
             UnturnedPlayerEvents.OnPlayerDeath += OnPlayerDeath;
@@ -63,6 +65,8 @@ namespace SpeedMann.Unturnov
         protected override void Unload()
         {
             UnturnedPatches.Cleanup();
+
+            UnturnedPatches.OnPreTryAddItemAuto -= OnTryAddItem;
 
             UnturnedPlayerEvents.OnPlayerInventoryAdded -= OnInventoryUpdated;
             PlayerCrafting.onCraftBlueprintRequested -= OnCraft;
@@ -96,10 +100,21 @@ namespace SpeedMann.Unturnov
                     }
                     ItemManager.dropItem(item, player.Position, true, false, true);
                 }
+                UnturnedPlayer murderPlayer = UnturnedPlayer.FromCSteamID(murderer);
+                // TODO: implement quest extension falg id check
             }
         }
 
-       
+        private void OnTryAddItem(PlayerInventory inventory, Item item, ref bool autoEquipWeapon, ref bool autoEquipUseable, ref bool autoEquipClothing)
+        {
+            UnturnedPlayer player = UnturnedPlayer.FromPlayer(inventory.player);
+            if (GunModdingDict.ContainsKey(item.id) && ModdedGunAttachments.ContainsKey(player.CSteamID))
+            {
+                // prevent autoequip of modded guns
+                autoEquipClothing = autoEquipUseable = autoEquipWeapon = false;
+            }
+        }
+
         private void OnInventoryUpdated(UnturnedPlayer player, InventoryGroup inventoryGroup, byte inventoryIndex, ItemJar P)
         {
             if (ReplaceBypass.Contains(player.CSteamID))
@@ -124,7 +139,7 @@ namespace SpeedMann.Unturnov
                     ItemGunAsset gunAsset = (ItemGunAsset)asset;
                     byte[] newState = gunAsset.getState();
                     newState[8] = 0;
-                    newState[0] = 0;
+                    newState[9] = 0;
                     newState[10] = 0;
 
                     // check attachments
@@ -151,9 +166,13 @@ namespace SpeedMann.Unturnov
                     // give incompatible attachments
                     foreach (GunAttachment att in attachments.attachments)
                     {
-                        if (!att.set)
+                        if (!att.set && att.id != 0)
                         {
                             Item item = new Item(att.id, true);
+                            if (Conf.Debug)
+                            {
+                                Logger.Log($"gave incompatible attachment: {item.id}");
+                            }
                             if (!player.GiveItem(item))
                             {
                                 player.Inventory.forceAddItem(item, false);
@@ -161,9 +180,13 @@ namespace SpeedMann.Unturnov
                         }
                     }
                     // give incompatible mag
-                    if (!attachments.magAttachment.set)
+                    if (!attachments.magAttachment.set && attachments.magAttachment.id != 0)
                     {
                         Item item = new Item(attachments.magAttachment.id, attachments.ammo, 100);
+                        if (Conf.Debug)
+                        {
+                            Logger.Log($"gave incompatible magazine: {item.id}");
+                        }
                         if (!player.GiveItem(item))
                         {
                             player.Inventory.forceAddItem(item, false);
@@ -350,7 +373,6 @@ namespace SpeedMann.Unturnov
             }
         }
         #region HelperFunctions
-
         private Dictionary<ushort, ushort> createDictionaryFromMagazineExtensions(List<EmptyMagazineExtension> magExtensions)
         {
             Dictionary<ushort, ushort> itemExtensionsDict = new Dictionary<ushort, ushort>();
