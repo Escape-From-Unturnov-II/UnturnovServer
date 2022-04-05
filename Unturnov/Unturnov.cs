@@ -61,6 +61,7 @@ namespace SpeedMann.Unturnov
             PlayerCrafting.onCraftBlueprintRequested += OnCraft;
             UnturnedPlayerEvents.OnPlayerDeath += OnPlayerDeath;
             UseableConsumeable.onConsumePerformed += OnConsumed;
+            UseableConsumeable.onPerformingAid += OnAid;
         }
         protected override void Unload()
         {
@@ -72,6 +73,7 @@ namespace SpeedMann.Unturnov
             PlayerCrafting.onCraftBlueprintRequested -= OnCraft;
             UnturnedPlayerEvents.OnPlayerDeath -= OnPlayerDeath;
             UseableConsumeable.onConsumePerformed -= OnConsumed;
+            UseableConsumeable.onPerformingAid -= OnAid;
         }
         #endregion
 
@@ -351,9 +353,19 @@ namespace SpeedMann.Unturnov
             #endregion
         }
 
+        private void OnAid(Player instigator, Player target, ItemConsumeableAsset asset, ref bool shouldAllow)
+        {
+            UseConsumeable(instigator, asset);
+        }
         private void OnConsumed(Player instigatingPlayer, ItemConsumeableAsset consumeableAsset)
         {
+            UseConsumeable(instigatingPlayer, consumeableAsset);
+        }
 
+
+        #region HelperFunctions
+        private void UseConsumeable(Player instigatingPlayer, ItemConsumeableAsset consumeableAsset)
+        {
             if (MultiUseDict.ContainsKey(consumeableAsset.id))
             {
                 byte page = instigatingPlayer.equipment.equippedPage;
@@ -372,7 +384,6 @@ namespace SpeedMann.Unturnov
                 }
             }
         }
-        #region HelperFunctions
         private Dictionary<ushort, ushort> createDictionaryFromMagazineExtensions(List<EmptyMagazineExtension> magExtensions)
         {
             Dictionary<ushort, ushort> itemExtensionsDict = new Dictionary<ushort, ushort>();
