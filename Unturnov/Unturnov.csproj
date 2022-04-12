@@ -93,7 +93,9 @@
     <Compile Include="Models\ItemExtension.cs" />
     <Compile Include="Models\ItemJarWrapper.cs" />
     <Compile Include="Models\EmptyMagazineExtension.cs" />
+    <Compile Include="Models\QuestEquipment.cs" />
     <Compile Include="Models\QuestExtension.cs" />
+    <Compile Include="Models\ReloadExtension.cs" />
     <Compile Include="UnturnovCommands.cs" />
     <Compile Include="Helper\UnturnedPatches.cs" />
     <Compile Include="Models\CombineDescription.cs" />

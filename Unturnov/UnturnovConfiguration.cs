@@ -18,6 +18,7 @@ namespace SpeedMann.Unturnov
         public List<ItemExtension> MultiUseItems;
         [XmlArrayItem(ElementName = "Item")]
         public List<ItemExtension> GunModdingResults;
+        public List<ReloadExtension> ReloadExtensions;
         public void LoadDefaults()
         {
             Debug = true;
@@ -686,6 +687,24 @@ namespace SpeedMann.Unturnov
                     ItemId = 38084
                 },
                 #endregion
+            };
+            ReloadExtensions = new List<ReloadExtension>
+            {
+                new ReloadExtension
+                {
+                    AmmoStack = new ItemExtension(37998),
+                    Compatible = new List<ReloadInner>
+                    {
+                        new ReloadInner
+                        {
+                            Magazine = new ItemExtension(38010),
+                            Gun = new List<ItemExtension>
+                            {
+                                new ItemExtension(38021),
+                            }
+                        }
+                    }
+                }
             };
         }
         public void updateConfig()

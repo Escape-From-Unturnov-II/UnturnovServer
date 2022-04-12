@@ -57,6 +57,7 @@ namespace SpeedMann.Unturnov
 
             UnturnedPatches.OnPreTryAddItemAuto += OnTryAddItem;
 
+            UseableGun.onChangeMagazineRequested += OnChangeMagazine;
             UnturnedPlayerEvents.OnPlayerInventoryAdded += OnInventoryUpdated;
             PlayerCrafting.onCraftBlueprintRequested += OnCraft;
             UnturnedPlayerEvents.OnPlayerDeath += OnPlayerDeath;
@@ -69,6 +70,7 @@ namespace SpeedMann.Unturnov
 
             UnturnedPatches.OnPreTryAddItemAuto -= OnTryAddItem;
 
+            UseableGun.onChangeMagazineRequested -= OnChangeMagazine;
             UnturnedPlayerEvents.OnPlayerInventoryAdded -= OnInventoryUpdated;
             PlayerCrafting.onCraftBlueprintRequested -= OnCraft;
             UnturnedPlayerEvents.OnPlayerDeath -= OnPlayerDeath;
@@ -112,11 +114,15 @@ namespace SpeedMann.Unturnov
             UnturnedPlayer player = UnturnedPlayer.FromPlayer(inventory.player);
             if (GunModdingDict.ContainsKey(item.id) && ModdedGunAttachments.ContainsKey(player.CSteamID))
             {
-                // prevent autoequip of modded guns
+                // prevent autoequip of crafted guns
                 autoEquipClothing = autoEquipUseable = autoEquipWeapon = false;
             }
         }
 
+        private void OnChangeMagazine(PlayerEquipment equipment, UseableGun gun, Item oldItem, ItemJar newItem, ref bool shouldAllow)
+        {
+
+        }
         private void OnInventoryUpdated(UnturnedPlayer player, InventoryGroup inventoryGroup, byte inventoryIndex, ItemJar P)
         {
             if (ReplaceBypass.Contains(player.CSteamID))
