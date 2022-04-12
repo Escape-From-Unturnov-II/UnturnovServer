@@ -14,14 +14,13 @@ namespace SpeedMann.Unturnov.Helper
     public class UnturnedPrivateFields
     {
         private static MethodInfo WriteConnectedMessageInfo;
-        private static FieldInfo WriterInfo;
+        private static FieldInfo ItemJarItemInfo;
 
-        public static bool TryGetNetMessagesWriter(out NetPakWriter writer)
+        public static bool TrySetItemJarItem(ItemJar itemJar, Item newItem)
         {
-            writer = null;
-            if (WriterInfo != null)
+            if (ItemJarItemInfo != null)
             {
-                writer = (NetPakWriter)WriterInfo.GetValue(null);
+                ItemJarItemInfo.SetValue(itemJar, newItem);
                 return true;
             }
             return false;
@@ -44,7 +43,10 @@ namespace SpeedMann.Unturnov.Helper
 
             type = typeof(Provider);
             WriteConnectedMessageInfo = type.GetMethod("WriteConnectedMessage", BindingFlags.Static | BindingFlags.NonPublic);
-            
+
+            type = typeof(ItemJar);
+            ItemJarItemInfo = type.GetField("_item", BindingFlags.NonPublic);
+
             /*
             type = AccessTools.TypeByName("SDG.Unturned.NetMessages");
             WriterInfo = AccessTools.Field(type, "writer");

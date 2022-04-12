@@ -693,11 +693,11 @@ namespace SpeedMann.Unturnov
                 new ReloadExtension
                 {
                     AmmoStack = new ItemExtension(37998),
-                    Compatible = new List<ReloadInner>
+                    Compatibles = new List<ReloadInner>
                     {
                         new ReloadInner
                         {
-                            Magazine = new ItemExtension(38010),
+                            MagazineSize = 4,
                             Gun = new List<ItemExtension>
                             {
                                 new ItemExtension(38021),

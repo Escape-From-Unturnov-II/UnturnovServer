@@ -61,9 +61,30 @@ namespace SpeedMann.Unturnov.Helper
         #region Events
         public delegate void PreTryAddItemAuto(PlayerInventory inventory, Item item, ref bool autoEquipWeapon, ref bool autoEquipUseable, ref bool autoEquipClothing);
         public static event PreTryAddItemAuto OnPreTryAddItemAuto;
+        public delegate void PreAttachMagazine(UseableGun gun, byte page, byte x, byte y, byte[] hash);
+        public static event PreAttachMagazine OnPreAttachMagazine;
+        public delegate void PostAttachMagazine(UseableGun gun);
+        public static event PostAttachMagazine OnPostAttachMagazine;
         #endregion
 
         #region Patches
+        [HarmonyPatch(typeof(UseableGun), nameof(UseableGun.ReceiveAttachMagazine), new Type[] { typeof(byte), typeof(byte), typeof(byte), typeof(byte[])})]
+        class ReceiveAttachMagazinePatch
+        {
+            [HarmonyPrefix]
+            internal static bool OnPreAttachMagazineInvoker(UseableGun __instance, byte page, byte x, byte y, byte[] hash, out UseableGun __state)
+            {
+                OnPreAttachMagazine?.Invoke(__instance, page, x, y, hash);
+                __state = __instance;
+                return true;
+            }
+            [HarmonyPostfix]
+            internal static void OnPostAttachMagazineInvoker(UseableGun __state)
+            {
+                OnPostAttachMagazine?.Invoke(__state);
+            }
+        }
+        
 
         [HarmonyPatch(typeof(PlayerInventory), nameof(PlayerInventory.tryAddItemAuto), new Type[] { typeof(Item), typeof(bool), typeof(bool), typeof(bool), typeof(bool) })]
         class TryAddItemAutoPatch

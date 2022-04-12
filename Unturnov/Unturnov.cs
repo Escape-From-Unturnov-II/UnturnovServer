@@ -29,7 +29,10 @@ namespace SpeedMann.Unturnov
         private Dictionary<ushort, ushort> MagazineDict;
         private Dictionary<ushort, ItemExtension> MultiUseDict;
         private Dictionary<ushort, ItemExtension> GunModdingDict;
+        private Dictionary<ushort, ReloadInner> ReloadExtensionByGun;
+        private Dictionary<CSteamID, ItemJarWrapper> ReloadExtensionStates;
         private Dictionary<CSteamID, GunAttachments> ModdedGunAttachments;
+        
         private List<CSteamID> ReplaceBypass;
 
         #region Load
@@ -40,16 +43,16 @@ namespace SpeedMann.Unturnov
 
             UnturnedPrivateFields.Init();
             UnturnedPatches.Init();
-            MessageHandler.Init();
 
             ReplaceBypass = new List<CSteamID>();
+            ReloadExtensionStates = new Dictionary<CSteamID, ItemJarWrapper>();
             ModdedGunAttachments = new Dictionary<CSteamID, GunAttachments>();
 
             MagazineDict = createDictionaryFromMagazineExtensions(Conf.UnloadMagBlueprints);
             AutoCombineDict = createDictionaryFromAutoCombine(Conf.AutoCombine);
             MultiUseDict = createDictionaryFromItemExtensions(Conf.MultiUseItems);
             GunModdingDict = createDictionaryFromItemExtensions(Conf.GunModdingResults);
-            
+            ReloadExtensionByGun = createDictionaryFromReloadExtensionsByGun(Conf.ReloadExtensions);
 
             printPluginInfo();
 
@@ -57,6 +60,8 @@ namespace SpeedMann.Unturnov
 
             UnturnedPatches.OnPreTryAddItemAuto += OnTryAddItem;
 
+            UnturnedPatches.OnPreAttachMagazine += OnPreAttachMag;
+            UnturnedPatches.OnPostAttachMagazine += OnPostAttachMag;
             UseableGun.onChangeMagazineRequested += OnChangeMagazine;
             UnturnedPlayerEvents.OnPlayerInventoryAdded += OnInventoryUpdated;
             PlayerCrafting.onCraftBlueprintRequested += OnCraft;
@@ -70,6 +75,8 @@ namespace SpeedMann.Unturnov
 
             UnturnedPatches.OnPreTryAddItemAuto -= OnTryAddItem;
 
+            UnturnedPatches.OnPreAttachMagazine -= OnPreAttachMag;
+            UnturnedPatches.OnPostAttachMagazine -= OnPostAttachMag;
             UseableGun.onChangeMagazineRequested -= OnChangeMagazine;
             UnturnedPlayerEvents.OnPlayerInventoryAdded -= OnInventoryUpdated;
             PlayerCrafting.onCraftBlueprintRequested -= OnCraft;
@@ -119,10 +126,57 @@ namespace SpeedMann.Unturnov
             }
         }
 
+        private void OnPreAttachMag(UseableGun gun, byte page, byte x, byte y, byte[] hash)
+        {
+            UnturnedPlayer player = UnturnedPlayer.FromPlayer(gun.player);
+            if (ReloadExtensionStates.ContainsKey(player.CSteamID)){
+                ReloadExtensionStates.Remove(player.CSteamID);
+            }
+            ReloadExtensionStates.Add(player.CSteamID, new ItemJarWrapper{ page = page });
+        }
         private void OnChangeMagazine(PlayerEquipment equipment, UseableGun gun, Item oldItem, ItemJar newItem, ref bool shouldAllow)
         {
+            Logger.Log($"Changed magazine for: {equipment.itemID} old Mag: {(oldItem != null ? oldItem.id.ToString() : "none")} new Mag: {(newItem?.item != null ? newItem.item.id.ToString() : "none")}");
+
+            #region ReloadExtension
+
+            if (newItem?.item != null && ReloadExtensionByGun.TryGetValue(gun.equippedGunAsset.id, out ReloadInner reloadInfo) && reloadInfo.AmmoStackId == newItem.item.id)
+            {
+                UnturnedPlayer player = UnturnedPlayer.FromPlayer(equipment.player);
+                if (!ReloadExtensionStates.TryGetValue(player.CSteamID, out ItemJarWrapper reloadState))
+                {
+                    Logger.LogError("Error getting saved reload state");
+                    return;
+                }
+
+
+                // save ammo stack
+                Item AmmoStack = new Item(newItem.item.id,newItem.item.amount, newItem.item.quality);
+                reloadState.itemJar = new ItemJar(newItem.x, newItem.y, newItem.rot, AmmoStack);
+
+                Logger.Log("reloaded with reloadExtension!");
+            }
+
+            #endregion
 
         }
+        private void OnPostAttachMag(UseableGun gun)
+        {
+            UnturnedPlayer player = UnturnedPlayer.FromPlayer(gun.player);
+            if (ReloadExtensionByGun.TryGetValue(gun.equippedGunAsset.id, out ReloadInner reloadInfo) && ReloadExtensionStates.TryGetValue(player.CSteamID, out ItemJarWrapper reloadState) && reloadState?.itemJar?.item?.amount > 0)
+            {
+                
+                byte newMagAmount = reloadState.itemJar.item.amount < reloadInfo.MagazineSize ? reloadState.itemJar.item.amount : reloadInfo.MagazineSize;
+
+                // change ammo to max mag size
+                player.Player.equipment.state[10] = newMagAmount;
+
+                // give remaining ammo
+                Item remaining = new Item(reloadState.itemJar.item.id, (byte)(reloadState.itemJar.item.amount - newMagAmount), reloadState.itemJar.item.quality);
+                safeAddItem(player, remaining, reloadState.itemJar.x, reloadState.itemJar.y, reloadState.page, reloadState.itemJar.rot);
+            }
+        }
+      
         private void OnInventoryUpdated(UnturnedPlayer player, InventoryGroup inventoryGroup, byte inventoryIndex, ItemJar P)
         {
             if (ReplaceBypass.Contains(player.CSteamID))
@@ -243,13 +297,7 @@ namespace SpeedMann.Unturnov
                 player.Inventory.removeItem((byte)inventoryGroup, inventoryIndex);
                 Item replacement = new Item(emptyMagId, (byte)0, P.item.quality);
 
-                if (!player.Inventory.tryAddItem(replacement, P.x, P.y, (byte)inventoryGroup, P.rot))
-                {
-                    if (!player.GiveItem(replacement))
-                    {
-                        player.Inventory.forceAddItem(replacement, false);
-                    }
-                }
+                safeAddItem(player, replacement, P.x, P.y, (byte)inventoryGroup, P.rot);
                 return;
             }
             #endregion
@@ -442,6 +490,34 @@ namespace SpeedMann.Unturnov
             }
             return autoCombineDict;
         }
+
+        private Dictionary<ushort, ReloadInner> createDictionaryFromReloadExtensionsByGun(List<ReloadExtension> reloadExtensions)
+        {
+            Dictionary<ushort, ReloadInner> ReloadExtensionDict = new Dictionary<ushort, ReloadInner>();
+            if (reloadExtensions != null)
+            {
+                foreach (ReloadExtension reloadExtension in reloadExtensions)
+                {
+                    foreach (ReloadInner reloadInner in reloadExtension.Compatibles)
+                    {
+                        reloadInner.AmmoStackId = reloadExtension.AmmoStack.ItemId;
+
+                        foreach (ItemExtension itemExtension in reloadInner.Gun)
+                        {
+                            if (ReloadExtensionDict.ContainsKey(itemExtension.ItemId))
+                            {
+                                Logger.LogWarning("ReloadExtension Gun with Id:" + itemExtension.ItemId + " is defined twice!");
+                            }
+                            else
+                            {
+                                ReloadExtensionDict.Add(itemExtension.ItemId, reloadInner);
+                            }
+                        }
+                    }
+                }
+            }
+            return ReloadExtensionDict;
+        }
         internal static Dictionary<ushort, T> createDictionaryFromItemExtensions<T>(List<T> itemExtensions) where T : ItemExtension
         {
             Dictionary<ushort, T> itemExtensionsDict = new Dictionary<ushort, T>();
@@ -464,6 +540,16 @@ namespace SpeedMann.Unturnov
                 }
             }
             return itemExtensionsDict;
+        }
+        internal static void safeAddItem(UnturnedPlayer player, Item item, byte x, byte y, byte page, byte rot)
+        {
+            if (!player.Inventory.tryAddItem(item, x, y, page, rot))
+            {
+                if (!player.GiveItem(item))
+                {
+                    player.Inventory.forceAddItem(item, false);
+                }
+            }
         }
         private void printPluginInfo()
         {
