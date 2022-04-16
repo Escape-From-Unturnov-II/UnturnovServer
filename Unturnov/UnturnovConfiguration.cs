@@ -1032,190 +1032,64 @@ namespace SpeedMann.Unturnov
             AutoCombine = new List<CombineDescription>
             {
                 #region RUB
-                new CombineDescription()
-                {
-                    Id = 37001,
-                    RequiredAmount = 2,
-                    ResultId = 37002,
-                },
-                new CombineDescription()
-                {
-                    Id = 37002,
-                    RequiredAmount = 5,
-                    ResultId = 37003,
-                },
-                new CombineDescription()
-                {
-                    Id = 37003,
-                    RequiredAmount = 2,
-                    ResultId = 37004,
-                },
-                new CombineDescription()
-                {
-                    Id = 37004,
-                    RequiredAmount = 5,
-                    ResultId = 37005,
-                },
-                new CombineDescription()
-                {
-                    Id = 37005,
-                    RequiredAmount = 2,
-                    ResultId = 37006,
-                },
-                new CombineDescription()
-                {
-                    Id = 37006,
-                    RequiredAmount = 5,
-                    ResultId = 37007,
-                },
-                new CombineDescription()
-                {
-                    Id = 37007,
-                    RequiredAmount = 2,
-                    ResultId = 37008,
-                },
-                new CombineDescription()
-                {
-                    Id = 37008,
-                    RequiredAmount = 5,
-                    ResultId = 37009,
-                },
-                new CombineDescription()
-                {
-                    Id = 37009,
-                    RequiredAmount = 2,
-                    ResultId = 37010,
-                },
+                // 5/10
+                new CombineDescription(37001, 2, 37002),
+                // 10/50
+                new CombineDescription(37002, 5, 37003),
+                // 50/100
+                new CombineDescription(37003, 2, 37004),
+                // 100/500
+                new CombineDescription(37004, 5, 37005),
+                // 500/1000
+                new CombineDescription(37005, 2, 37006),
+                // 1000/5000
+                new CombineDescription(37006, 5, 37007),
+                // 5000/10000
+                new CombineDescription(37007, 2, 37008),
+                // 10000/50000
+                new CombineDescription(37008, 5, 37009),
+                // 50000/100000
+                new CombineDescription(37009, 2, 37010),
                 #endregion
                 #region USD
                 // 1/5
-                new CombineDescription()
-                {
-                    Id = 37011,
-                    RequiredAmount = 5,
-                    ResultId = 37013,
-                },
+                new CombineDescription(37011, 5, 37013),
                 // 2/10
-                new CombineDescription()
-                {
-                    Id = 37012,
-                    RequiredAmount = 5,
-                    ResultId = 37014,
-                },
+                new CombineDescription(37012, 5, 37014),
                 // 5/10
-                new CombineDescription()
-                {
-                    Id = 37013,
-                    RequiredAmount = 2,
-                    ResultId = 37014,
-                },
+                new CombineDescription(37013, 2, 37014),
                 // 10/50
-                new CombineDescription()
-                {
-                    Id = 37014,
-                    RequiredAmount = 5,
-                    ResultId = 37016,
-                },
+                new CombineDescription(37014, 5, 37016),
                 // 20/100
-                new CombineDescription()
-                {
-                    Id = 37015,
-                    RequiredAmount = 5,
-                    ResultId = 37017,
-                },
+                new CombineDescription(37015, 5, 37017),
                 // 50/100
-                new CombineDescription()
-                {
-                    Id = 37016,
-                    RequiredAmount = 2,
-                    ResultId = 37017,
-                },
+                new CombineDescription(37016, 2, 37017),
                 // 100/500
-                new CombineDescription()
-                {
-                    Id = 37017,
-                    RequiredAmount = 5,
-                    ResultId = 37018,
-                },
+                new CombineDescription(37017, 5, 37018),
                 // 500/1000
-                new CombineDescription()
-                {
-                    Id = 37018,
-                    RequiredAmount = 2,
-                    ResultId = 37019,
-                },
+                new CombineDescription(37018, 2, 37019),
                 // 1000/5000
-                new CombineDescription()
-                {
-                    Id = 37019,
-                    RequiredAmount = 5,
-                    ResultId = 37020,
-                },
+                new CombineDescription(37019, 5, 37020),
                 #endregion
                 #region EUR
                 // 5/10
-                new CombineDescription()
-                {
-                    Id = 37021,
-                    RequiredAmount = 2,
-                    ResultId = 37022,
-                },
+                new CombineDescription(37021, 2, 37022),
                 // 10/50
-                new CombineDescription()
-                {
-                    Id = 37022,
-                    RequiredAmount = 5,
-                    ResultId = 37024,
-                },
+                new CombineDescription(37022, 5, 37024),
                 // 20/100
-                new CombineDescription()
-                {
-                    Id = 37023,
-                    RequiredAmount = 5,
-                    ResultId = 37025,
-                },
+                new CombineDescription(37023, 5, 37025),
                 // 50/100
-                new CombineDescription()
-                {
-                    Id = 37024,
-                    RequiredAmount = 2,
-                    ResultId = 37025,
-                },
+                new CombineDescription(37024, 2, 37025),
                 // 100/500
-                new CombineDescription()
-                {
-                    Id = 37025,
-                    RequiredAmount = 5,
-                    ResultId = 37027,
-                },
+                new CombineDescription(37025, 5, 37027),
                 // 200/1000
-                new CombineDescription()
-                {
-                    Id = 37026,
-                    RequiredAmount = 5,
-                    ResultId = 37028,
-                },
+                new CombineDescription(37026, 5, 37028),
                 // 500/1000
-                new CombineDescription()
-                {
-                    Id = 37027,
-                    RequiredAmount = 2,
-                    ResultId = 37028,
-                },
+                new CombineDescription(37027, 2, 37028),
                 // 1000/5000
-                new CombineDescription()
-                {
-                    Id = 37028,
-                    RequiredAmount = 5,
-                    ResultId = 37029,
-                },
+                new CombineDescription(37028, 5, 37029),
                 // 5000/10000
-                new CombineDescription()
-                {
-                    Id = 37029,
-                    RequiredAmount = 2,
-                    ResultId = 37030,
-                },
+                new CombineDescription(37029, 2, 37030),
                 #endregion
             };
             MultiUseItems = new List<ItemExtension>
@@ -1803,9 +1677,14 @@ namespace SpeedMann.Unturnov
         public void addNames()
         {
             addNames(DeathDrops);
-            addNames(AutoCombine);
             addNames(MultiUseItems);
             addNames(GunModdingResults);
+
+            foreach (CombineDescription combDesc in AutoCombine)
+            {
+                addName(combDesc);
+                addName(combDesc.Result);
+            }
 
             foreach(EmptyMagazineExtension magazineExtension in UnloadMagBlueprints)
             {

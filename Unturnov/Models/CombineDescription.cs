@@ -9,6 +9,17 @@ namespace SpeedMann.Unturnov.Models
     public class CombineDescription : ItemExtension
     {
         public ushort RequiredAmount;
-        public ushort ResultId;
+        public ItemExtension Result;
+
+        public CombineDescription()
+        {
+
+        }
+        public CombineDescription(ushort supplyId, ushort requiredAmount, ushort resultId)
+        {
+            Id = supplyId;
+            RequiredAmount = requiredAmount;
+            Result = new ItemExtension(resultId);
+        }
     }
 }

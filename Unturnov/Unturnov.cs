@@ -289,9 +289,9 @@ namespace SpeedMann.Unturnov
                     }
                     for (byte i = 0; i < results; i++)
                     {
-                        player.Inventory.forceAddItem(new Item(combine.ResultId, true), false);
+                        player.Inventory.forceAddItem(new Item(combine.Result.Id, true), false);
                     }
-                    Logger.Log($"combined {results}x {P.item.id} to {combine.ResultId}");
+                    Logger.Log($"combined {results}x {P.item.id} to {combine.Result.Id}");
                 }
                 return;
             }
