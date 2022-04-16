@@ -24,6 +24,7 @@ namespace SpeedMann.Unturnov
     {
         public static Unturnov Inst;
         public static UnturnovConfiguration Conf;
+        public static bool ModsLoaded = false;
 
         private Dictionary<ushort, CombineDescription> AutoCombineDict;
         private Dictionary<ushort, ushort> MagazineDict;
@@ -58,6 +59,11 @@ namespace SpeedMann.Unturnov
 
             Conf.updateConfig();
 
+            if (ModsLoaded)
+            {
+                Conf.addNames();
+            }
+
             UnturnedPatches.OnPreTryAddItemAuto += OnTryAddItem;
 
             UnturnedPatches.OnPreAttachMagazine += OnPreAttachMag;
@@ -68,6 +74,8 @@ namespace SpeedMann.Unturnov
             UnturnedPlayerEvents.OnPlayerDeath += OnPlayerDeath;
             UseableConsumeable.onConsumePerformed += OnConsumed;
             UseableConsumeable.onPerformingAid += OnAid;
+
+            Level.onPreLevelLoaded += OnPreLevelLoaded;
         }
         protected override void Unload()
         {
@@ -83,8 +91,15 @@ namespace SpeedMann.Unturnov
             UnturnedPlayerEvents.OnPlayerDeath -= OnPlayerDeath;
             UseableConsumeable.onConsumePerformed -= OnConsumed;
             UseableConsumeable.onPerformingAid -= OnAid;
+
+            Level.onPreLevelLoaded -= OnPreLevelLoaded;
         }
         #endregion
+        private void OnPreLevelLoaded(int level)
+        {
+            Conf.addNames();
+            ModsLoaded = true;
+        }
 
         private void OnPlayerDeath(UnturnedPlayer player, EDeathCause cause, ELimb limb, CSteamID murderer)
         {
@@ -92,7 +107,7 @@ namespace SpeedMann.Unturnov
 
                 if(Conf.DeathDrops?.Count > 0)
                 {
-                    Item item = new Item(Conf.DeathDrops[0].ItemId, true);
+                    Item item = new Item(Conf.DeathDrops[0].Id, true);
                     if(Conf.DeathDropFlag != 0)
                     {
                         short dropFlagValue;
@@ -101,7 +116,7 @@ namespace SpeedMann.Unturnov
                             DeathDrop drop = Conf.DeathDrops.Find(x => x.RequiredFalgValue == dropFlagValue);
                             if(drop != null)
                             {
-                                item = new Item(drop.ItemId, true);
+                                item = new Item(drop.Id, true);
                             }
                         }
                     }
@@ -165,10 +180,8 @@ namespace SpeedMann.Unturnov
             UnturnedPlayer player = UnturnedPlayer.FromPlayer(gun.player);
             if (ReloadExtensionByGun.TryGetValue(gun.equippedGunAsset.id, out ReloadInner reloadInfo) && ReloadExtensionStates.TryGetValue(player.CSteamID, out ItemJarWrapper reloadState) && reloadState?.itemJar?.item?.amount > 0)
             {
-                
-                byte newMagAmount = reloadState.itemJar.item.amount < reloadInfo.MagazineSize ? reloadState.itemJar.item.amount : reloadInfo.MagazineSize;
-
                 // change ammo to max mag size
+                byte newMagAmount = reloadState.itemJar.item.amount < reloadInfo.MagazineSize ? reloadState.itemJar.item.amount : reloadInfo.MagazineSize;               
                 player.Player.equipment.state[10] = newMagAmount;
 
                 // give remaining ammo
@@ -260,6 +273,7 @@ namespace SpeedMann.Unturnov
             #endregion
 
             #region auto combine
+            //TODO: add implementation to combine 2x2 + 1 = 5
             CombineDescription combine;
             if (AutoCombineDict.TryGetValue(P.item.id, out combine))
             {
@@ -284,7 +298,7 @@ namespace SpeedMann.Unturnov
             #endregion
 
             #region Empty Mag logic
-            EmptyMagazineExtension magazineExtension = Conf.UnloadMagBlueprints.Find(x => x.ItemId == P.item.id);
+            EmptyMagazineExtension magazineExtension = Conf.UnloadMagBlueprints.Find(x => x.Id == P.item.id);
             if (magazineExtension != null)
             {
                 player.Inventory.sendUpdateAmount(((byte)inventoryGroup), P.x, P.y, 0);
@@ -362,7 +376,7 @@ namespace SpeedMann.Unturnov
             #endregion
 
             #region Load Mag
-            EmptyMagazineExtension magExt = Conf.UnloadMagBlueprints.Find(x => x.ItemId == itemId);
+            EmptyMagazineExtension magExt = Conf.UnloadMagBlueprints.Find(x => x.Id == itemId);
             if (magExt != null)
             {
                 // load mag
@@ -384,10 +398,16 @@ namespace SpeedMann.Unturnov
                     if (itemList.Count > 0)
                     {
                         byte index = inventory.getIndex(itemList[0].page, itemList[0].jar.x, itemList[0].jar.y);
+                        loadedMag = magExt.LoadedMagazines.Find(x => ((ItemAsset)Assets.find(EAssetType.ITEM, x.Id)).blueprints[x.RefillAmmoBlueprintIndex].supplies[0].id == blueprint.supplies[0].id);
+                        if (loadedMag == null)
+                        {
+                            Logger.LogError($"Error in EmptyMagazineExtension while trying to find replacement blueprint for item: {itemID} and blueprint: {blueprintIndex}");
+                            break;
+                        }
+
                         inventory.removeItem(itemList[0].page, index);
 
-                        loadedMag = magExt.LoadedMagazines.Find(x => ((ItemAsset)Assets.find(EAssetType.ITEM, x.ItemId)).blueprints[x.RefillAmmoBlueprintIndex].supplies[0].id == blueprint.supplies[0].id);
-                        Item replacement = new Item(loadedMag.ItemId, (byte)0, supplyList[0].jar.item.quality);
+                        Item replacement = new Item(loadedMag.Id, (byte)0, supplyList[0].jar.item.quality);
                         if (!ReplaceBypass.Contains(player.CSteamID))
                         {
                             ReplaceBypass.Add(player.CSteamID);
@@ -400,7 +420,7 @@ namespace SpeedMann.Unturnov
                 }
                 if (loadedMag != null)
                 {
-                    itemID = loadedMag.ItemId;
+                    itemID = loadedMag.Id;
                     blueprintIndex = loadedMag.RefillAmmoBlueprintIndex;
                 }
             }
@@ -449,14 +469,14 @@ namespace SpeedMann.Unturnov
                     {
                         foreach (EmptyMagazineExtension.LoadedMagazineVariant magType in extension.LoadedMagazines)
                         {
-                            if (itemExtensionsDict.ContainsKey(magType.ItemId))
+                            if (itemExtensionsDict.ContainsKey(magType.Id))
                             {
                                 Logger.LogWarning("Item with Id:" + magType + " is a duplicate!");
                             }
                             else
                             {
 
-                                itemExtensionsDict.Add(magType.ItemId, extension.ItemId);
+                                itemExtensionsDict.Add(magType.Id, extension.Id);
                             }
                         }
                     }
@@ -471,19 +491,19 @@ namespace SpeedMann.Unturnov
             {
                 foreach (CombineDescription craftDesc in autoCombine)
                 {
-                    if (craftDesc.ItemId == 0)
+                    if (craftDesc.Id == 0)
                     {
                         Logger.LogWarning("Resource Item with invalid Id");
                         continue;
                     }
 
-                    if (autoCombineDict.ContainsKey(craftDesc.ItemId))
+                    if (autoCombineDict.ContainsKey(craftDesc.Id))
                     {
-                        Logger.LogWarning("Resource Item with Id:" + craftDesc.ItemId + " is a duplicate!");
+                        Logger.LogWarning("Resource Item with Id:" + craftDesc.Id + " is a duplicate!");
                     }
                     else
                     {
-                        autoCombineDict.Add(craftDesc.ItemId, craftDesc);
+                        autoCombineDict.Add(craftDesc.Id, craftDesc);
                     }
 
                 }
@@ -500,17 +520,17 @@ namespace SpeedMann.Unturnov
                 {
                     foreach (ReloadInner reloadInner in reloadExtension.Compatibles)
                     {
-                        reloadInner.AmmoStackId = reloadExtension.AmmoStack.ItemId;
+                        reloadInner.AmmoStackId = reloadExtension.AmmoStack.Id;
 
                         foreach (ItemExtension itemExtension in reloadInner.Gun)
                         {
-                            if (ReloadExtensionDict.ContainsKey(itemExtension.ItemId))
+                            if (ReloadExtensionDict.ContainsKey(itemExtension.Id))
                             {
-                                Logger.LogWarning("ReloadExtension Gun with Id:" + itemExtension.ItemId + " is defined twice!");
+                                Logger.LogWarning("ReloadExtension Gun with Id:" + itemExtension.Id + " is defined twice!");
                             }
                             else
                             {
-                                ReloadExtensionDict.Add(itemExtension.ItemId, reloadInner);
+                                ReloadExtensionDict.Add(itemExtension.Id, reloadInner);
                             }
                         }
                     }
@@ -525,16 +545,16 @@ namespace SpeedMann.Unturnov
             {
                 foreach (T itemExtension in itemExtensions)
                 {
-                    if (itemExtension.ItemId == 0)
+                    if (itemExtension.Id == 0)
                         continue;
 
-                    if (itemExtensionsDict.ContainsKey(itemExtension.ItemId))
+                    if (itemExtensionsDict.ContainsKey(itemExtension.Id))
                     {
-                        Logger.LogWarning("Item with Id:" + itemExtension.ItemId + " is a duplicate!");
+                        Logger.LogWarning("Item with Id:" + itemExtension.Id + " is a duplicate!");
                     }
                     else
                     {
-                        itemExtensionsDict.Add(itemExtension.ItemId, itemExtension);
+                        itemExtensionsDict.Add(itemExtension.Id, itemExtension);
                     }
 
                 }
@@ -550,6 +570,10 @@ namespace SpeedMann.Unturnov
                     player.Inventory.forceAddItem(item, false);
                 }
             }
+        }
+        internal static void stackOrAddItem()
+        {
+            //TODO: implemet
         }
         private void printPluginInfo()
         {

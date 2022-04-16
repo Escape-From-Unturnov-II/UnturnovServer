@@ -9,7 +9,7 @@ namespace SpeedMann.Unturnov.Models
     public class ItemExtension
     {
         public string Name;
-        public ushort ItemId;
+        public ushort Id;
 
         public ItemExtension()
         {
@@ -18,7 +18,7 @@ namespace SpeedMann.Unturnov.Models
 
         public ItemExtension( ushort itemId)
         {
-            ItemId = itemId;
+            Id = itemId;
             Name = "";
         }
     }

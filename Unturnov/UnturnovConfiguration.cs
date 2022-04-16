@@ -27,146 +27,1238 @@ namespace SpeedMann.Unturnov
             {
                 new DeathDrop()
                 {
-                  ItemId = 37125,
+                  Id = 37125,
                   RequiredFalgValue = 0,
                 },
             };
 
             UnloadMagBlueprints = new List<EmptyMagazineExtension>
             {
+                #region 12ga
                 new EmptyMagazineExtension
                 {
-                    ItemId = 37775,
+                    Name = "12ga_20_round",
+                    Id = 37775,
                     LoadedMagazines = new List<EmptyMagazineExtension.LoadedMagazineVariant>
                     {
                         new EmptyMagazineExtension.LoadedMagazineVariant
                         {
-                            ItemId = 37994,
+                            Name = "buck_mag",
+                            Id = 37994,
                             RefillAmmoBlueprintIndex = 0,
                         },
                         new EmptyMagazineExtension.LoadedMagazineVariant
                         {
-                            ItemId = 37995,
+                            Name = "slug_mag",
+                            Id = 37995,
                             RefillAmmoBlueprintIndex = 0,
                         }
                     }
                 },
                 new EmptyMagazineExtension
                 {
-                    ItemId = 37776,
+                    Name = "12ga_5_round",
+                    Id = 37776,
                     LoadedMagazines = new List<EmptyMagazineExtension.LoadedMagazineVariant>
                     {
                         new EmptyMagazineExtension.LoadedMagazineVariant
                         {
-                            ItemId = 38000,
+                            Name = "buck_mag",
+                            Id = 38000,
                             RefillAmmoBlueprintIndex = 0,
                         },
                         new EmptyMagazineExtension.LoadedMagazineVariant
                         {
-                            ItemId = 38009,
+                            Name = "slug_mag",
+                            Id = 38009,
                             RefillAmmoBlueprintIndex = 0,
                         }
                     }
                 },
+                #endregion
+                #region 5.45x39
+                new EmptyMagazineExtension
+                {
+                    Name = "30_ak12",
+                    Id = 38178,
+                    LoadedMagazines = new List<EmptyMagazineExtension.LoadedMagazineVariant>
+                    {
+                        new EmptyMagazineExtension.LoadedMagazineVariant
+                        {
+                            Name = "bt_mag",
+                            Id = 38182,
+                            RefillAmmoBlueprintIndex = 0,
+                        },
+                        new EmptyMagazineExtension.LoadedMagazineVariant
+                        {
+                            Name = "ps_mag",
+                            Id = 37641,
+                            RefillAmmoBlueprintIndex = 0,
+                        }
+                    }
+                },
+                new EmptyMagazineExtension
+                {
+                    Name = "30_6L23",
+                    Id = 38177,
+                    LoadedMagazines = new List<EmptyMagazineExtension.LoadedMagazineVariant>
+                    {
+                        new EmptyMagazineExtension.LoadedMagazineVariant
+                        {
+                            Name = "bt_mag",
+                            Id = 38181,
+                            RefillAmmoBlueprintIndex = 0,
+                        },
+                        new EmptyMagazineExtension.LoadedMagazineVariant
+                        {
+                            Name = "ps_mag",
+                            Id = 37620,
+                            RefillAmmoBlueprintIndex = 0,
+                        }
+                    }
+                },
+                new EmptyMagazineExtension
+                {
+                    Name = "45_6L23",
+                    Id = 38179,
+                    LoadedMagazines = new List<EmptyMagazineExtension.LoadedMagazineVariant>
+                    {
+                        new EmptyMagazineExtension.LoadedMagazineVariant
+                        {
+                            Name = "bt_mag",
+                            Id = 38183,
+                            RefillAmmoBlueprintIndex = 0,
+                        },
+                        new EmptyMagazineExtension.LoadedMagazineVariant
+                        {
+                            Name = "ps_mag",
+                            Id = 37642,
+                            RefillAmmoBlueprintIndex = 0,
+                        }
+                    }
+                },
+                new EmptyMagazineExtension
+                {
+                    Name = "60_6L23",
+                    Id = 38180,
+                    LoadedMagazines = new List<EmptyMagazineExtension.LoadedMagazineVariant>
+                    {
+                        new EmptyMagazineExtension.LoadedMagazineVariant
+                        {
+                            Name = "bt_mag",
+                            Id = 38184,
+                            RefillAmmoBlueprintIndex = 0,
+                        },
+                        new EmptyMagazineExtension.LoadedMagazineVariant
+                        {
+                            Name = "ps_mag",
+                            Id = 37643,
+                            RefillAmmoBlueprintIndex = 0,
+                        }
+                    }
+                },
+                #endregion
+                #region 5.56x45
+                new EmptyMagazineExtension
+                {
+                    Name = "30_6L29",
+                    Id = 38163,
+                    LoadedMagazines = new List<EmptyMagazineExtension.LoadedMagazineVariant>
+                    {
+                        new EmptyMagazineExtension.LoadedMagazineVariant
+                        {
+                            Name = "M855_mag",
+                            Id = 37650,
+                            RefillAmmoBlueprintIndex = 0,
+                        },
+                        new EmptyMagazineExtension.LoadedMagazineVariant
+                        {
+                            Name = "M856A1_mag",
+                            Id = 38170,
+                            RefillAmmoBlueprintIndex = 0,
+                        }
+                    }
+                },
+                new EmptyMagazineExtension
+                {
+                    Name = "30_Circle",
+                    Id = 38164,
+                    LoadedMagazines = new List<EmptyMagazineExtension.LoadedMagazineVariant>
+                    {
+                        new EmptyMagazineExtension.LoadedMagazineVariant
+                        {
+                            Name = "M855_mag",
+                            Id = 37659,
+                            RefillAmmoBlueprintIndex = 0,
+                        },
+                        new EmptyMagazineExtension.LoadedMagazineVariant
+                        {
+                            Name = "M856A1_mag",
+                            Id = 38164,
+                            RefillAmmoBlueprintIndex = 0,
+                        }
+                    }
+                },
+                new EmptyMagazineExtension
+                {
+                    Name = "30_HK",
+                    Id = 38165,
+                    LoadedMagazines = new List<EmptyMagazineExtension.LoadedMagazineVariant>
+                    {
+                        new EmptyMagazineExtension.LoadedMagazineVariant
+                        {
+                            Name = "M855_mag",
+                            Id = 37613,
+                            RefillAmmoBlueprintIndex = 0,
+                        },
+                        new EmptyMagazineExtension.LoadedMagazineVariant
+                        {
+                            Name = "M856A1_mag",
+                            Id = 38172,
+                            RefillAmmoBlueprintIndex = 0,
+                        }
+                    }
+                },
+                new EmptyMagazineExtension
+                {
+                    Name = "30_PMAG_Black",
+                    Id = 38166,
+                    LoadedMagazines = new List<EmptyMagazineExtension.LoadedMagazineVariant>
+                    {
+                        new EmptyMagazineExtension.LoadedMagazineVariant
+                        {
+                            Name = "M855_mag",
+                            Id = 37614,
+                            RefillAmmoBlueprintIndex = 0,
+                        },
+                        new EmptyMagazineExtension.LoadedMagazineVariant
+                        {
+                            Name = "M856A1_mag",
+                            Id = 38173,
+                            RefillAmmoBlueprintIndex = 0,
+                        }
+                    }
+                },
+                new EmptyMagazineExtension
+                {
+                    Name = "30_PMAG_Tan",
+                    Id = 38167,
+                    LoadedMagazines = new List<EmptyMagazineExtension.LoadedMagazineVariant>
+                    {
+                        new EmptyMagazineExtension.LoadedMagazineVariant
+                        {
+                            Name = "M855_mag",
+                            Id = 37615,
+                            RefillAmmoBlueprintIndex = 0,
+                        },
+                        new EmptyMagazineExtension.LoadedMagazineVariant
+                        {
+                            Name = "M856A1_mag",
+                            Id = 38174,
+                            RefillAmmoBlueprintIndex = 0,
+                        }
+                    }
+                },
+                new EmptyMagazineExtension
+                {
+                    Name = "30_STANAG",
+                    Id = 38168,
+                    LoadedMagazines = new List<EmptyMagazineExtension.LoadedMagazineVariant>
+                    {
+                        new EmptyMagazineExtension.LoadedMagazineVariant
+                        {
+                            Name = "M855_mag",
+                            Id = 37600,
+                            RefillAmmoBlueprintIndex = 0,
+                        },
+                        new EmptyMagazineExtension.LoadedMagazineVariant
+                        {
+                            Name = "M856A1_mag",
+                            Id = 38175,
+                            RefillAmmoBlueprintIndex = 0,
+                        }
+                    }
+                },
+                new EmptyMagazineExtension
+                {
+                    Name = "60_PMAG",
+                    Id = 38169,
+                    LoadedMagazines = new List<EmptyMagazineExtension.LoadedMagazineVariant>
+                    {
+                        new EmptyMagazineExtension.LoadedMagazineVariant
+                        {
+                            Name = "M855_mag",
+                            Id = 37616,
+                            RefillAmmoBlueprintIndex = 0,
+                        },
+                        new EmptyMagazineExtension.LoadedMagazineVariant
+                        {
+                            Name = "M856A1_mag",
+                            Id = 38176,
+                            RefillAmmoBlueprintIndex = 0,
+                        }
+                    }
+                },
+                #endregion
+                #region 7.62x39
+                new EmptyMagazineExtension
+                {
+                    Name = "10_Ribbed",
+                    Id = 38185,
+                    LoadedMagazines = new List<EmptyMagazineExtension.LoadedMagazineVariant>
+                    {
+                        new EmptyMagazineExtension.LoadedMagazineVariant
+                        {
+                            Name = "BP_mag",
+                            Id = 38193,
+                            RefillAmmoBlueprintIndex = 0,
+                        },
+                        new EmptyMagazineExtension.LoadedMagazineVariant
+                        {
+                            Name = "PS_mag",
+                            Id = 37679,
+                            RefillAmmoBlueprintIndex = 0,
+                        }
+                    }
+                },
+                new EmptyMagazineExtension
+                {
+                    Name = "10_sks_clip",
+                    Id = 38186,
+                    LoadedMagazines = new List<EmptyMagazineExtension.LoadedMagazineVariant>
+                    {
+                        new EmptyMagazineExtension.LoadedMagazineVariant
+                        {
+                            Name = "BP_mag",
+                            Id = 38194,
+                            RefillAmmoBlueprintIndex = 0,
+                        },
+                        new EmptyMagazineExtension.LoadedMagazineVariant
+                        {
+                            Name = "PS_mag",
+                            Id = 38050,
+                            RefillAmmoBlueprintIndex = 0,
+                        }
+                    }
+                },
+                new EmptyMagazineExtension
+                {
+                    Name = "20_sks_clip",
+                    Id = 38187,
+                    LoadedMagazines = new List<EmptyMagazineExtension.LoadedMagazineVariant>
+                    {
+                        new EmptyMagazineExtension.LoadedMagazineVariant
+                        {
+                            Name = "BP_mag",
+                            Id = 38195,
+                            RefillAmmoBlueprintIndex = 0,
+                        },
+                        new EmptyMagazineExtension.LoadedMagazineVariant
+                        {
+                            Name = "PS_mag",
+                            Id = 38055,
+                            RefillAmmoBlueprintIndex = 0,
+                        }
+                    }
+                },
+                new EmptyMagazineExtension
+                {
+                    Name = "30_ak55",
+                    Id = 38188,
+                    LoadedMagazines = new List<EmptyMagazineExtension.LoadedMagazineVariant>
+                    {
+                        new EmptyMagazineExtension.LoadedMagazineVariant
+                        {
+                            Name = "BP_mag",
+                            Id = 38196,
+                            RefillAmmoBlueprintIndex = 0,
+                        },
+                        new EmptyMagazineExtension.LoadedMagazineVariant
+                        {
+                            Name = "PS_mag",
+                            Id = 37660,
+                            RefillAmmoBlueprintIndex = 0,
+                        }
+                    }
+                },
+                new EmptyMagazineExtension
+                {
+                    Name = "30_banana",
+                    Id = 38189,
+                    LoadedMagazines = new List<EmptyMagazineExtension.LoadedMagazineVariant>
+                    {
+                        new EmptyMagazineExtension.LoadedMagazineVariant
+                        {
+                            Name = "BP_mag",
+                            Id = 38197,
+                            RefillAmmoBlueprintIndex = 0,
+                        },
+                        new EmptyMagazineExtension.LoadedMagazineVariant
+                        {
+                            Name = "PS_mag",
+                            Id = 37671,
+                            RefillAmmoBlueprintIndex = 0,
+                        }
+                    }
+                },
+                new EmptyMagazineExtension
+                {
+                    Name = "30_PMAG",
+                    Id = 38190,
+                    LoadedMagazines = new List<EmptyMagazineExtension.LoadedMagazineVariant>
+                    {
+                        new EmptyMagazineExtension.LoadedMagazineVariant
+                        {
+                            Name = "BP_mag",
+                            Id = 38198,
+                            RefillAmmoBlueprintIndex = 0,
+                        },
+                        new EmptyMagazineExtension.LoadedMagazineVariant
+                        {
+                            Name = "PS_mag",
+                            Id = 37640,
+                            RefillAmmoBlueprintIndex = 0,
+                        }
+                    }
+                },
+                new EmptyMagazineExtension
+                {
+                    Name = "35_SKS_Mag",
+                    Id = 38191,
+                    LoadedMagazines = new List<EmptyMagazineExtension.LoadedMagazineVariant>
+                    {
+                        new EmptyMagazineExtension.LoadedMagazineVariant
+                        {
+                            Name = "BP_mag",
+                            Id = 38199,
+                            RefillAmmoBlueprintIndex = 0,
+                        },
+                        new EmptyMagazineExtension.LoadedMagazineVariant
+                        {
+                            Name = "PS_mag",
+                            Id = 38056,
+                            RefillAmmoBlueprintIndex = 0,
+                        }
+                    }
+                },
+                new EmptyMagazineExtension
+                {
+                    Name = "75_drum",
+                    Id = 38192,
+                    LoadedMagazines = new List<EmptyMagazineExtension.LoadedMagazineVariant>
+                    {
+                        new EmptyMagazineExtension.LoadedMagazineVariant
+                        {
+                            Name = "BP_mag",
+                            Id = 38200,
+                            RefillAmmoBlueprintIndex = 0,
+                        },
+                        new EmptyMagazineExtension.LoadedMagazineVariant
+                        {
+                            Name = "PS_mag",
+                            Id = 37672,
+                            RefillAmmoBlueprintIndex = 0,
+                        }
+                    }
+                },
+                #endregion
+                #region 7.62x51
+                new EmptyMagazineExtension
+                {
+                    Name = "10_AICS",
+                    Id = 38203,
+                    LoadedMagazines = new List<EmptyMagazineExtension.LoadedMagazineVariant>
+                    {
+                        new EmptyMagazineExtension.LoadedMagazineVariant
+                        {
+                            Name = "M62_mag",
+                            Id = 38210,
+                            RefillAmmoBlueprintIndex = 0,
+                        },
+                        new EmptyMagazineExtension.LoadedMagazineVariant
+                        {
+                            Name = "M80_mag",
+                            Id = 38042,
+                            RefillAmmoBlueprintIndex = 0,
+                        },
+                        new EmptyMagazineExtension.LoadedMagazineVariant
+                        {
+                            Name = "M993_mag",
+                            Id = 38216,
+                            RefillAmmoBlueprintIndex = 0,
+                        }
+                    }
+                },
+                new EmptyMagazineExtension
+                {
+                    Name = "10_VPO",
+                    Id = 38204,
+                    LoadedMagazines = new List<EmptyMagazineExtension.LoadedMagazineVariant>
+                    {
+                        new EmptyMagazineExtension.LoadedMagazineVariant
+                        {
+                            Name = "M62_mag",
+                            Id = 38211,
+                            RefillAmmoBlueprintIndex = 0,
+                        },
+                        new EmptyMagazineExtension.LoadedMagazineVariant
+                        {
+                            Name = "M80_mag",
+                            Id = 38049,
+                            RefillAmmoBlueprintIndex = 0,
+                        }
+                    }
+                },
+                new EmptyMagazineExtension
+                {
+                    Name = "20_KAC",
+                    Id = 38305,
+                    LoadedMagazines = new List<EmptyMagazineExtension.LoadedMagazineVariant>
+                    {
+                        new EmptyMagazineExtension.LoadedMagazineVariant
+                        {
+                            Name = "M62_mag",
+                            Id = 38306,
+                            RefillAmmoBlueprintIndex = 0,
+                        },
+                        new EmptyMagazineExtension.LoadedMagazineVariant
+                        {
+                            Name = "M80_mag",
+                            Id = 38307,
+                            RefillAmmoBlueprintIndex = 0,
+                        }
+                    }
+                },
+                new EmptyMagazineExtension
+                {
+                    Name = "20_MMW",
+                    Id = 38205,
+                    LoadedMagazines = new List<EmptyMagazineExtension.LoadedMagazineVariant>
+                    {
+                        new EmptyMagazineExtension.LoadedMagazineVariant
+                        {
+                            Name = "M62_mag",
+                            Id = 38212,
+                            RefillAmmoBlueprintIndex = 0,
+                        },
+                        new EmptyMagazineExtension.LoadedMagazineVariant
+                        {
+                            Name = "M80_mag",
+                            Id = 38092,
+                            RefillAmmoBlueprintIndex = 0,
+                        }
+                    }
+                },
+                new EmptyMagazineExtension
+                {
+                    Name = "20_PMAG",
+                    Id = 38297,
+                    LoadedMagazines = new List<EmptyMagazineExtension.LoadedMagazineVariant>
+                    {
+                        new EmptyMagazineExtension.LoadedMagazineVariant
+                        {
+                            Name = "M62_mag",
+                            Id = 38298,
+                            RefillAmmoBlueprintIndex = 0,
+                        },
+                        new EmptyMagazineExtension.LoadedMagazineVariant
+                        {
+                            Name = "M80_mag",
+                            Id = 38299,
+                            RefillAmmoBlueprintIndex = 0,
+                        }
+                    }
+                },
+                new EmptyMagazineExtension
+                {
+                    Name = "20_SA-58",
+                    Id = 38206,
+                    LoadedMagazines = new List<EmptyMagazineExtension.LoadedMagazineVariant>
+                    {
+                        new EmptyMagazineExtension.LoadedMagazineVariant
+                        {
+                            Name = "M62_mag",
+                            Id = 38213,
+                            RefillAmmoBlueprintIndex = 0,
+                        },
+                        new EmptyMagazineExtension.LoadedMagazineVariant
+                        {
+                            Name = "M80_mag",
+                            Id = 38030,
+                            RefillAmmoBlueprintIndex = 0,
+                        }
+                    }
+                },
+                new EmptyMagazineExtension
+                {
+                    Name = "30_SA-58",
+                    Id = 38207,
+                    LoadedMagazines = new List<EmptyMagazineExtension.LoadedMagazineVariant>
+                    {
+                        new EmptyMagazineExtension.LoadedMagazineVariant
+                        {
+                            Name = "M62_mag",
+                            Id = 38214,
+                            RefillAmmoBlueprintIndex = 0,
+                        },
+                        new EmptyMagazineExtension.LoadedMagazineVariant
+                        {
+                            Name = "M80_mag",
+                            Id = 38039,
+                            RefillAmmoBlueprintIndex = 0,
+                        }
+                    }
+                },
+                new EmptyMagazineExtension
+                {
+                    Name = "5_AICS",
+                    Id = 38201,
+                    LoadedMagazines = new List<EmptyMagazineExtension.LoadedMagazineVariant>
+                    {
+                        new EmptyMagazineExtension.LoadedMagazineVariant
+                        {
+                            Name = "M62_mag",
+                            Id = 38208,
+                            RefillAmmoBlueprintIndex = 0,
+                        },
+                        new EmptyMagazineExtension.LoadedMagazineVariant
+                        {
+                            Name = "M80_mag",
+                            Id = 38041,
+                            RefillAmmoBlueprintIndex = 0,
+                        },
+                        new EmptyMagazineExtension.LoadedMagazineVariant
+                        {
+                            Name = "M993_mag",
+                            Id = 38215,
+                            RefillAmmoBlueprintIndex = 0,
+                        }
+                    }
+                },
+                new EmptyMagazineExtension
+                {
+                    Name = "5_VPO",
+                    Id = 38202,
+                    LoadedMagazines = new List<EmptyMagazineExtension.LoadedMagazineVariant>
+                    {
+                        new EmptyMagazineExtension.LoadedMagazineVariant
+                        {
+                            Name = "M62_mag",
+                            Id = 38209,
+                            RefillAmmoBlueprintIndex = 0,
+                        },
+                        new EmptyMagazineExtension.LoadedMagazineVariant
+                        {
+                            Name = "M80_mag",
+                            Id = 38045,
+                            RefillAmmoBlueprintIndex = 0,
+                        }
+                    }
+                },
+                #endregion
+                #region 7.62x54
+                new EmptyMagazineExtension
+                {
+                    Name = "10_SVDS",
+                    Id = 38218,
+                    LoadedMagazines = new List<EmptyMagazineExtension.LoadedMagazineVariant>
+                    {
+                        new EmptyMagazineExtension.LoadedMagazineVariant
+                        {
+                            Name = "BT_mag",
+                            Id = 38220,
+                            RefillAmmoBlueprintIndex = 0,
+                        },
+                        new EmptyMagazineExtension.LoadedMagazineVariant
+                        {
+                            Name = "PS_mag",
+                            Id = 38060,
+                            RefillAmmoBlueprintIndex = 0,
+                        },
+                    }
+                },
+                new EmptyMagazineExtension
+                {
+                    Name = "5_Mosin_Clip",
+                    Id = 38217,
+                    LoadedMagazines = new List<EmptyMagazineExtension.LoadedMagazineVariant>
+                    {
+                        new EmptyMagazineExtension.LoadedMagazineVariant
+                        {
+                            Name = "BT_mag",
+                            Id = 38219,
+                            RefillAmmoBlueprintIndex = 0,
+                        },
+                        new EmptyMagazineExtension.LoadedMagazineVariant
+                        {
+                            Name = "PS_mag",
+                            Id = 38100,
+                            RefillAmmoBlueprintIndex = 0,
+                        },
+                    }
+                },
+                #endregion
+                #region 9.18
+                new EmptyMagazineExtension
+                {
+                    Name = "20_PP-91",
+                    Id = 38222,
+                    LoadedMagazines = new List<EmptyMagazineExtension.LoadedMagazineVariant>
+                    {
+                        new EmptyMagazineExtension.LoadedMagazineVariant
+                        {
+                            Name = "BZT_mag",
+                            Id = 37990,
+                            RefillAmmoBlueprintIndex = 0,
+                        },
+                        new EmptyMagazineExtension.LoadedMagazineVariant
+                        {
+                            Name = "PBM_mag",
+                            Id = 38225,
+                            RefillAmmoBlueprintIndex = 0,
+                        },
+                    }
+                },
+                new EmptyMagazineExtension
+                {
+                    Name = "30_PP-91",
+                    Id = 38223,
+                    LoadedMagazines = new List<EmptyMagazineExtension.LoadedMagazineVariant>
+                    {
+                        new EmptyMagazineExtension.LoadedMagazineVariant
+                        {
+                            Name = "BZT_mag",
+                            Id = 37993,
+                            RefillAmmoBlueprintIndex = 0,
+                        },
+                        new EmptyMagazineExtension.LoadedMagazineVariant
+                        {
+                            Name = "PBM_mag",
+                            Id = 38226,
+                            RefillAmmoBlueprintIndex = 0,
+                        },
+                    }
+                },
+                new EmptyMagazineExtension
+                {
+                    Name = "8_PM",
+                    Id = 38221,
+                    LoadedMagazines = new List<EmptyMagazineExtension.LoadedMagazineVariant>
+                    {
+                        new EmptyMagazineExtension.LoadedMagazineVariant
+                        {
+                            Name = "BZT_mag",
+                            Id = 38078,
+                            RefillAmmoBlueprintIndex = 0,
+                        },
+                        new EmptyMagazineExtension.LoadedMagazineVariant
+                        {
+                            Name = "PBM_mag",
+                            Id = 38224,
+                            RefillAmmoBlueprintIndex = 0,
+                        },
+                    }
+                },
+                #endregion
+                #region 9.19
+                new EmptyMagazineExtension
+                {
+                    Name = "15_P226R",
+                    Id = 38227,
+                    LoadedMagazines = new List<EmptyMagazineExtension.LoadedMagazineVariant>
+                    {
+                        new EmptyMagazineExtension.LoadedMagazineVariant
+                        {
+                            Name = "AP_mag",
+                            Id = 38236,
+                            RefillAmmoBlueprintIndex = 0,
+                        },
+                        new EmptyMagazineExtension.LoadedMagazineVariant
+                        {
+                            Name = "Pst_mag",
+                            Id = 38082,
+                            RefillAmmoBlueprintIndex = 0,
+                        },
+                    }
+                },
+                new EmptyMagazineExtension
+                {
+                    Name = "17_Glock",
+                    Id = 38228,
+                    LoadedMagazines = new List<EmptyMagazineExtension.LoadedMagazineVariant>
+                    {
+                        new EmptyMagazineExtension.LoadedMagazineVariant
+                        {
+                            Name = "AP_mag",
+                            Id = 38237,
+                            RefillAmmoBlueprintIndex = 0,
+                        },
+                        new EmptyMagazineExtension.LoadedMagazineVariant
+                        {
+                            Name = "Pst_mag",
+                            Id = 38120,
+                            RefillAmmoBlueprintIndex = 0,
+                        },
+                    }
+                },
+                new EmptyMagazineExtension
+                {
+                    Name = "18_MP-443",
+                    Id = 38229,
+                    LoadedMagazines = new List<EmptyMagazineExtension.LoadedMagazineVariant>
+                    {
+                        new EmptyMagazineExtension.LoadedMagazineVariant
+                        {
+                            Name = "AP_mag",
+                            Id = 38238,
+                            RefillAmmoBlueprintIndex = 0,
+                        },
+                        new EmptyMagazineExtension.LoadedMagazineVariant
+                        {
+                            Name = "Pst_mag",
+                            Id = 38080,
+                            RefillAmmoBlueprintIndex = 0,
+                        },
+                    }
+                },
+                new EmptyMagazineExtension
+                {
+                    Name = "20_MP5",
+                    Id = 38230,
+                    LoadedMagazines = new List<EmptyMagazineExtension.LoadedMagazineVariant>
+                    {
+                        new EmptyMagazineExtension.LoadedMagazineVariant
+                        {
+                            Name = "AP_mag",
+                            Id = 38239,
+                            RefillAmmoBlueprintIndex = 0,
+                        },
+                        new EmptyMagazineExtension.LoadedMagazineVariant
+                        {
+                            Name = "Pst_mag",
+                            Id = 37682,
+                            RefillAmmoBlueprintIndex = 0,
+                        },
+                    }
+                },
+                new EmptyMagazineExtension
+                {
+                    Name = "30_MP5",
+                    Id = 38231,
+                    LoadedMagazines = new List<EmptyMagazineExtension.LoadedMagazineVariant>
+                    {
+                        new EmptyMagazineExtension.LoadedMagazineVariant
+                        {
+                            Name = "AP_mag",
+                            Id = 38240,
+                            RefillAmmoBlueprintIndex = 0,
+                        },
+                        new EmptyMagazineExtension.LoadedMagazineVariant
+                        {
+                            Name = "Pst_mag",
+                            Id = 37689,
+                            RefillAmmoBlueprintIndex = 0,
+                        },
+                    }
+                },
+                new EmptyMagazineExtension
+                {
+                    Name = "30_MP9",
+                    Id = 38232,
+                    LoadedMagazines = new List<EmptyMagazineExtension.LoadedMagazineVariant>
+                    {
+                        new EmptyMagazineExtension.LoadedMagazineVariant
+                        {
+                            Name = "AP_mag",
+                            Id = 38241,
+                            RefillAmmoBlueprintIndex = 0,
+                        },
+                        new EmptyMagazineExtension.LoadedMagazineVariant
+                        {
+                            Name = "Pst_mag",
+                            Id = 37692,
+                            RefillAmmoBlueprintIndex = 0,
+                        },
+                    }
+                },
+                new EmptyMagazineExtension
+                {
+                    Name = "30_PP-19-01",
+                    Id = 38233,
+                    LoadedMagazines = new List<EmptyMagazineExtension.LoadedMagazineVariant>
+                    {
+                        new EmptyMagazineExtension.LoadedMagazineVariant
+                        {
+                            Name = "AP_mag",
+                            Id = 38242,
+                            RefillAmmoBlueprintIndex = 0,
+                        },
+                        new EmptyMagazineExtension.LoadedMagazineVariant
+                        {
+                            Name = "Pst_mag",
+                            Id = 37980,
+                            RefillAmmoBlueprintIndex = 0,
+                        },
+                    }
+                },
+                new EmptyMagazineExtension
+                {
+                    Name = "33_Glock",
+                    Id = 38234,
+                    LoadedMagazines = new List<EmptyMagazineExtension.LoadedMagazineVariant>
+                    {
+                        new EmptyMagazineExtension.LoadedMagazineVariant
+                        {
+                            Name = "AP_mag",
+                            Id = 38243,
+                            RefillAmmoBlueprintIndex = 0,
+                        },
+                        new EmptyMagazineExtension.LoadedMagazineVariant
+                        {
+                            Name = "Pst_mag",
+                            Id = 38128,
+                            RefillAmmoBlueprintIndex = 0,
+                        },
+                    }
+                },
+                new EmptyMagazineExtension
+                {
+                    Name = "50_MP5",
+                    Id = 38235,
+                    LoadedMagazines = new List<EmptyMagazineExtension.LoadedMagazineVariant>
+                    {
+                        new EmptyMagazineExtension.LoadedMagazineVariant
+                        {
+                            Name = "AP_mag",
+                            Id = 38244,
+                            RefillAmmoBlueprintIndex = 0,
+                        },
+                        new EmptyMagazineExtension.LoadedMagazineVariant
+                        {
+                            Name = "Pst_mag",
+                            Id = 37690,
+                            RefillAmmoBlueprintIndex = 0,
+                        },
+                    }
+                },
+                #endregion
+                #region 9.39
+                new EmptyMagazineExtension
+                {
+                    Name = "10_6L24",
+                    Id = 38245,
+                    LoadedMagazines = new List<EmptyMagazineExtension.LoadedMagazineVariant>
+                    {
+                        new EmptyMagazineExtension.LoadedMagazineVariant
+                        {
+                            Name = "SP-5_mag",
+                            Id = 38066,
+                            RefillAmmoBlueprintIndex = 0,
+                        },
+                        new EmptyMagazineExtension.LoadedMagazineVariant
+                        {
+                            Name = "SPP_mag",
+                            Id = 38247,
+                            RefillAmmoBlueprintIndex = 0,
+                        },
+                    }
+                },
+                new EmptyMagazineExtension
+                {
+                    Name = "20_6L25",
+                    Id = 38246,
+                    LoadedMagazines = new List<EmptyMagazineExtension.LoadedMagazineVariant>
+                    {
+                        new EmptyMagazineExtension.LoadedMagazineVariant
+                        {
+                            Name = "SP-5_mag",
+                            Id = 38069,
+                            RefillAmmoBlueprintIndex = 0,
+                        },
+                        new EmptyMagazineExtension.LoadedMagazineVariant
+                        {
+                            Name = "SPP_mag",
+                            Id = 38248,
+                            RefillAmmoBlueprintIndex = 0,
+                        },
+                    }
+                },
+                #endregion
+                #region 366
+                new EmptyMagazineExtension
+                {
+                    Name = "VPO-209",
+                    Id = 38251,
+                    LoadedMagazines = new List<EmptyMagazineExtension.LoadedMagazineVariant>
+                    {
+                        new EmptyMagazineExtension.LoadedMagazineVariant
+                        {
+                            Name = "AP-M_mag",
+                            Id = 38252,
+                            RefillAmmoBlueprintIndex = 0,
+                        },
+                        new EmptyMagazineExtension.LoadedMagazineVariant
+                        {
+                            Name = "FMJ_mag",
+                            Id = 38130,
+                            RefillAmmoBlueprintIndex = 0,
+                        },
+                    }
+                },
+                #endregion
+                #region 12.7x55
+                new EmptyMagazineExtension
+                {
+                    Name = "20_ASh-12",
+                    Id = 38249,
+                    LoadedMagazines = new List<EmptyMagazineExtension.LoadedMagazineVariant>
+                    {
+                        new EmptyMagazineExtension.LoadedMagazineVariant
+                        {
+                            Name = "PS12B_mag",
+                            Id = 38250,
+                            RefillAmmoBlueprintIndex = 0,
+                        },
+                        new EmptyMagazineExtension.LoadedMagazineVariant
+                        {
+                            Name = "PS12_mag",
+                            Id = 37675,
+                            RefillAmmoBlueprintIndex = 0,
+                        },
+                    }
+                },
+                #endregion
             };
             AutoCombine = new List<CombineDescription>
             {
+                #region RUB
                 new CombineDescription()
                 {
-                    ItemId = 37001,
+                    Id = 37001,
                     RequiredAmount = 2,
                     ResultId = 37002,
                 },
                 new CombineDescription()
                 {
-                    ItemId = 37002,
+                    Id = 37002,
                     RequiredAmount = 5,
                     ResultId = 37003,
                 },
                 new CombineDescription()
                 {
-                    ItemId = 37003,
+                    Id = 37003,
                     RequiredAmount = 2,
                     ResultId = 37004,
                 },
                 new CombineDescription()
                 {
-                    ItemId = 37004,
+                    Id = 37004,
                     RequiredAmount = 5,
                     ResultId = 37005,
                 },
                 new CombineDescription()
                 {
-                    ItemId = 37005,
+                    Id = 37005,
                     RequiredAmount = 2,
                     ResultId = 37006,
                 },
                 new CombineDescription()
                 {
-                    ItemId = 37006,
+                    Id = 37006,
                     RequiredAmount = 5,
                     ResultId = 37007,
                 },
                 new CombineDescription()
                 {
-                    ItemId = 37007,
+                    Id = 37007,
                     RequiredAmount = 2,
                     ResultId = 37008,
                 },
                 new CombineDescription()
                 {
-                    ItemId = 37008,
+                    Id = 37008,
                     RequiredAmount = 5,
                     ResultId = 37009,
                 },
                 new CombineDescription()
                 {
-                    ItemId = 37009,
+                    Id = 37009,
                     RequiredAmount = 2,
                     ResultId = 37010,
                 },
+                #endregion
+                #region USD
+                // 1/5
+                new CombineDescription()
+                {
+                    Id = 37011,
+                    RequiredAmount = 5,
+                    ResultId = 37013,
+                },
+                // 2/10
+                new CombineDescription()
+                {
+                    Id = 37012,
+                    RequiredAmount = 5,
+                    ResultId = 37014,
+                },
+                // 5/10
+                new CombineDescription()
+                {
+                    Id = 37013,
+                    RequiredAmount = 2,
+                    ResultId = 37014,
+                },
+                // 10/50
+                new CombineDescription()
+                {
+                    Id = 37014,
+                    RequiredAmount = 5,
+                    ResultId = 37016,
+                },
+                // 20/100
+                new CombineDescription()
+                {
+                    Id = 37015,
+                    RequiredAmount = 5,
+                    ResultId = 37017,
+                },
+                // 50/100
+                new CombineDescription()
+                {
+                    Id = 37016,
+                    RequiredAmount = 2,
+                    ResultId = 37017,
+                },
+                // 100/500
+                new CombineDescription()
+                {
+                    Id = 37017,
+                    RequiredAmount = 5,
+                    ResultId = 37018,
+                },
+                // 500/1000
+                new CombineDescription()
+                {
+                    Id = 37018,
+                    RequiredAmount = 2,
+                    ResultId = 37019,
+                },
+                // 1000/5000
+                new CombineDescription()
+                {
+                    Id = 37019,
+                    RequiredAmount = 5,
+                    ResultId = 37020,
+                },
+                #endregion
+                #region EUR
+                // 5/10
+                new CombineDescription()
+                {
+                    Id = 37021,
+                    RequiredAmount = 2,
+                    ResultId = 37022,
+                },
+                // 10/50
+                new CombineDescription()
+                {
+                    Id = 37022,
+                    RequiredAmount = 5,
+                    ResultId = 37024,
+                },
+                // 20/100
+                new CombineDescription()
+                {
+                    Id = 37023,
+                    RequiredAmount = 5,
+                    ResultId = 37025,
+                },
+                // 50/100
+                new CombineDescription()
+                {
+                    Id = 37024,
+                    RequiredAmount = 2,
+                    ResultId = 37025,
+                },
+                // 100/500
+                new CombineDescription()
+                {
+                    Id = 37025,
+                    RequiredAmount = 5,
+                    ResultId = 37027,
+                },
+                // 200/1000
+                new CombineDescription()
+                {
+                    Id = 37026,
+                    RequiredAmount = 5,
+                    ResultId = 37028,
+                },
+                // 500/1000
+                new CombineDescription()
+                {
+                    Id = 37027,
+                    RequiredAmount = 2,
+                    ResultId = 37028,
+                },
+                // 1000/5000
+                new CombineDescription()
+                {
+                    Id = 37028,
+                    RequiredAmount = 5,
+                    ResultId = 37029,
+                },
+                // 5000/10000
+                new CombineDescription()
+                {
+                    Id = 37029,
+                    RequiredAmount = 2,
+                    ResultId = 37030,
+                },
+                #endregion
             };
             MultiUseItems = new List<ItemExtension>
             {
                 new ItemExtension
                 {
-                    ItemId = 37185
+                    Id = 37185
                 },
                 new ItemExtension
                 {
-                    ItemId = 37186
+                    Id = 37186
                 },
                 new ItemExtension
                 {
-                    ItemId = 37187
+                    Id = 37187
                 },
                 new ItemExtension
                 {
-                    ItemId = 37188
+                    Id = 37188
                 },
                 new ItemExtension
                 {
-                    ItemId = 37189
+                    Id = 37189
                 },
                 new ItemExtension
                 {
-                    ItemId = 37190
+                    Id = 37190
                 },
                 new ItemExtension
                 {
-                    ItemId = 37191
+                    Id = 37191
                 },
                 new ItemExtension
                 {
-                    ItemId = 37192
+                    Id = 37192
                 },
                 new ItemExtension
                 {
-                    ItemId = 37193
+                    Id = 37193
                 },
                 new ItemExtension
                 {
-                    ItemId = 37194
+                    Id = 37194
                 },
             };
             GunModdingResults = new List<ItemExtension>
@@ -174,517 +1266,517 @@ namespace SpeedMann.Unturnov
                 #region AK-74N
                 new ItemExtension
                 {
-                    ItemId = 37621
+                    Id = 37621
                 },
                 new ItemExtension
                 {
-                    ItemId = 37622
+                    Id = 37622
                 },
                 new ItemExtension
                 {
-                    ItemId = 37623
+                    Id = 37623
                 },
                 new ItemExtension
                 {
-                    ItemId = 37624
+                    Id = 37624
                 },
                 new ItemExtension
                 {
-                    ItemId = 37625
+                    Id = 37625
                 },
                 new ItemExtension
                 {
-                    ItemId = 37626
+                    Id = 37626
                 },
                 new ItemExtension
                 {
-                    ItemId = 37627
+                    Id = 37627
                 },
                 new ItemExtension
                 {
-                    ItemId = 37628
+                    Id = 37628
                 },
                 #endregion
                 #region AK-101
                 new ItemExtension
                 {
-                    ItemId = 37651
+                    Id = 37651
                 },
                 new ItemExtension
                 {
-                    ItemId = 37652
+                    Id = 37652
                 },
                 new ItemExtension
                 {
-                    ItemId = 37653
+                    Id = 37653
                 },
                 new ItemExtension
                 {
-                    ItemId = 37654
+                    Id = 37654
                 },
                 new ItemExtension
                 {
-                    ItemId = 37655
+                    Id = 37655
                 },
                 new ItemExtension
                 {
-                    ItemId = 37656
+                    Id = 37656
                 },
                 new ItemExtension
                 {
-                    ItemId = 37657
+                    Id = 37657
                 },
                 new ItemExtension
                 {
-                    ItemId = 37658
+                    Id = 37658
                 },
                 #endregion
                 #region AKM
                 new ItemExtension
                 {
-                    ItemId = 37661
+                    Id = 37661
                 },
                 new ItemExtension
                 {
-                    ItemId = 37662
+                    Id = 37662
                 },
                 new ItemExtension
                 {
-                    ItemId = 37663
+                    Id = 37663
                 },
                 new ItemExtension
                 {
-                    ItemId = 37664
+                    Id = 37664
                 },
                 new ItemExtension
                 {
-                    ItemId = 37665
+                    Id = 37665
                 },
                 new ItemExtension
                 {
-                    ItemId = 37666
+                    Id = 37666
                 },
                 new ItemExtension
                 {
-                    ItemId = 37667
+                    Id = 37667
                 },
                 new ItemExtension
                 {
-                    ItemId = 37668
+                    Id = 37668
                 },
                 #endregion
                 #region AKS-74U
                 new ItemExtension
                 {
-                    ItemId = 37631
+                    Id = 37631
                 },
                 new ItemExtension
                 {
-                    ItemId = 37632
+                    Id = 37632
                 },
                 new ItemExtension
                 {
-                    ItemId = 37633
+                    Id = 37633
                 },
                 new ItemExtension
                 {
-                    ItemId = 37634
+                    Id = 37634
                 },
                 new ItemExtension
                 {
-                    ItemId = 37635
+                    Id = 37635
                 },
                 new ItemExtension
                 {
-                    ItemId = 37636
+                    Id = 37636
                 },
                 new ItemExtension
                 {
-                    ItemId = 37637
+                    Id = 37637
                 },
                 new ItemExtension
                 {
-                    ItemId = 37638
+                    Id = 37638
                 },
                 #endregion
                 #region M4A1
                 new ItemExtension
                 {
-                    ItemId = 37601
+                    Id = 37601
                 },
                 new ItemExtension
                 {
-                    ItemId = 37602
+                    Id = 37602
                 },
                 new ItemExtension
                 {
-                    ItemId = 37603
+                    Id = 37603
                 },
                 new ItemExtension
                 {
-                    ItemId = 37604
+                    Id = 37604
                 },
                 new ItemExtension
                 {
-                    ItemId = 37605
+                    Id = 37605
                 },
                 new ItemExtension
                 {
-                    ItemId = 37606
+                    Id = 37606
                 },
                 new ItemExtension
                 {
-                    ItemId = 37607
+                    Id = 37607
                 },
                 new ItemExtension
                 {
-                    ItemId = 37608
+                    Id = 37608
                 },
                 #endregion
                 #region MK47
                 new ItemExtension
                 {
-                    ItemId = 37646
+                    Id = 37646
                 },
                 new ItemExtension
                 {
-                    ItemId = 37647
+                    Id = 37647
                 },
                 new ItemExtension
                 {
-                    ItemId = 37648
+                    Id = 37648
                 },
                 new ItemExtension
                 {
-                    ItemId = 37649
+                    Id = 37649
                 },
                 #endregion
                 #region SA-58
                 new ItemExtension
                 {
-                    ItemId =  38031
+                    Id =  38031
                 },
                 new ItemExtension
                 {
-                    ItemId =  38032
+                    Id =  38032
                 },
                 new ItemExtension
                 {
-                    ItemId =  38033
+                    Id =  38033
                 },
                 new ItemExtension
                 {
-                    ItemId =  38034
+                    Id =  38034
                 },
                 new ItemExtension
                 {
-                    ItemId =  38035
+                    Id =  38035
                 },
                 new ItemExtension
                 {
-                    ItemId =  38036
+                    Id =  38036
                 },
                 new ItemExtension
                 {
-                    ItemId =  38037
+                    Id =  38037
                 },
                 new ItemExtension
                 {
-                    ItemId =  38038
+                    Id =  38038
                 },
                 #endregion
                 #region AS-Val
                 new ItemExtension
                 {
-                    ItemId =  38070
+                    Id =  38070
                 },
                 new ItemExtension
                 {
-                    ItemId =  38071
+                    Id =  38071
                 },
                 new ItemExtension
                 {
-                    ItemId =  38072
+                    Id =  38072
                 },
                 new ItemExtension
                 {
-                    ItemId =  38073
+                    Id =  38073
                 },
                 #endregion
                 #region VPO-209 
                 new ItemExtension
                 {
-                    ItemId = 38131
+                    Id = 38131
                 },
                 new ItemExtension
                 {
-                    ItemId = 38132
+                    Id = 38132
                 },
                 new ItemExtension
                 {
-                    ItemId = 38133
+                    Id = 38133
                 },
                 new ItemExtension
                 {
-                    ItemId = 38134
+                    Id = 38134
                 },
                 new ItemExtension
                 {
-                    ItemId = 38135
+                    Id = 38135
                 },
                 new ItemExtension
                 {
-                    ItemId = 38136
+                    Id = 38136
                 },
                 new ItemExtension
                 {
-                    ItemId = 38137
+                    Id = 38137
                 },
                 new ItemExtension
                 {
-                    ItemId = 38138
+                    Id = 38138
                 },
                 #endregion
                 #region SKS
                 new ItemExtension
                 {
-                    ItemId = 38051
+                    Id = 38051
                 },
                 new ItemExtension
                 {
-                    ItemId = 38052
+                    Id = 38052
                 },
                 new ItemExtension
                 {
-                    ItemId = 38053
+                    Id = 38053
                 },
                 #endregion
                 #region VSS
                 new ItemExtension
                 {
-                    ItemId = 38067
+                    Id = 38067
                 },
                 new ItemExtension
                 {
-                    ItemId = 38068
+                    Id = 38068
                 },
                 #endregion
                 #region M700
                 new ItemExtension
                 {
-                    ItemId = 38043
+                    Id = 38043
                 },
                 new ItemExtension
                 {
-                    ItemId = 38044
+                    Id = 38044
                 },
                 #endregion
                 #region Mosin Infantry
                 new ItemExtension
                 {
-                    ItemId = 38101
+                    Id = 38101
                 },
                 new ItemExtension
                 {
-                    ItemId = 38102
+                    Id = 38102
                 },
                 new ItemExtension
                 {
-                    ItemId = 38103
+                    Id = 38103
                 },
                 new ItemExtension
                 {
-                    ItemId = 38104
+                    Id = 38104
                 },
                 #endregion
                 #region M870
                 new ItemExtension
                 {
-                    ItemId = 38021
+                    Id = 38021
                 },
                 new ItemExtension
                 {
-                    ItemId = 38022
+                    Id = 38022
                 },
                 new ItemExtension
                 {
-                    ItemId = 38023
+                    Id = 38023
                 },
                 new ItemExtension
                 {
-                    ItemId = 38024
+                    Id = 38024
                 },
                 new ItemExtension
                 {
-                    ItemId = 38025
+                    Id = 38025
                 },
                 new ItemExtension
                 {
-                    ItemId = 38026
+                    Id = 38026
                 },
                 new ItemExtension
                 {
-                    ItemId = 38027
+                    Id = 38027
                 },
                 new ItemExtension
                 {
-                    ItemId = 38028
+                    Id = 38028
                 },
                 #endregion
                 #region MP-153 
                 new ItemExtension
                 {
-                    ItemId = 38011
+                    Id = 38011
                 },
                 new ItemExtension
                 {
-                    ItemId = 38012
+                    Id = 38012
                 },
                 new ItemExtension
                 {
-                    ItemId = 38013
+                    Id = 38013
                 },
                 new ItemExtension
                 {
-                    ItemId = 38014
+                    Id = 38014
                 },
                 new ItemExtension
                 {
-                    ItemId = 38015
+                    Id = 38015
                 },
                 new ItemExtension
                 {
-                    ItemId = 38016
+                    Id = 38016
                 },
                 new ItemExtension
                 {
-                    ItemId = 38017
+                    Id = 38017
                 },
                 new ItemExtension
                 {
-                    ItemId = 38018
+                    Id = 38018
                 },
                 #endregion
                 #region Saiga
                 new ItemExtension
                 {
-                    ItemId = 38001
+                    Id = 38001
                 },
                 new ItemExtension
                 {
-                    ItemId = 38002
+                    Id = 38002
                 },
                 new ItemExtension
                 {
-                    ItemId = 38003
+                    Id = 38003
                 },
                 new ItemExtension
                 {
-                    ItemId = 38004
+                    Id = 38004
                 },
                 new ItemExtension
                 {
-                    ItemId = 38005
+                    Id = 38005
                 },
                 new ItemExtension
                 {
-                    ItemId = 38006
+                    Id = 38006
                 },
                 new ItemExtension
                 {
-                    ItemId = 38007
+                    Id = 38007
                 },
                 new ItemExtension
                 {
-                    ItemId = 38008
+                    Id = 38008
                 },
                 #endregion
                 #region MP5
                 new ItemExtension
                 {
-                    ItemId =  37683
+                    Id =  37683
                 },
                 new ItemExtension
                 {
-                    ItemId =  37685
+                    Id =  37685
                 },
                 new ItemExtension
                 {
-                    ItemId =  37686
+                    Id =  37686
                 },
                 new ItemExtension
                 {
-                    ItemId =  37687
+                    Id =  37687
                 },
                 #endregion
                 #region PP-19-01
                 new ItemExtension
                 {
-                    ItemId = 37981
+                    Id = 37981
                 },
                 new ItemExtension
                 {
-                    ItemId = 37983
+                    Id = 37983
                 },
                 new ItemExtension
                 {
-                    ItemId = 37984
+                    Id = 37984
                 },
                 new ItemExtension
                 {
-                    ItemId = 37987
+                    Id = 37987
                 },
                 #endregion
                 #region PP-91
                 new ItemExtension
                 {
-                    ItemId = 37991
+                    Id = 37991
                 },
                 new ItemExtension
                 {
-                    ItemId = 37992
+                    Id = 37992
                 },
                 #endregion
                 #region Glock 17
                 new ItemExtension
                 {
-                    ItemId = 38121
+                    Id = 38121
                 },
                 new ItemExtension
                 {
-                    ItemId = 38122
+                    Id = 38122
                 },
                 new ItemExtension
                 {
-                    ItemId = 38123
+                    Id = 38123
                 },
                 #endregion
                 #region Glock 18C
                 new ItemExtension
                 {
-                    ItemId = 38124
+                    Id = 38124
                 },
                 new ItemExtension
                 {
-                    ItemId = 38125
+                    Id = 38125
                 },
                 new ItemExtension
                 {
-                    ItemId = 38126
+                    Id = 38126
                 },
                 new ItemExtension
                 {
-                    ItemId = 38127
+                    Id = 38127
                 },
                 #endregion
                 #region P226R
                 new ItemExtension
                 {
-                    ItemId = 38083
+                    Id = 38083
                 },
                 new ItemExtension
                 {
-                    ItemId = 38084
+                    Id = 38084
                 },
                 #endregion
             };
@@ -706,6 +1798,52 @@ namespace SpeedMann.Unturnov
                     }
                 }
             };
+        }
+
+        public void addNames()
+        {
+            addNames(DeathDrops);
+            addNames(AutoCombine);
+            addNames(MultiUseItems);
+            addNames(GunModdingResults);
+
+            foreach(EmptyMagazineExtension magazineExtension in UnloadMagBlueprints)
+            {
+                addName(magazineExtension);
+                addNames(magazineExtension.LoadedMagazines);
+            }
+            foreach (ReloadExtension reloadExtension in ReloadExtensions)
+            {
+                if (reloadExtension.AmmoStack != null)
+                {
+                    addName(reloadExtension.AmmoStack);
+                }
+                if (reloadExtension.Compatibles != null)
+                {
+                    foreach (ReloadInner reloadInner in reloadExtension.Compatibles)
+                    {
+                        addNames(reloadInner.Gun);
+                    }
+                }
+            }
+          
+            Unturnov.Inst.Configuration.Save();
+        }
+
+        private void addNames<T>(List<T> itemExtensions) where T : ItemExtension
+        {
+            foreach (T itemExtension in itemExtensions)
+            {
+                addName(itemExtension);
+            }
+        }
+        private void addName<T>(T itemExtension) where T : ItemExtension
+        {
+            ItemAsset itemAsset = (ItemAsset)Assets.find(EAssetType.ITEM, itemExtension.Id);
+            if (itemAsset != null)
+            {
+                itemExtension.Name = itemAsset.name;
+            }
         }
         public void updateConfig()
         {
