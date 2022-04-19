@@ -86,6 +86,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Helper\InventoryHelper.cs" />
     <Compile Include="Helper\UnturnedPrivateFields.cs" />
     <Compile Include="Models\GunAttachments.cs" />
     <Compile Include="Models\DeathDrop.cs" />
