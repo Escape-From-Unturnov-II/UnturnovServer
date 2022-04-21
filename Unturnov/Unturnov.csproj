@@ -87,6 +87,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Helper\InventoryHelper.cs" />
+    <Compile Include="Helper\ScavRunController.cs" />
     <Compile Include="Helper\UnturnedPrivateFields.cs" />
     <Compile Include="Models\GunAttachments.cs" />
     <Compile Include="Models\DeathDrop.cs" />
@@ -96,6 +97,7 @@
     <Compile Include="Models\QuestEquipment.cs" />
     <Compile Include="Models\QuestExtension.cs" />
     <Compile Include="Models\ReloadExtension.cs" />
+    <Compile Include="Models\ScavKit.cs" />
     <Compile Include="UnturnovCommands.cs" />
     <Compile Include="Helper\UnturnedPatches.cs" />
     <Compile Include="Models\CombineDescription.cs" />

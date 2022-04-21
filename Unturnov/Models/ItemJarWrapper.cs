@@ -12,5 +12,16 @@ namespace SpeedMann.Unturnov.Models
         public ItemJar itemJar;
         public byte index;
         public byte page;
+
+        public ItemJarWrapper()
+        {
+
+        }
+        public ItemJarWrapper(ItemJar itemJar, byte page, byte index = 0)
+        {
+            this.itemJar = itemJar;
+            this.page = page;
+            this.index = index;
+        }
     }
 }

@@ -7,162 +7,13 @@ using Rocket.Unturned.Chat;
 using Rocket.Unturned.Player;
 using Rocket.Unturned.Plugins;
 using SDG.Unturned;
+using SpeedMann.Unturnov.Models;
 
 namespace SpeedMann.Unturnov
 {
 	public class InventoryHelper
 	{
-		public bool UpdateInventory(UnturnedPlayer player, Dictionary<ushort, List<Item>> savedItems)
-		{
-			bool returnv = false;
-			if (savedItems == null) return returnv;
-
-			try
-			{
-				// Check Clothing Items and remove removed Clothing
-				#region checkClothing
-				List<KeyValuePair<StorageType, Item>> clothingItems = new List<KeyValuePair<StorageType, Item>>();
-				if (!GetClothingItems(player, ref clothingItems))
-					return false;
-
-				if (Unturnov.Inst.Configuration.Instance.Debug)
-					Logger.Log("Found " + clothingItems.Count + " Clothing items");
-				foreach (KeyValuePair<StorageType, Item> item in clothingItems)
-				{
-					List<Item> itemList;
-					bool found = false;
-					if (savedItems.TryGetValue(item.Value.id, out itemList) && itemList.Count > 0)
-					{
-						for (int i = 0; i < itemList.Count; i++)
-						{
-							if (ItemEquality(item.Value, itemList[i]))
-							{
-								itemList.RemoveAt(i);
-								found = true;
-								break;
-							}
-						}
-					}
-					if (!found)
-					{
-						Logger.Log("Removed " + item.Key);
-						//TODO: Fix Remove, currently only deequip
-						switch (item.Key)
-						{
-							case StorageType.Backpack:
-								clearInventoryPage(player, 3);
-								player.Player.clothing.thirdClothes.backpack = 0;
-								player.Player.clothing.askWearBackpack(0, 0, new byte[0], true);
-								break;
-							case StorageType.Vest:
-								clearInventoryPage(player, 4);
-								player.Player.clothing.thirdClothes.vest = 0;
-								player.Player.clothing.askWearVest(0, 0, new byte[0], true);
-								break;
-							case StorageType.Shirt:
-								clearInventoryPage(player, 5);
-								player.Player.clothing.thirdClothes.shirt = 0;
-								player.Player.clothing.askWearShirt(0, 0, new byte[0], true);
-								break;
-							case StorageType.Pants:
-								clearInventoryPage(player, 6);
-								player.Player.clothing.thirdClothes.pants = 0;
-								player.Player.clothing.askWearPants(0, 0, new byte[0], true);
-								break;
-							case StorageType.Glasses:
-								player.Player.clothing.thirdClothes.glasses = 0;
-								player.Player.clothing.askWearGlasses(0, 0, new byte[0], true);
-								break;
-							case StorageType.Hat:
-								player.Player.clothing.thirdClothes.hat = 0;
-								player.Player.clothing.askWearHat(0, 0, new byte[0], true);
-								break;
-							case StorageType.Mask:
-								player.Player.clothing.thirdClothes.mask = 0;
-								player.Player.clothing.askWearMask(0, 0, new byte[0], true);
-								break;
-						}
-					}
-				}
-				#endregion
-
-				// Check Inventory Pages and remove removed items
-				#region checkItems
-				for (byte p = 0; p < PlayerInventory.PAGES; p++)
-				{
-					if (player.Inventory.items[p] == null) continue;
-					byte itemc = player.Inventory.getItemCount(p);
-					if (itemc > 0)
-					{
-						List<byte> removedIndexes = new List<byte>();
-						for (byte p1 = 0; p1 < itemc; p1++)
-						{
-							ItemJar itemJ = player.Inventory.items[p].items[p1];
-							List<Item> itemList;
-							bool found = false;
-							if (itemJ != null && savedItems.TryGetValue(itemJ.item.id, out itemList) && itemList.Count > 0)
-							{
-								for (int i = 0; i < itemList.Count; i++)
-								{
-									if (ItemEquality(itemJ.item, itemList[i]))
-									{
-										itemList.RemoveAt(i);
-										found = true;
-										break;
-									}
-								}
-							}
-							if (!found)
-							{
-								removedIndexes.Add(p1);
-							}
-						}
-						if (removedIndexes.Count > 0)
-						{
-							if (p <= 1)
-								Logger.Log("Removed " + (StorageType)p);
-							else if (p <= 6)
-								Logger.Log("Removed " + removedIndexes.Count + " Items in " + (StorageType)p);
-							else
-								Logger.Log("Removed " + removedIndexes.Count + " Items in page" + p);
-						}
-
-						removedIndexes.Sort((a, b) => b.CompareTo(a));
-						foreach (byte i in removedIndexes)
-						{
-							player.Inventory.removeItem(p, i);
-						}
-					}
-				}
-				#endregion
-
-				// Add added items to inventory
-				#region addNewItems
-				int counter = 0;
-				foreach (KeyValuePair<ushort, List<Item>> savedItem in savedItems)
-				{
-					foreach (Item item in savedItem.Value)
-					{
-						counter++;
-						if (!player.Inventory.tryAddItem(item, true))
-							player.Inventory.forceAddItem(item, false);
-					}
-				}
-				if (counter > 0)
-					Logger.Log("Added " + counter + " new items");
-
-				#endregion
-				returnv = true;
-			}
-			catch (Exception e)
-			{
-				Logger.Log("There was an error getting items from " + player.CharacterName + "'s inventory.  Here is the error.");
-				Console.Write(e);
-			}
-			return returnv;
-		}
-
-		public void clearInventoryPage(UnturnedPlayer player, byte page)
+		public static void clearInventoryPage(UnturnedPlayer player, byte page)
 		{
 			if (player.Player.inventory.items[page] == null)
 				return;
@@ -172,7 +23,7 @@ namespace SpeedMann.Unturnov
 				player.Player.inventory.removeItem(page, 0);
 			}
 		}
-		public bool ItemEquality(Item a, Item b)
+		public static bool ItemEquality(Item a, Item b)
 		{
 			bool equals = false;
 			ItemAsset itemAssetA = Assets.find(EAssetType.ITEM, a.id) as ItemAsset;
@@ -209,33 +60,22 @@ namespace SpeedMann.Unturnov
 
 
 		}
-		public bool GetAllItems(UnturnedPlayer player, ref List<Item> foundItems)
-		{
-			List<KeyValuePair<StorageType, Item>> foundClothings = new List<KeyValuePair<StorageType, Item>>();
-			if (GetClothingItems(player, ref foundClothings))
-			{
-				foreach (KeyValuePair<StorageType, Item> item in foundClothings)
-				{
-					foundItems.Add(item.Value);
-				}
-				return GetInvItems(player, ref foundItems);
-			}
-			return false;
-		}
-		public bool GetInvItems(UnturnedPlayer player, ref List<Item> foundItems)
+
+		public static bool GetInvItems(UnturnedPlayer player, ref List<ItemJarWrapper> foundItems)
 		{
 			bool returnv = false;
 			if (foundItems == null) return returnv;
 
 			try
 			{
-				foreach (Items items in player.Inventory.items)
+				for (byte i = 0; i < player.Inventory.items.Length; i++)
 				{
-					if (items == null) continue;
+					if (player.Inventory.items[i] == null) continue;
 
-					foreach (ItemJar itemJ in items.items)
+					for (byte y = 0; y < player.Inventory.items[i].items.Count; y++)
 					{
-						foundItems.Add(itemJ.item);
+						ItemJar itemJ = player.Inventory.items[i].items[y];
+						foundItems.Add(new ItemJarWrapper(itemJ, i, y));
 					}
 					returnv = true;
 				}
@@ -243,12 +83,12 @@ namespace SpeedMann.Unturnov
 			}
 			catch (Exception e)
 			{
-				Logger.Log("There was an error getting items from " + player.CharacterName + "'s inventory.  Here is the error.");
+				Logger.Log("There was an error getting items from " + player.DisplayName + "'s inventory.  Here is the error.");
 				Console.Write(e);
 			}
 			return returnv;
 		}
-		public bool GetClothingItems(UnturnedPlayer player, ref List<KeyValuePair<StorageType, Item>> foundItems)
+		public static bool GetClothingItems(UnturnedPlayer player, ref List<KeyValuePair<StorageType, Item>> foundItems)
 		{
 			bool returnv = false;
 			if (foundItems == null) return returnv;
@@ -310,17 +150,17 @@ namespace SpeedMann.Unturnov
 			}
 			catch (Exception e)
 			{
-				Logger.Log("There was an error getting clothes from " + player.CharacterName + "'.  Here is the error.");
+				Logger.Log("There was an error getting clothes from " + player.DisplayName + "'.  Here is the error.");
 				Console.Write(e);
 			}
 			return returnv;
 		}
 
-		public bool ClearAll(UnturnedPlayer player)
+		public static bool ClearAll(UnturnedPlayer player)
 		{
 			return ClearInv(player) && ClearClothes(player);
 		}
-		public bool ClearInv(UnturnedPlayer player)
+		public static bool ClearInv(UnturnedPlayer player)
 		{
 			bool returnv = false;
 			try
@@ -354,14 +194,20 @@ namespace SpeedMann.Unturnov
 			}
 			catch (Exception e)
 			{
-				Logger.Log("There was an error clearing " + player.CharacterName + "'s inventory.  Here is the error.");
+				Logger.Log("There was an error clearing " + player.DisplayName + "'s inventory.  Here is the error.");
 				Console.Write(e);
 			}
 			return returnv;
 		}
-		public bool ClearClothes(UnturnedPlayer player)
+		public static bool ClearClothes(UnturnedPlayer player)
 		{
 			bool returnv = false;
+
+			byte oldWidth = player.Inventory.items[2].width;
+			byte oldHeight = player.Inventory.items[2].height;
+
+			player.Inventory.items[2].resize(10, 10);
+			
 			try
 			{
 				player.Player.clothing.askWearBackpack(0, 0, new byte[0], true);
@@ -403,8 +249,12 @@ namespace SpeedMann.Unturnov
 			}
 			catch (Exception e)
 			{
-				Logger.Log("There was an error clearing " + player.CharacterName + "'s inventory.  Here is the error.");
+				Logger.Log("There was an error clearing " + player.DisplayName + "'s inventory.  Here is the error.");
 				Console.Write(e);
+			}
+            finally
+            {
+				player.Inventory.items[2].resize(oldWidth, oldHeight);
 			}
 			return returnv;
 		}

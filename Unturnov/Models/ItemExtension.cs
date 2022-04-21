@@ -16,10 +16,10 @@ namespace SpeedMann.Unturnov.Models
 
         }
 
-        public ItemExtension( ushort itemId)
+        public ItemExtension( ushort itemId, string name = "")
         {
             Id = itemId;
-            Name = "";
+            Name = name;
         }
     }
 }

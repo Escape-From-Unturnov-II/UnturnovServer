@@ -19,6 +19,7 @@ namespace SpeedMann.Unturnov
         [XmlArrayItem(ElementName = "Item")]
         public List<ItemExtension> GunModdingResults;
         public List<ReloadExtension> ReloadExtensions;
+        public List<ScavKit> ScavKits;
         public void LoadDefaults()
         {
             Debug = true;
@@ -1669,6 +1670,23 @@ namespace SpeedMann.Unturnov
                                 new ItemExtension(38021),
                             }
                         }
+                    }
+                }
+            };
+            ScavKits = new List<ScavKit>
+            {
+                new ScavKit
+                {
+                    Clothing = new List<ItemExtension>
+                    {
+                        new ItemExtension(37333, "scav Vest"),
+                        new ItemExtension(37438, "ushanka"),
+                    },
+                    Items = new List<ItemExtension>
+                    {
+                        new ItemExtension(38079, "mac"),
+                        new ItemExtension(37185, "chees med"),
+                        new ItemExtension(37187, "bandage"),
                     }
                 }
             };

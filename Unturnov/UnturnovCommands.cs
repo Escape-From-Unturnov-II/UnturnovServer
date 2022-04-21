@@ -23,12 +23,12 @@ namespace SpeedMann.Unturnov
 
         public string Name
         {
-            get { return "unturnov"; }
+            get { return "scav"; }
         }
 
         public string Syntax
         {
-            get { return "<unturnov>"; }
+            get { return "<scav>"; }
         }
 
         public List<string> Aliases
@@ -45,7 +45,7 @@ namespace SpeedMann.Unturnov
         {
             get
             {
-                return new List<string>() { "unturnov" };
+                return new List<string>() { "scav" };
             }
         }
 
@@ -61,25 +61,46 @@ namespace SpeedMann.Unturnov
             {
                 switch (command[0].ToLower())
                 {
-                    case "state":
-                        if(player.Player.equipment?.asset != null && player.Player.equipment?.asset is ItemGunAsset)
+                    case "start":
+                        if (isInSafezone(player))
                         {
-                            ItemGunAsset asset = (ItemGunAsset)player.Player.equipment?.asset;
-                            GunAttachments attachments = new GunAttachments(player.Player.equipment.state);
-
-                            UnturnedChat.Say($"Stats of equiped Item are: sight { attachments.attachments[0].id}, tactical { attachments.attachments[1].id}, grip { attachments.attachments[2].id}, barrel { attachments.attachments[3].id}, mag { attachments.magAttachment.id}, ammo { attachments.ammo }, ");
-                        }
-                        else
-                        {
-                            UnturnedChat.Say($"No gun equiped");
+                            if (!ScavRunController.tryStartScavRun(player))
+                            {
+                                UnturnedChat.Say(caller, "You are already a scav", UnityEngine.Color.red);
+                            }
                         }
                         break;
-
+                    case "stop":
+                        if (isInSafezone(player))
+                        {
+                            if (!ScavRunController.tryStopScavRun(player))
+                            {
+                                UnturnedChat.Say(caller, "You are not a scav", UnityEngine.Color.red);
+                            }
+                        }
+                        break;
                     default:
                         UnturnedChat.Say(caller, "Invalid Command parameters", UnityEngine.Color.red);
                         throw new WrongUsageOfCommandException(caller, this);
                 }
             }
         }
+
+       public bool isInSafezone(UnturnedPlayer player, bool requiresSafezone = true)
+       {
+            if (!player.Player.movement.isSafeInfo?.noWeapons ?? true)
+            {
+                if (requiresSafezone)
+                {
+                    UnturnedChat.Say(player, "This command can only be used in safezone", UnityEngine.Color.red);
+                }
+                return false;
+            }
+            if (!requiresSafezone)
+            {
+                UnturnedChat.Say(player, "This command can not be used in safezone", UnityEngine.Color.red);
+            }
+            return true;
+       }
     }
 }
