@@ -53,12 +53,12 @@ namespace SpeedMann.Unturnov.Helper
 
         internal static void giveScavKit(UnturnedPlayer player) 
         {
-            foreach (ItemExtension itemEx in Unturnov.Conf.ScavKits[0].Clothing)
+            foreach (ItemExtension itemEx in Unturnov.Conf.ScavSpawnTables[0].Clothing)
             {
                 Item item = new Item(itemEx.Id, true);
                 player.Inventory.forceAddItem(item, true);
             }
-            foreach (ItemExtension itemEx in Unturnov.Conf.ScavKits[0].Items)
+            foreach (ItemExtension itemEx in Unturnov.Conf.ScavSpawnTables[0].Items)
             {
                 Item item = new Item(itemEx.Id, true);
                 player.Inventory.forceAddItem(item, true);

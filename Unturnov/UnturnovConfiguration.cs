@@ -1,6 +1,7 @@
 ﻿using Rocket.API;
 using SDG.Unturned;
 using SpeedMann.Unturnov.Models;
+using SpeedMann.Unturnov.Models.Config;
 using System;
 using System.Collections.Generic;
 using System.Xml.Serialization;
@@ -19,7 +20,10 @@ namespace SpeedMann.Unturnov
         [XmlArrayItem(ElementName = "Item")]
         public List<ItemExtension> GunModdingResults;
         public List<ReloadExtension> ReloadExtensions;
-        public List<ScavKit> ScavKits;
+        public List<ScavKitTier> ScavKitTiers;
+        public ScavSpawnTables ScavSpawnTables;
+        
+
         public void LoadDefaults()
         {
             Debug = true;
@@ -1673,22 +1677,65 @@ namespace SpeedMann.Unturnov
                     }
                 }
             };
-            ScavKits = new List<ScavKit>
+            ScavKitTiers = new List<ScavKitTier>
             {
-                new ScavKit
+                new ScavKitTier
                 {
-                    Clothing = new List<ItemExtension>
-                    {
-                        new ItemExtension(37333, "scav Vest"),
-                        new ItemExtension(37438, "ushanka"),
-                    },
-                    Items = new List<ItemExtension>
-                    {
-                        new ItemExtension(38079, "mac"),
-                        new ItemExtension(37185, "chees med"),
-                        new ItemExtension(37187, "bandage"),
-                    }
+                    GlassesConfig = new KitTierEntry(),
+                    HatConfig = new KitTierEntry(),
+                    VestConfig = new KitTierEntry(),
+                    BackpackConfig = new KitTierEntry(),
+                    PantsConfig = new KitTierEntry(),
+                    ShirtConfig = new KitTierEntry(),
+
+                    GunConfig = new KitTierEntry(),
+                    MedConfig = new KitTierEntry(),
+                    SupplyConfig = new KitTierEntry(),
                 }
+            };
+            ScavSpawnTables = new ScavSpawnTables
+            {
+                GlassesTable = new SpawnTableExtension(),
+                HatTable = new SpawnTableExtension
+                {
+                    Items = new List<SpawnTableEntry>
+                    {
+                        // ushanka
+                        new SpawnTableEntry(37438, 10),
+                    }
+                },
+                VestTable = new SpawnTableExtension
+                {
+                    Items = new List<SpawnTableEntry>
+                    {
+                        // scav vest
+                        new SpawnTableEntry(37333, 10),
+                    }
+                },
+                BackpackTable = new SpawnTableExtension(),
+                PantsTable = new SpawnTableExtension(),
+                ShirtTable = new SpawnTableExtension(),
+
+                GunTable = new SpawnTableExtension
+                {
+                    Items = new List<SpawnTableEntry>
+                    {
+                        // mac
+                        new SpawnTableEntry(38079, 10),
+                    }
+                },
+                MedTable = new SpawnTableExtension
+                {
+                    Items = new List<SpawnTableEntry>
+                    {
+                        // bandage
+                        new SpawnTableEntry(37185, 10),
+                        // chees med
+                        new SpawnTableEntry(37187, 10),
+                        
+                    }
+                },
+                SupplyTable = new SpawnTableExtension(),
             };
         }
 
