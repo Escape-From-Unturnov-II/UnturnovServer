@@ -44,6 +44,7 @@ namespace SpeedMann.Unturnov
 
             UnturnedPrivateFields.Init();
             UnturnedPatches.Init();
+            ScavRunController.Init();
 
             ReplaceBypass = new List<CSteamID>();
             ReloadExtensionStates = new Dictionary<CSteamID, ItemJarWrapper>();
@@ -107,17 +108,14 @@ namespace SpeedMann.Unturnov
 
                 if(Conf.DeathDrops?.Count > 0)
                 {
+                    // defaults to index 0 if no flag it set or found
                     Item item = new Item(Conf.DeathDrops[0].Id, true);
-                    if(Conf.DeathDropFlag != 0)
+                    if(Conf.DeathDropFlag != 0 && player.Player.quests.getFlag(Conf.DeathDropFlag, out short dropFlagValue))
                     {
-                        short dropFlagValue;
-                        if (player.Player.quests.getFlag(Conf.DeathDropFlag, out dropFlagValue))
+                        DeathDrop drop = Conf.DeathDrops.Find(x => x.RequiredFalgValue == dropFlagValue);
+                        if (drop != null)
                         {
-                            DeathDrop drop = Conf.DeathDrops.Find(x => x.RequiredFalgValue == dropFlagValue);
-                            if(drop != null)
-                            {
-                                item = new Item(drop.Id, true);
-                            }
+                            item = new Item(drop.Id, true);
                         }
                     }
                     if (Conf.Debug)

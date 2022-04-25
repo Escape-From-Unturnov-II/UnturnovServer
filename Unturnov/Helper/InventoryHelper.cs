@@ -194,7 +194,7 @@ namespace SpeedMann.Unturnov
 			}
 			catch (Exception e)
 			{
-				Logger.Log("There was an error clearing " + player.DisplayName + "'s inventory.  Here is the error.");
+				Logger.Log($"There was an error clearing {player.DisplayName}'s inventory.  Here is the error.");
 				Console.Write(e);
 			}
 			return returnv;

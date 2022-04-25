@@ -12,6 +12,7 @@ namespace SpeedMann.Unturnov
     {
         public bool Debug;
         public ushort DeathDropFlag;
+        public ushort ScavKitTierFlag;
         public List<EmptyMagazineExtension> UnloadMagBlueprints;
         public List<DeathDrop> DeathDrops;
         public List<CombineDescription> AutoCombine;
@@ -21,13 +22,14 @@ namespace SpeedMann.Unturnov
         public List<ItemExtension> GunModdingResults;
         public List<ReloadExtension> ReloadExtensions;
         public List<ScavKitTier> ScavKitTiers;
-        public ScavSpawnTables ScavSpawnTables;
+        public ScavSpawnTableSet ScavSpawnTables;
         
 
         public void LoadDefaults()
         {
             Debug = true;
             DeathDropFlag = 0;
+            ScavKitTierFlag = 0;
             DeathDrops = new List<DeathDrop>()
             {
                 new DeathDrop()
@@ -1681,19 +1683,83 @@ namespace SpeedMann.Unturnov
             {
                 new ScavKitTier
                 {
-                    GlassesConfig = new KitTierEntry(),
-                    HatConfig = new KitTierEntry(),
-                    VestConfig = new KitTierEntry(),
-                    BackpackConfig = new KitTierEntry(),
-                    PantsConfig = new KitTierEntry(),
-                    ShirtConfig = new KitTierEntry(),
+                    GlassesConfig = new KitTierEntry
+                    {
+                        CountMin = 0,
+                        CountMax = 0,
+                        WeightMin = 0,
+                        WeightMax = 100,
+                        NoItemChance = 0,
+                    },
+                    HatConfig = new KitTierEntry
+                    {
+                        CountMin = 0,
+                        CountMax = 1,
+                        WeightMin = 0,
+                        WeightMax = 100,
+                        NoItemChance = 0.2f,
+                    },
+                    VestConfig = new KitTierEntry
+                    {
+                        CountMin = 1,
+                        CountMax = 1,
+                        WeightMin = 0,
+                        WeightMax = 100,
+                        NoItemChance = 0f,
+                    },
+                    BackpackConfig = new KitTierEntry
+                    {
+                        CountMin = 0,
+                        CountMax = 1,
+                        WeightMin = 0,
+                        WeightMax = 100,
+                        NoItemChance = 0.5f,
+                    },
+                    ShirtConfig = new KitTierEntry
+                    {
+                        CountMin = 1,
+                        CountMax = 1,
+                        WeightMin = 0,
+                        WeightMax = 100,
+                        NoItemChance = 0,
+                    },
+                    PantsConfig = new KitTierEntry
+                    {
+                        CountMin = 1,
+                        CountMax = 1,
+                        WeightMin = 0,
+                        WeightMax = 100,
+                        NoItemChance = 0,
+                    },
+                    
 
-                    GunConfig = new KitTierEntry(),
-                    MedConfig = new KitTierEntry(),
-                    SupplyConfig = new KitTierEntry(),
+                    GunConfig = new KitTierEntry
+                    {
+                        CountMin = 1,
+                        CountMax = 1,
+                        WeightMin = 0,
+                        WeightMax = 100,
+                        NoItemChance = 0,
+                    },
+                    MedConfig = new KitTierEntry
+                    {
+                        CountMin = 2,
+                        CountMax = 3,
+                        WeightMin = 0,
+                        WeightMax = 100,
+                        NoItemChance = 0.5f,
+                    },
+                    SupplyConfig = new KitTierEntry
+                    {
+                        CountMin = 0,
+                        CountMax = 0,
+                        WeightMin = 0,
+                        WeightMax = 100,
+                        NoItemChance = 0,
+                    },
                 }
             };
-            ScavSpawnTables = new ScavSpawnTables
+            ScavSpawnTables = new ScavSpawnTableSet
             {
                 GlassesTable = new SpawnTableExtension(),
                 HatTable = new SpawnTableExtension
@@ -1728,9 +1794,9 @@ namespace SpeedMann.Unturnov
                 {
                     Items = new List<SpawnTableEntry>
                     {
-                        // bandage
-                        new SpawnTableEntry(37185, 10),
                         // chees med
+                        new SpawnTableEntry(37185, 20),
+                        // bandage
                         new SpawnTableEntry(37187, 10),
                         
                     }

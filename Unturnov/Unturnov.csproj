@@ -89,7 +89,7 @@
     <Compile Include="Helper\InventoryHelper.cs" />
     <Compile Include="Helper\ScavRunController.cs" />
     <Compile Include="Helper\UnturnedPrivateFields.cs" />
-    <Compile Include="Models\Config\ScavSpawnTables.cs" />
+    <Compile Include="Models\Config\ScavSpawnTableSet.cs" />
     <Compile Include="Models\GunAttachments.cs" />
     <Compile Include="Models\Config\DeathDrop.cs" />
     <Compile Include="Models\ItemExtension.cs" />
@@ -98,6 +98,7 @@
     <Compile Include="Models\Config\QuestEquipment.cs" />
     <Compile Include="Models\Config\QuestExtension.cs" />
     <Compile Include="Models\Config\ReloadExtension.cs" />
+    <Compile Include="Models\KitTierEntry.cs" />
     <Compile Include="Models\SpawnTableExtension.cs" />
     <Compile Include="Models\Config\ScavKitTier.cs" />
     <Compile Include="Models\SpawnTableEntry.cs" />
