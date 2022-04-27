@@ -48,6 +48,7 @@ namespace SpeedMann.Unturnov.Helper
                 {
                     // scav ready
                     case scavReady:
+                        // TODO: move to main
                         UnturnedChat.Say(player, Util.Translate("scav_ready"), UnityEngine.Color.green);
                         break;
                     // scav active
@@ -95,12 +96,12 @@ namespace SpeedMann.Unturnov.Helper
         }
 
         internal static void enableScavMode(PlayerQuests quests)
-        {
-            stopScavCooldown(UnturnedPlayer.FromPlayer(quests.player));
-            
+        {           
             ushort flag = Unturnov.Conf.ScavRunControlFlag;
             if (controlFlagCheck(flag))
             {
+                Logger.Log($"ScavRun for {quests.player.name} is off cooldown");
+                
                 quests.sendSetFlag(flag, scavReady);
             }
         }
@@ -127,6 +128,28 @@ namespace SpeedMann.Unturnov.Helper
             return false;
         }
 
+        public static bool tryGetStateName(UnturnedPlayer player, out string state)
+        {
+            state = "unknown";
+            ushort flag = Unturnov.Conf.ScavRunControlFlag;
+            if (ScavRunController.controlFlagCheck(flag) && player.Player.quests.getFlag(flag, out short value))
+            {
+                switch (value)
+                {
+                    case scavReady:
+                        state = "ready";
+                        break;
+                    case scavActive:
+                        state = "active";
+                        break;
+                    case scavCooldown:
+                        state = "cooldown";
+                        break;
+                }
+                return true;
+            }
+            return false;
+        }
         internal static bool tryStopScavRun(UnturnedPlayer player)
         {
             if (StoredInventories.TryGetValue(player.CSteamID.m_SteamID, out StoredInventory storedInv))
