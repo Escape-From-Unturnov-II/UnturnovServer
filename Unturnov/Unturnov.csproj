@@ -99,7 +99,9 @@
     <Compile Include="Models\Config\QuestExtension.cs" />
     <Compile Include="Models\Config\ReloadExtension.cs" />
     <Compile Include="Models\KitTierEntry.cs" />
+    <Compile Include="Models\MainQueueEntry.cs" />
     <Compile Include="Models\ScavCooldownTimer.cs" />
+    <Compile Include="Models\SetFalgQueueEntry.cs" />
     <Compile Include="Models\SpawnTableExtension.cs" />
     <Compile Include="Models\Config\ScavKitTier.cs" />
     <Compile Include="Models\SpawnTableEntry.cs" />

@@ -90,6 +90,13 @@ namespace SpeedMann.Unturnov
                             {
                                 UnturnedChat.Say(caller, "You are not a scav", UnityEngine.Color.red);
                             }
+                            else
+                            {
+                                if(ScavRunController.tryGetTier(player.Player.quests, out ScavKitTier tier))
+                                {
+                                    UnturnedChat.Say(caller, $"You can use scav mode again in {formatTime(tier.Cooldown)}", UnityEngine.Color.green);
+                                }
+                            }
                         }
                         break;
                     default:
@@ -115,5 +122,17 @@ namespace SpeedMann.Unturnov
             }
             return true;
        }
+
+        public string formatTime(uint timeInSec)
+        {
+            uint d = timeInSec / 60 / 60 / 24;
+            uint h = timeInSec / 60 / 60 % 24;
+            uint m = timeInSec / 60 % 60;
+            uint s = timeInSec % 60;
+            return (d > 0 ? $"{d} days ":"")
+                + (h > 0 ? $"{h} hours " : "")
+                + (m > 0 ? $"{m} minutes " : "")
+                + (s > 0 ? $"{s} seconds " : "");
+        }
     }
 }

@@ -12,6 +12,8 @@ namespace SpeedMann.Unturnov.Models
     {
         public short RequiredFalgValue;
         public uint Cooldown;
+        public byte HandWidth;
+        public byte HandHeight;
 
         public KitTierEntry HatConfig;
         public KitTierEntry GlassesConfig;

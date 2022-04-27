@@ -36,6 +36,9 @@ namespace SpeedMann.Unturnov
         
         private List<CSteamID> ReplaceBypass;
 
+        private int updateDelay;
+        private int frame;
+
         public override TranslationList DefaultTranslations =>
             new TranslationList
             {
@@ -47,6 +50,9 @@ namespace SpeedMann.Unturnov
         {
             Inst = this;
             Conf = Configuration.Instance;
+
+            updateDelay = 60;
+            frame = 0;
 
             UnturnedPrivateFields.Init();
             UnturnedPatches.Init();
@@ -118,7 +124,15 @@ namespace SpeedMann.Unturnov
             Conf.addNames();
             ModsLoaded = true;
         }
-        private void OnPlayerDisconnected(UnturnedPlayer player)
+        private void Update()
+        {
+            frame++;
+            if (frame % updateDelay != 0) return;
+            frame = 0;
+
+            ScavRunController.mainQueueCheck();
+        }
+            private void OnPlayerDisconnected(UnturnedPlayer player)
         {
             ScavRunController.stopScavCooldown(player);
         }
