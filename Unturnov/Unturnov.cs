@@ -36,6 +36,12 @@ namespace SpeedMann.Unturnov
         
         private List<CSteamID> ReplaceBypass;
 
+        public override TranslationList DefaultTranslations =>
+            new TranslationList
+            {
+                { "scav_ready", "Scav run is ready" },
+            };
+
         #region Load
         protected override void Load()
         {
@@ -67,6 +73,8 @@ namespace SpeedMann.Unturnov
 
             UnturnedPatches.OnPreTryAddItemAuto += OnTryAddItem;
 
+            PlayerQuests.onAnyFlagChanged += OnFlagChanged;
+
             UnturnedPatches.OnPreAttachMagazine += OnPreAttachMag;
             UnturnedPatches.OnPostAttachMagazine += OnPostAttachMag;
             UseableGun.onChangeMagazineRequested += OnChangeMagazine;
@@ -76,13 +84,19 @@ namespace SpeedMann.Unturnov
             UseableConsumeable.onConsumePerformed += OnConsumed;
             UseableConsumeable.onPerformingAid += OnAid;
 
+            U.Events.OnPlayerDisconnected += OnPlayerDisconnected;
+            U.Events.OnPlayerConnected += OnPlayerConnected;
+
             Level.onPreLevelLoaded += OnPreLevelLoaded;
         }
         protected override void Unload()
         {
             UnturnedPatches.Cleanup();
+            ScavRunController.Cleanup();
 
             UnturnedPatches.OnPreTryAddItemAuto -= OnTryAddItem;
+
+            PlayerQuests.onAnyFlagChanged -= OnFlagChanged;
 
             UnturnedPatches.OnPreAttachMagazine -= OnPreAttachMag;
             UnturnedPatches.OnPostAttachMagazine -= OnPostAttachMag;
@@ -93,6 +107,9 @@ namespace SpeedMann.Unturnov
             UseableConsumeable.onConsumePerformed -= OnConsumed;
             UseableConsumeable.onPerformingAid -= OnAid;
 
+            U.Events.OnPlayerDisconnected -= OnPlayerDisconnected;
+            U.Events.OnPlayerConnected -= OnPlayerConnected;
+
             Level.onPreLevelLoaded -= OnPreLevelLoaded;
         }
         #endregion
@@ -101,7 +118,22 @@ namespace SpeedMann.Unturnov
             Conf.addNames();
             ModsLoaded = true;
         }
-
+        private void OnPlayerDisconnected(UnturnedPlayer player)
+        {
+            ScavRunController.stopScavCooldown(player);
+        }
+        private void OnPlayerConnected(UnturnedPlayer player)
+        {
+            if(!ScavRunController.tryGetTier(player.Player.quests, out ScavKitTier tier))
+            {
+                Logger.LogError($"Error loading tier for player {player.DisplayName}");
+            }
+            ScavRunController.startScavCooldown(player, tier);
+        }
+        private void OnFlagChanged(PlayerQuests quests, PlayerQuestFlag flag)
+        {
+            ScavRunController.OnFlagChanged(quests, flag);
+        }
         private void OnPlayerDeath(UnturnedPlayer player, EDeathCause cause, ELimb limb, CSteamID murderer)
         {
             if(cause != EDeathCause.SUICIDE){

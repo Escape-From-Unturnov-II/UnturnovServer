@@ -11,9 +11,11 @@ namespace SpeedMann.Unturnov.Models
     public class ScavKitTier
     {
         public short RequiredFalgValue;
+        public uint Cooldown;
 
         public KitTierEntry HatConfig;
         public KitTierEntry GlassesConfig;
+        public KitTierEntry MaskConfig;
         public KitTierEntry VestConfig;
         public KitTierEntry BackpackConfig;
         public KitTierEntry ShirtConfig;

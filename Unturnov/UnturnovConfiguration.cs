@@ -13,6 +13,7 @@ namespace SpeedMann.Unturnov
         public bool Debug;
         public ushort DeathDropFlag;
         public ushort ScavKitTierFlag;
+        public ushort ScavRunControlFlag;
         public List<EmptyMagazineExtension> UnloadMagBlueprints;
         public List<DeathDrop> DeathDrops;
         public List<CombineDescription> AutoCombine;
@@ -30,6 +31,7 @@ namespace SpeedMann.Unturnov
             Debug = true;
             DeathDropFlag = 0;
             ScavKitTierFlag = 0;
+            ScavRunControlFlag = 50303;
             DeathDrops = new List<DeathDrop>()
             {
                 new DeathDrop()
@@ -1683,13 +1685,23 @@ namespace SpeedMann.Unturnov
             {
                 new ScavKitTier
                 {
+                    Cooldown = 300,
+
                     GlassesConfig = new KitTierEntry
                     {
                         CountMin = 0,
-                        CountMax = 0,
+                        CountMax = 1,
                         WeightMin = 0,
                         WeightMax = 100,
-                        NoItemChance = 0,
+                        NoItemChance = 0.25f,
+                    },
+                    MaskConfig = new KitTierEntry
+                    {
+                        CountMin = 0,
+                        CountMax = 1,
+                        WeightMin = 0,
+                        WeightMax = 100,
+                        NoItemChance = 0.25f,
                     },
                     HatConfig = new KitTierEntry
                     {
@@ -1697,7 +1709,7 @@ namespace SpeedMann.Unturnov
                         CountMax = 1,
                         WeightMin = 0,
                         WeightMax = 100,
-                        NoItemChance = 0.2f,
+                        NoItemChance = 0.3f,
                     },
                     VestConfig = new KitTierEntry
                     {
@@ -1743,11 +1755,11 @@ namespace SpeedMann.Unturnov
                     },
                     MedConfig = new KitTierEntry
                     {
-                        CountMin = 2,
+                        CountMin = 0,
                         CountMax = 3,
                         WeightMin = 0,
                         WeightMax = 100,
-                        NoItemChance = 0.5f,
+                        NoItemChance = 0.25f,
                     },
                     SupplyConfig = new KitTierEntry
                     {
@@ -1762,12 +1774,21 @@ namespace SpeedMann.Unturnov
             ScavSpawnTables = new ScavSpawnTableSet
             {
                 GlassesTable = new SpawnTableExtension(),
+                MaskTable = new SpawnTableExtension(),
                 HatTable = new SpawnTableExtension
                 {
                     Items = new List<SpawnTableEntry>
                     {
                         // ushanka
                         new SpawnTableEntry(37438, 10),
+                        // Kolpak
+                        new SpawnTableEntry(37430, 20),
+                        // Fast MT
+                        new SpawnTableEntry(37415, 15),
+                        // SSh-68
+                        new SpawnTableEntry(37436, 30),
+                        // Ronin 
+                        new SpawnTableEntry(37434, 80),
                     }
                 },
                 VestTable = new SpawnTableExtension
@@ -1776,9 +1797,37 @@ namespace SpeedMann.Unturnov
                     {
                         // scav vest
                         new SpawnTableEntry(37333, 10),
+                        new SpawnTableEntry(37314, 15),
+                        // paca
+                        new SpawnTableEntry(37328, 20),
+                        new SpawnTableEntry(37329, 30),
+                        // module 3m
+                        new SpawnTableEntry(37323, 20),
+                        new SpawnTableEntry(37324, 30),
+                        // 6B5-15
+                        new SpawnTableEntry(37302, 50),
+                        // AVS
+                        new SpawnTableEntry(37308, 90),
+                        // 6B43
+                        new SpawnTableEntry(37303, 200),
                     }
                 },
-                BackpackTable = new SpawnTableExtension(),
+                BackpackTable = new SpawnTableExtension
+                {
+                    Items = new List<SpawnTableEntry>
+                    {
+                        // army bag
+                        new SpawnTableEntry(37473, 10),
+                        // MBSS
+                        new SpawnTableEntry(37473, 15),
+                        // scav bp
+                        new SpawnTableEntry(37476, 20),
+                        // Day Pack
+                        new SpawnTableEntry(37476, 30),
+                        // Pilgrim
+                        new SpawnTableEntry(37471, 80),
+                    }
+                },
                 PantsTable = new SpawnTableExtension(),
                 ShirtTable = new SpawnTableExtension(),
 
@@ -1794,11 +1843,23 @@ namespace SpeedMann.Unturnov
                 {
                     Items = new List<SpawnTableEntry>
                     {
+                        // Bandage
+                        new SpawnTableEntry(37072, 10),
+                        // Army bandage
+                        new SpawnTableEntry(37187, 15),
+                        // painkillers 
+                        new SpawnTableEntry(37191, 15),
                         // chees med
-                        new SpawnTableEntry(37185, 20),
-                        // bandage
-                        new SpawnTableEntry(37187, 10),
+                        new SpawnTableEntry(37186, 20),
+                        // splint
+                        new SpawnTableEntry(37071, 20),
                         
+                        // car med 
+                        new SpawnTableEntry(37188, 40),
+                        // alu splint
+                        new SpawnTableEntry(37193, 40),
+                        // salewa
+                        new SpawnTableEntry(37194, 80),
                     }
                 },
                 SupplyTable = new SpawnTableExtension(),

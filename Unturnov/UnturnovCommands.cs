@@ -18,7 +18,7 @@ namespace SpeedMann.Unturnov
     {
         public string Help
         {
-            get { return "unturnov"; }
+            get { return "scav"; }
         }
 
         public string Name
@@ -38,7 +38,7 @@ namespace SpeedMann.Unturnov
 
         public AllowedCaller AllowedCaller
         {
-            get { return AllowedCaller.Player; }
+            get { return AllowedCaller.Player;}
         }
 
         public List<string> Permissions
@@ -64,10 +64,16 @@ namespace SpeedMann.Unturnov
                     case "start":
                         if (isInSafezone(player))
                         {
+                            if (!caller.HasPermission("scav.start"))
+                            {
+                                UnturnedChat.Say(caller, "You are not allowed to use this command", UnityEngine.Color.red);
+                                throw new WrongUsageOfCommandException(caller, this);
+                            }
                             if (!ScavRunController.tryStartScavRun(player))
                             {
                                 UnturnedChat.Say(caller, "You are already a scav", UnityEngine.Color.red);
                             }
+                            
                         }
                         break;
                     case "stop":

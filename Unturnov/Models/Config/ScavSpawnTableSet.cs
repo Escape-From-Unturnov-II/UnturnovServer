@@ -10,6 +10,7 @@ namespace SpeedMann.Unturnov.Models.Config
     {
         public SpawnTableExtension HatTable;
         public SpawnTableExtension GlassesTable;
+        public SpawnTableExtension MaskTable;
         public SpawnTableExtension VestTable;
         public SpawnTableExtension BackpackTable;
         public SpawnTableExtension ShirtTable;
@@ -27,6 +28,7 @@ namespace SpeedMann.Unturnov.Models.Config
         {
             HatTable = new SpawnTableExtension(tier.HatConfig, globalSet.HatTable);
             GlassesTable = new SpawnTableExtension(tier.GlassesConfig, globalSet.GlassesTable);
+            MaskTable = new SpawnTableExtension(tier.MaskConfig, globalSet.MaskTable);
             VestTable = new SpawnTableExtension(tier.VestConfig, globalSet.VestTable);
             BackpackTable = new SpawnTableExtension(tier.BackpackConfig, globalSet.BackpackTable);
             ShirtTable = new SpawnTableExtension(tier.ShirtConfig, globalSet.ShirtTable);
