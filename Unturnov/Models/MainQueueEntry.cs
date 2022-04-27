@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace SpeedMann.Unturnov.Models
 {
-    interface MainQueueEntry
+    public interface MainQueueEntry
     {
         void Run();
     }

@@ -35,6 +35,7 @@ namespace SpeedMann.Unturnov
         private Dictionary<CSteamID, GunAttachments> ModdedGunAttachments;
         
         private List<CSteamID> ReplaceBypass;
+        public static List<MainQueueEntry> MainThreadQueue = new List<MainQueueEntry>();
 
         private int updateDelay;
         private int frame;
@@ -51,12 +52,12 @@ namespace SpeedMann.Unturnov
             Inst = this;
             Conf = Configuration.Instance;
 
-            updateDelay = 60;
+            updateDelay = 30;
             frame = 0;
 
             UnturnedPrivateFields.Init();
             UnturnedPatches.Init();
-            ScavRunController.Init();
+            ScavRunControler.Init();
 
             ReplaceBypass = new List<CSteamID>();
             ReloadExtensionStates = new Dictionary<CSteamID, ItemJarWrapper>();
@@ -98,7 +99,7 @@ namespace SpeedMann.Unturnov
         protected override void Unload()
         {
             UnturnedPatches.Cleanup();
-            ScavRunController.Cleanup();
+            ScavRunControler.Cleanup();
 
             UnturnedPatches.OnPreTryAddItemAuto -= OnTryAddItem;
 
@@ -130,23 +131,28 @@ namespace SpeedMann.Unturnov
             if (frame % updateDelay != 0) return;
             frame = 0;
 
-            ScavRunController.mainQueueCheck();
+            while (MainThreadQueue.Count > 0)
+            {
+                MainThreadQueue[0].Run();
+                MainThreadQueue.RemoveAt(0);
+            }
         }
-            private void OnPlayerDisconnected(UnturnedPlayer player)
+        private void OnPlayerDisconnected(UnturnedPlayer player)
         {
-            ScavRunController.stopScavCooldown(player);
+            ScavRunControler.stopScavCooldown(player);
         }
         private void OnPlayerConnected(UnturnedPlayer player)
         {
-            if(!ScavRunController.tryGetTier(player.Player.quests, out ScavKitTier tier))
+            if(!ScavRunControler.tryGetTier(player.Player.quests, out ScavKitTier tier))
             {
                 Logger.LogError($"Error loading tier for player {player.DisplayName}");
             }
-            ScavRunController.startScavCooldown(player, tier);
+            ScavRunControler.startScavCooldown(player, tier);
         }
         private void OnFlagChanged(PlayerQuests quests, PlayerQuestFlag flag)
         {
-            ScavRunController.OnFlagChanged(quests, flag);
+            ScavRunControler.OnFlagChanged(quests, flag);
+            TeleportControler.OnFlagChanged(quests, flag);
         }
         private void OnPlayerDeath(UnturnedPlayer player, EDeathCause cause, ELimb limb, CSteamID murderer)
         {

@@ -14,6 +14,8 @@ namespace SpeedMann.Unturnov
         public ushort DeathDropFlag;
         public ushort ScavKitTierFlag;
         public ushort ScavRunControlFlag;
+
+        public List<TeleportConfig> TeleportConfigs;
         public List<EmptyMagazineExtension> UnloadMagBlueprints;
         public List<DeathDrop> DeathDrops;
         public List<CombineDescription> AutoCombine;
@@ -32,6 +34,8 @@ namespace SpeedMann.Unturnov
             DeathDropFlag = 0;
             ScavKitTierFlag = 0;
             ScavRunControlFlag = 50303;
+            
+            
             DeathDrops = new List<DeathDrop>()
             {
                 new DeathDrop()
@@ -1679,6 +1683,14 @@ namespace SpeedMann.Unturnov
                             }
                         }
                     }
+                }
+            };
+            TeleportConfigs = new List<TeleportConfig>
+            {
+                new TeleportConfig
+                {
+                    TeleportFlag = 50304,
+                    SquadTeleportFlag = 50305,
                 }
             };
             ScavKitTiers = new List<ScavKitTier>

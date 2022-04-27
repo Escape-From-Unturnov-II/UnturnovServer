@@ -63,7 +63,7 @@ namespace SpeedMann.Unturnov
                 {
                     case "state":
                         ushort flag = Unturnov.Conf.ScavRunControlFlag;
-                        if (ScavRunController.tryGetStateName(player, out string state))
+                        if (ScavRunControler.tryGetStateName(player, out string state))
                         {
                             UnturnedChat.Say(caller, $"ScavRun state: {state}", UnityEngine.Color.green);
                         }
@@ -76,7 +76,7 @@ namespace SpeedMann.Unturnov
                                 UnturnedChat.Say(caller, "You are not allowed to use this command", UnityEngine.Color.red);
                                 throw new WrongUsageOfCommandException(caller, this);
                             }
-                            if (!ScavRunController.tryStartScavRun(player))
+                            if (!ScavRunControler.tryStartScavRun(player))
                             {
                                 UnturnedChat.Say(caller, "You are already a scav", UnityEngine.Color.red);
                             }
@@ -86,13 +86,13 @@ namespace SpeedMann.Unturnov
                     case "stop":
                         if (isInSafezone(player))
                         {
-                            if (!ScavRunController.tryStopScavRun(player))
+                            if (!ScavRunControler.tryStopScavRun(player))
                             {
                                 UnturnedChat.Say(caller, "You are not a scav", UnityEngine.Color.red);
                             }
                             else
                             {
-                                if(ScavRunController.tryGetTier(player.Player.quests, out ScavKitTier tier))
+                                if(ScavRunControler.tryGetTier(player.Player.quests, out ScavKitTier tier))
                                 {
                                     UnturnedChat.Say(caller, $"You can use scav mode again in {formatTime(tier.Cooldown)}", UnityEngine.Color.green);
                                 }

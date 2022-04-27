@@ -13,11 +13,12 @@ using Logger = Rocket.Core.Logging.Logger;
 
 namespace SpeedMann.Unturnov.Helper
 {
-    public class ScavRunController
+    //TODO: save inventory to db
+    //TODO: fix relogging resetting hand size (SecureCase)
+    public class ScavRunControler
     {
 
         static Dictionary<ulong, StoredInventory> StoredInventories = new Dictionary<ulong, StoredInventory>();
-        private static List<MainQueueEntry> MainThreadQueue = new List<MainQueueEntry>();
         private static Dictionary<ulong, ScavCooldownTimer> ScavCooldownTimers = new Dictionary<ulong, ScavCooldownTimer>();
         private static bool isInit = false;
 
@@ -42,15 +43,6 @@ namespace SpeedMann.Unturnov.Helper
                 entry.Value.Stop();
             }
             ScavCooldownTimers = new Dictionary<ulong, ScavCooldownTimer>();
-        }
-
-        public static void mainQueueCheck()
-        {
-            while (MainThreadQueue.Count > 0)
-            {
-                MainThreadQueue[0].Run();
-                MainThreadQueue.RemoveAt(0);
-            }
         }
 
         internal static void OnFlagChanged(PlayerQuests quests, PlayerQuestFlag flag)
@@ -113,7 +105,7 @@ namespace SpeedMann.Unturnov.Helper
             ushort flag = Unturnov.Conf.ScavRunControlFlag;
             if (controlFlagCheck(flag))
             {
-                MainThreadQueue.Add(new SetFalgQueueEntry(quests, flag, scavReady));
+                Unturnov.MainThreadQueue.Add(new SetFalgQueueEntry(quests, flag, scavReady));
             }
         }
 
