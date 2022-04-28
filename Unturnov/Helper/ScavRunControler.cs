@@ -20,6 +20,7 @@ namespace SpeedMann.Unturnov.Helper
 
         static Dictionary<ulong, StoredInventory> StoredInventories = new Dictionary<ulong, StoredInventory>();
         private static Dictionary<ulong, ScavCooldownTimer> ScavCooldownTimers = new Dictionary<ulong, ScavCooldownTimer>();
+        private static List<ulong> PlayerCommandChanges = new List<ulong>();
         private static bool isInit = false;
 
         private const short scavReady = 0;
@@ -59,19 +60,21 @@ namespace SpeedMann.Unturnov.Helper
                         break;
                     // scav active
                     case scavActive:
-                        if (!tryStartScavRun(player))
+                        if (PlayerCommandChanges.Contains(player.CSteamID.m_SteamID))
                         {
-                            Logger.LogError($"Error starting ScavRun for {player.DisplayName}");
+                            PlayerCommandChanges.Remove(player.CSteamID.m_SteamID);
+                            break;
                         }
+                        tryStart(player);
                         break;
                     // scav cooldown
                     case scavCooldown:
-                        if (!tryStopScavRun(player))
+                        if (PlayerCommandChanges.Contains(player.CSteamID.m_SteamID))
                         {
-                            // TODO: check why this error is trown (multiple executions, first failure and second success)
-                            Logger.LogError($"Error stopping ScavRun for {player.DisplayName}");
+                            PlayerCommandChanges.Remove(player.CSteamID.m_SteamID);
+                            break;
                         }
-                        startScavCooldown(player, tier);
+                        tryStop(player);
                         break;
                     default:
                         Logger.LogError($"Error ScavRunControlFlag for {player.DisplayName} was set to an invalid value");
@@ -79,7 +82,18 @@ namespace SpeedMann.Unturnov.Helper
                 }
             }
         }
-
+        internal static void OnPlayerConnected(UnturnedPlayer player)
+        {
+            if (!tryGetTier(player.Player.quests, out ScavKitTier tier))
+            {
+                Logger.LogError($"Error loading tier for player {player.DisplayName}");
+            }
+            startScavCooldown(player, tier);
+        }
+        internal static void OnPlayerDisconnected(UnturnedPlayer player)
+        {
+            stopScavCooldown(player);
+        }
         internal static void startScavCooldown(UnturnedPlayer player, ScavKitTier tier)
         {
             ushort flag = Unturnov.Conf.ScavRunControlFlag;
@@ -119,33 +133,58 @@ namespace SpeedMann.Unturnov.Helper
 
         internal static bool tryStartScavRun(UnturnedPlayer player)
         {
+            if (!PlayerCommandChanges.Contains(player.CSteamID.m_SteamID))
+            {
+                PlayerCommandChanges.Add(player.CSteamID.m_SteamID);
+            }
+            ushort flag = Unturnov.Conf.ScavRunControlFlag;
+            if (controlFlagCheck(flag))
+            {
+                player.Player.quests.sendSetFlag(flag, scavActive);
+            }
+            return tryStart(player);
+        }
+        private static bool tryStart(UnturnedPlayer player)
+        {
             StoredInventory inventory = new StoredInventory(player.Inventory.items[2].width, player.Inventory.items[2].height);
 
-            if (isInit 
-                && InventoryHelper.GetClothingItems(player, ref inventory.clothing) 
-                && InventoryHelper.GetInvItems(player, ref inventory.items) 
+            if (isInit
+                && InventoryHelper.getClothingItems(player, ref inventory.clothing)
+                && InventoryHelper.getInvItems(player, ref inventory.items)
                 && !StoredInventories.ContainsKey(player.CSteamID.m_SteamID))
             {
                 StoredInventories.Add(player.CSteamID.m_SteamID, inventory);
 
-                InventoryHelper.ClearAll(player);
+                InventoryHelper.clearAll(player);
 
                 giveScavKit(player);
 
                 Logger.Log($"{player.DisplayName} started a ScavRun");
                 return true;
             }
-
+            Logger.LogError($"Error starting ScavRun for {player.DisplayName}");
             return false;
         }
-
         internal static bool tryStopScavRun(UnturnedPlayer player)
+        {
+            if (!PlayerCommandChanges.Contains(player.CSteamID.m_SteamID))
+            {
+                PlayerCommandChanges.Add(player.CSteamID.m_SteamID);
+            }
+            ushort flag = Unturnov.Conf.ScavRunControlFlag;
+            if (controlFlagCheck(flag))
+            {
+                player.Player.quests.sendSetFlag(flag, scavCooldown);
+            }
+            return tryStop(player);
+        }
+        private static bool tryStop(UnturnedPlayer player)
         {
             if (StoredInventories.TryGetValue(player.CSteamID.m_SteamID, out StoredInventory storedInv))
             {
                 StoredInventories.Remove(player.CSteamID.m_SteamID);
 
-                InventoryHelper.ClearAll(player);
+                InventoryHelper.clearAll(player);
                 player.Inventory.items[2].resize(storedInv.handWidth, storedInv.handHeight);
 
                 foreach (KeyValuePair<InventoryHelper.StorageType, Item> entry in storedInv.clothing)
@@ -156,17 +195,10 @@ namespace SpeedMann.Unturnov.Helper
                 {
                     Unturnov.safeAddItem(player, itemJarWrap.itemJar.item, itemJarWrap.itemJar.x, itemJarWrap.itemJar.y, itemJarWrap.page, itemJarWrap.itemJar.rot);
                 }
-
-                
-                ushort flag = Unturnov.Conf.ScavRunControlFlag;
-                if (controlFlagCheck(flag))
-                {
-                    player.Player.quests.sendSetFlag(flag, scavCooldown);
-                }
                 Logger.Log($"{player.DisplayName} stopped his ScavRun");
                 return true;
-               
             }
+            Logger.LogError($"Error stopping ScavRun for {player.DisplayName}");
             return false;
         }
         internal static void giveScavKit(UnturnedPlayer player) 
@@ -268,7 +300,11 @@ namespace SpeedMann.Unturnov.Helper
             tier = Unturnov.Conf.ScavKitTiers[scavTierIndex];
             return true;
         }
-
+        internal static bool isScavRunActive(UnturnedPlayer player)
+        {
+            ushort flag = Unturnov.Conf.ScavRunControlFlag;
+            return controlFlagCheck(flag) && player.Player.quests.getFlag(flag, out short value) && value == scavActive;
+        }
         internal static bool controlFlagCheck(ushort flag)
         {
             if (flag == 0)

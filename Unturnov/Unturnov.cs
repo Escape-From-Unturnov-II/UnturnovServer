@@ -44,6 +44,7 @@ namespace SpeedMann.Unturnov
             new TranslationList
             {
                 { "scav_ready", "Scav run is ready" },
+                { "container_item_restricted", "You are not allowed to store this {0} in the secure container!" },
             };
 
         #region Load
@@ -66,7 +67,7 @@ namespace SpeedMann.Unturnov
             GunModdingDict = createDictionaryFromItemExtensions(Conf.GunModdingResults);
             ReloadExtensionByGun = createDictionaryFromReloadExtensionsByGun(Conf.ReloadExtensions);
 
-            printPluginInfo();
+            
 
             Conf.updateConfig();
 
@@ -88,10 +89,20 @@ namespace SpeedMann.Unturnov
             UseableConsumeable.onConsumePerformed += OnConsumed;
             UseableConsumeable.onPerformingAid += OnAid;
 
+            UnturnedPatches.OnPrePlayerDead += OnPlayerDead;
+            UnturnedPatches.OnPostPlayerRevive += OnPlayerRevived;
+
+            UnturnedPatches.OnPrePlayerDraggedItem += OnItemDragged;
+            UnturnedPatches.OnPrePlayerSwappedItem += OnItemSwapped;
+            UnturnedPatches.OnPrePlayerAddItem -= OnAddItem;
+            ItemManager.onTakeItemRequested += OnTakeItem;
+
             U.Events.OnPlayerDisconnected += OnPlayerDisconnected;
             U.Events.OnPlayerConnected += OnPlayerConnected;
 
             Level.onPreLevelLoaded += OnPreLevelLoaded;
+
+            printPluginInfo();
         }
         protected override void Unload()
         {
@@ -110,6 +121,14 @@ namespace SpeedMann.Unturnov
             UnturnedPlayerEvents.OnPlayerDeath -= OnPlayerDeath;
             UseableConsumeable.onConsumePerformed -= OnConsumed;
             UseableConsumeable.onPerformingAid -= OnAid;
+
+            UnturnedPatches.OnPrePlayerDead -= OnPlayerDead;
+            UnturnedPatches.OnPostPlayerRevive -= OnPlayerRevived;
+
+            UnturnedPatches.OnPrePlayerDraggedItem -= OnItemDragged;
+            UnturnedPatches.OnPrePlayerSwappedItem -= OnItemSwapped;
+            UnturnedPatches.OnPrePlayerAddItem -= OnAddItem;
+            ItemManager.onTakeItemRequested -= OnTakeItem;
 
             U.Events.OnPlayerDisconnected -= OnPlayerDisconnected;
             U.Events.OnPlayerConnected -= OnPlayerConnected;
@@ -136,20 +155,44 @@ namespace SpeedMann.Unturnov
         }
         private void OnPlayerDisconnected(UnturnedPlayer player)
         {
-            ScavRunControler.stopScavCooldown(player);
+            ScavRunControler.OnPlayerDisconnected(player);
         }
         private void OnPlayerConnected(UnturnedPlayer player)
         {
-            if(!ScavRunControler.tryGetTier(player.Player.quests, out ScavKitTier tier))
+            if (!ScavRunControler.isScavRunActive(player))
             {
-                Logger.LogError($"Error loading tier for player {player.DisplayName}");
+                ScavRunControler.OnPlayerConnected(player);
+                SecureCaseControler.OnPlayerConnected(player);
             }
-            ScavRunControler.startScavCooldown(player, tier);
         }
         private void OnFlagChanged(PlayerQuests quests, PlayerQuestFlag flag)
         {
             ScavRunControler.OnFlagChanged(quests, flag);
             TeleportControler.OnFlagChanged(quests, flag);
+        }
+        private void OnPlayerDead(PlayerLife playerLife)
+        {
+            SecureCaseControler.OnPlayerDead(playerLife);
+        }
+        private void OnPlayerRevived(PlayerLife playerLife)
+        {
+            SecureCaseControler.OnPlayerRevived(playerLife);
+        }
+        private void OnItemSwapped(PlayerInventory inventory, byte page_0, byte x_0, byte y_0, byte rot_0, byte page_1, byte x_1, byte y_1, byte rot_1, ref bool shouldAllow)
+        {
+            SecureCaseControler.OnItemSwapped(inventory, page_0, x_0, y_0, rot_0, page_1, x_1, y_1, rot_1, ref shouldAllow);
+        }
+        private void OnItemDragged(PlayerInventory inventory, byte page_0, byte x_0, byte y_0, byte page_1, byte x_1, byte y_1, byte rot_1, ref bool shouldAllow)
+        {
+            SecureCaseControler.OnItemDragged(inventory, page_0, x_0, y_0, page_1, x_1, y_1, rot_1, ref shouldAllow);
+        }
+        private void OnAddItem(PlayerInventory inventory, Items page, Item item, ref bool shouldAllow)
+        {
+            SecureCaseControler.OnAddItem(inventory, page, item, ref shouldAllow);
+        }
+        private void OnTakeItem(Player player, byte x, byte y, uint instanceID, byte to_x, byte to_y, byte to_rot, byte to_page, ItemData itemData, ref bool shouldAllow)
+        {
+            SecureCaseControler.OnTakeItem(player, x, y, instanceID, to_x, to_y, to_rot, to_page, itemData, ref shouldAllow);
         }
         private void OnPlayerDeath(UnturnedPlayer player, EDeathCause cause, ELimb limb, CSteamID murderer)
         {

@@ -26,7 +26,8 @@ namespace SpeedMann.Unturnov
         public List<ReloadExtension> ReloadExtensions;
         public List<ScavKitTier> ScavKitTiers;
         public ScavSpawnTableSet ScavSpawnTables;
-        
+
+        public SecureCaseConfig SecureCaseConfig;
 
         public void LoadDefaults()
         {
@@ -34,8 +35,8 @@ namespace SpeedMann.Unturnov
             DeathDropFlag = 0;
             ScavKitTierFlag = 0;
             ScavRunControlFlag = 50303;
-            
-            
+
+
             DeathDrops = new List<DeathDrop>()
             {
                 new DeathDrop()
@@ -1765,7 +1766,7 @@ namespace SpeedMann.Unturnov
                         WeightMax = 100,
                         NoItemChance = 0,
                     },
-                    
+
 
                     GunConfig = new KitTierEntry
                     {
@@ -1850,7 +1851,7 @@ namespace SpeedMann.Unturnov
                         new SpawnTableEntry(37471, 80),
                     }
                 },
-                ShirtTable = new SpawnTableExtension 
+                ShirtTable = new SpawnTableExtension
                 {
                     Items = new List<SpawnTableEntry>
                     {
@@ -1897,6 +1898,32 @@ namespace SpeedMann.Unturnov
                     }
                 },
                 SupplyTable = new SpawnTableExtension(),
+            };
+
+            SecureCaseConfig = new SecureCaseConfig
+            {
+                Debug = true,
+                Notification_UI = new Notification_UI
+                {
+                    Enabled = true,
+                    UI_Id = 52310,
+                    UI_Key = 5230,
+                },
+                CaseUpgradeFlagId = 50302,
+                CaseSizes = new List<CaseSize>()
+                {
+                    new CaseSize(2, 2),
+                    new CaseSize(3, 2),
+                    new CaseSize(4, 2),
+                    new CaseSize(3, 3),
+                    new CaseSize(3, 4),
+                },
+                BlacklistedItems = new List<ItemExtension>()
+                {
+                    new ItemExtension(10),
+                },
+
+                StoredCaseContents = new List<CaseContent>(),
             };
         }
 

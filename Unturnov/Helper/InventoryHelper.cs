@@ -23,7 +23,7 @@ namespace SpeedMann.Unturnov
 				player.Player.inventory.removeItem(page, 0);
 			}
 		}
-		public static bool ItemEquality(Item a, Item b)
+		public static bool itemEquality(Item a, Item b)
 		{
 			bool equals = false;
 			ItemAsset itemAssetA = Assets.find(EAssetType.ITEM, a.id) as ItemAsset;
@@ -61,7 +61,7 @@ namespace SpeedMann.Unturnov
 
 		}
 
-		public static bool GetInvItems(UnturnedPlayer player, ref List<ItemJarWrapper> foundItems)
+		public static bool getInvItems(UnturnedPlayer player, ref List<ItemJarWrapper> foundItems)
 		{
 			bool returnv = false;
 			if (foundItems == null) return returnv;
@@ -88,7 +88,7 @@ namespace SpeedMann.Unturnov
 			}
 			return returnv;
 		}
-		public static bool GetClothingItems(UnturnedPlayer player, ref List<KeyValuePair<StorageType, Item>> foundItems)
+		public static bool getClothingItems(UnturnedPlayer player, ref List<KeyValuePair<StorageType, Item>> foundItems)
 		{
 			bool returnv = false;
 			if (foundItems == null) return returnv;
@@ -156,11 +156,11 @@ namespace SpeedMann.Unturnov
 			return returnv;
 		}
 
-		public static bool ClearAll(UnturnedPlayer player)
+		public static bool clearAll(UnturnedPlayer player)
 		{
-			return ClearInv(player) && ClearClothes(player);
+			return clearInv(player) && clearClothes(player);
 		}
-		public static bool ClearInv(UnturnedPlayer player)
+		public static bool clearInv(UnturnedPlayer player)
 		{
 			bool returnv = false;
 			try
@@ -199,7 +199,7 @@ namespace SpeedMann.Unturnov
 			}
 			return returnv;
 		}
-		public static bool ClearClothes(UnturnedPlayer player)
+		public static bool clearClothes(UnturnedPlayer player)
 		{
 			bool returnv = false;
 
@@ -257,6 +257,39 @@ namespace SpeedMann.Unturnov
 				player.Inventory.items[2].resize(oldWidth, oldHeight);
 			}
 			return returnv;
+		}
+		public static List<StoredItem> StorePage(Items itemsPage)
+		{
+			List<StoredItem> newItems = new List<StoredItem>();
+
+			foreach (ItemJar itemJ in itemsPage.items)
+			{
+				newItems.Add(new StoredItem(
+					itemJ.item,
+					itemJ.x,
+					itemJ.y,
+					itemJ.rot
+					));
+			}
+			return newItems;
+		}
+		public static void RestorePage(PlayerInventory inventory, Items itemsPage, List<StoredItem> storedItems)
+		{
+			if (Unturnov.Conf.Debug)
+			{
+				Logger.Log($"Restored {storedItems.Count} items");
+			}
+			foreach (StoredItem storedItem in storedItems)
+			{
+				Item item = new Item(storedItem.id, storedItem.amount, storedItem.quality, storedItem.state);
+				if (!inventory.tryAddItem(item, storedItem.x, storedItem.y, itemsPage.page, storedItem.rot))
+				{
+					if (!UnturnedPlayer.FromPlayer(inventory.player).GiveItem(item))
+					{
+						ItemManager.dropItem(item, inventory.player.character.position, true, true, true);
+					}
+				}
+			}
 		}
 		public enum StorageType
 		{

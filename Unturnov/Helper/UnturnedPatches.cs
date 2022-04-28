@@ -3,6 +3,7 @@ using Rocket.Core.Logging;
 using Rocket.Unturned.Enumerations;
 using Rocket.Unturned.Player;
 using SDG.Unturned;
+using SpeedMann.Unturnov.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -54,7 +55,7 @@ namespace SpeedMann.Unturnov.Helper
             }
             catch (Exception e)
             {
-                Logger.LogError($"ArmorPlus patches: {e.Message}");
+                Logger.LogError($"Unturnov patches: {e.Message}");
             }
         }
 
@@ -65,6 +66,21 @@ namespace SpeedMann.Unturnov.Helper
         public static event PreAttachMagazine OnPreAttachMagazine;
         public delegate void PostAttachMagazine(UseableGun gun);
         public static event PostAttachMagazine OnPostAttachMagazine;
+
+        #region SecureCase
+        public delegate void PrePlayerDraggedItem(PlayerInventory inventory, byte page_0, byte x_0, byte y_0, byte page_1, byte x_1, byte y_1, byte rot_1, ref bool shouldAllow);
+        public static event PrePlayerDraggedItem OnPrePlayerDraggedItem;
+        public delegate void PrePlayerSwappedItem(PlayerInventory inventory, byte page_0, byte x_0, byte y_0, byte rot_0, byte page_1, byte x_1, byte y_1, byte rot_1, ref bool shouldAllow);
+        public static event PrePlayerSwappedItem OnPrePlayerSwappedItem;
+        public delegate void PreplayerAddItem(PlayerInventory inventory, Items page, Item item, ref bool shouldAllow);
+        public static event PreplayerAddItem OnPrePlayerAddItem;
+
+        public delegate void PrePlayerDead(PlayerLife playerLife);
+        public static event PrePlayerDead OnPrePlayerDead;
+        public delegate void PostPlayerRevive(PlayerLife playerLife);
+        public static event PostPlayerRevive OnPostPlayerRevive;
+        #endregion
+
         #endregion
 
         #region Patches
@@ -96,7 +112,85 @@ namespace SpeedMann.Unturnov.Helper
                 return true;
             }
         }
-              
+        #region SecureCase
+        internal class LiveUpdateInventory
+        {
+            internal PlayerInventory inventory;
+            internal List<StoredItem> items;
+        }
+
+
+        [HarmonyPatch(typeof(PlayerLife), "ReceiveDead")]
+        class PlayerDead
+        {
+            [HarmonyPrefix]
+            internal static void OnPreLifeUpdatedInvoker(PlayerLife __instance)
+            {
+                OnPrePlayerDead?.Invoke(__instance);
+            }
+
+
+        }
+        [HarmonyPatch(typeof(PlayerLife), "ReceiveRevive")]
+        class PlayerRevive
+        {
+            [HarmonyPrefix]
+            internal static void OnPreReviveInvoker(PlayerLife __instance, out PlayerLife __state)
+            {
+                __state = __instance;
+            }
+            [HarmonyPostfix]
+            internal static void OnPosReviveInvoker(PlayerLife __state)
+            {
+                OnPostPlayerRevive?.Invoke(__state);
+            }
+        }
+
+        [HarmonyPatch(typeof(PlayerInventory), "ReceiveDragItem")]
+        class InventoryDrag
+        {
+            [HarmonyPrefix]
+            internal static bool OnPreItemDraggedInvoker(PlayerInventory __instance, byte page_0, byte x_0, byte y_0,
+       ref byte page_1, ref byte x_1, ref byte y_1, ref byte rot_1)
+            {
+                var shouldAllow = true;
+                OnPrePlayerDraggedItem?.Invoke(__instance, page_0, x_0, y_0, page_1, x_1, y_1, rot_1, ref shouldAllow);
+                return shouldAllow;
+            }
+        }
+
+
+        [HarmonyPatch(typeof(PlayerInventory), "ReceiveSwapItem")]
+        class InventoryMove
+        {
+            [HarmonyPrefix]
+            internal static bool OnPreItemSwappedInvoker(PlayerInventory __instance, byte page_0, byte x_0, byte y_0,
+    byte rot_0, byte page_1, byte x_1, byte y_1, byte rot_1)
+            {
+                var shouldAllow = true;
+                OnPrePlayerSwappedItem?.Invoke(__instance, page_0, x_0, y_0, rot_0, page_1, x_1, y_1, rot_1,
+                    ref shouldAllow);
+                return shouldAllow;
+            }
+        }
+
+        [HarmonyPatch(typeof(Items), nameof(Items.tryAddItem), new Type[] { typeof(Item), typeof(bool) })]
+        class PageAddItem
+        {
+            [HarmonyPrefix]
+            internal static bool OnPreItemsAddItemInvoker(Items __instance, Item item, ref bool __result)
+            {
+                bool shouldAllow = true;
+                object target = __instance.onStateUpdated.Target;
+                if (target is PlayerInventory)
+                {
+                    OnPrePlayerAddItem?.Invoke((PlayerInventory)target, __instance, item, ref shouldAllow);
+                }
+                __result = shouldAllow;
+                return shouldAllow;
+            }
+        }
+        #endregion
         #endregion
     }
 }

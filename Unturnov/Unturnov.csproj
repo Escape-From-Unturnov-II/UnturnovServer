@@ -86,10 +86,16 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Helper\EffectControler.cs" />
     <Compile Include="Helper\InventoryHelper.cs" />
     <Compile Include="Helper\ScavRunControler.cs" />
+    <Compile Include="Helper\SecureCaseControler.cs" />
     <Compile Include="Helper\TeleportControler.cs" />
     <Compile Include="Helper\UnturnedPrivateFields.cs" />
+    <Compile Include="Models\CaseContent.cs" />
+    <Compile Include="Models\Config\SecureCaseConfig.cs" />
+    <Compile Include="Models\Config\CaseSize.cs" />
+    <Compile Include="Models\Config\NotificationUIConfig.cs" />
     <Compile Include="Models\Config\ScavSpawnTableSet.cs" />
     <Compile Include="Models\Config\TeleportConfig.cs" />
     <Compile Include="Models\GunAttachments.cs" />
@@ -107,6 +113,7 @@
     <Compile Include="Models\SpawnTableExtension.cs" />
     <Compile Include="Models\Config\ScavKitTier.cs" />
     <Compile Include="Models\SpawnTableEntry.cs" />
+    <Compile Include="Models\StoredItem.cs" />
     <Compile Include="Models\TeleportDescription.cs" />
     <Compile Include="UnturnovCommands.cs" />
     <Compile Include="Helper\UnturnedPatches.cs" />

@@ -24,6 +24,7 @@ namespace SpeedMann.Unturnov.Models
         {
             Logger.Log($"ScavRun for {quests.player.name} is off cooldown");
             quests.sendSetFlag(flagId, value);
+
         }
     }
 }
