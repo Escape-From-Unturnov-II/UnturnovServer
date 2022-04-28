@@ -1850,8 +1850,20 @@ namespace SpeedMann.Unturnov
                         new SpawnTableEntry(37471, 80),
                     }
                 },
-                PantsTable = new SpawnTableExtension(),
-                ShirtTable = new SpawnTableExtension(),
+                ShirtTable = new SpawnTableExtension 
+                {
+                    Items = new List<SpawnTableEntry>
+                    {
+                        new SpawnTableEntry(37512, 10),
+                    }
+                },
+                PantsTable = new SpawnTableExtension
+                {
+                    Items = new List<SpawnTableEntry>
+                    {
+                        new SpawnTableEntry(37513, 10),
+                    }
+                },
 
                 GunTable = new SpawnTableExtension
                 {

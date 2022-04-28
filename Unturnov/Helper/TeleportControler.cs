@@ -40,8 +40,7 @@ namespace SpeedMann.Unturnov.Helper
 
         internal static void teleportPlayer(UnturnedPlayer player, TeleportDestination destination)
         {
-            float rotation = destination.Rotation;
-            Vector3 position = destination.findDestinationPosition();
+            destination.findDestination(out Vector3 position, out float rotation);
             
             player.Teleport(position, rotation != 0 ? rotation : MeasurementTool.angleToByte(player.Rotation));
 

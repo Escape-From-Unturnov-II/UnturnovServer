@@ -68,9 +68,13 @@ namespace SpeedMann.Unturnov.Helper
                     case scavCooldown:
                         if (!tryStopScavRun(player))
                         {
+                            // TODO: check why this error is trown (multiple executions, first failure and second success)
                             Logger.LogError($"Error stopping ScavRun for {player.DisplayName}");
                         }
                         startScavCooldown(player, tier);
+                        break;
+                    default:
+                        Logger.LogError($"Error ScavRunControlFlag for {player.DisplayName} was set to an invalid value");
                         break;
                 }
             }

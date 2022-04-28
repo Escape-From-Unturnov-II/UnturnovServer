@@ -123,7 +123,7 @@ namespace SpeedMann.Unturnov
             return true;
        }
 
-        public string formatTime(uint timeInSec)
+        public static string formatTime(uint timeInSec)
         {
             uint d = timeInSec / 60 / 60 / 24;
             uint h = timeInSec / 60 / 60 % 24;

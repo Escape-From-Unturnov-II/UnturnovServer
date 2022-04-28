@@ -1,4 +1,5 @@
-﻿using SDG.Unturned;
+﻿using SDG.Framework.Devkit;
+using SDG.Unturned;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,7 +7,11 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 using UnityEngine;
+using Logger = Rocket.Core.Logging.Logger;
 
+/*
+ * Allows teleport location, NPC spawnpoints, LocationNodes
+ */
 namespace SpeedMann.Unturnov.Models
 {
     public class TeleportDestination
@@ -27,27 +32,47 @@ namespace SpeedMann.Unturnov.Models
         {
             Position = new Vector3((float)x, (float)y, (float)z);
         }
-        public Vector3 findDestinationPosition()
+        public void findDestination(out Vector3 position, out float rotation)
         {
-            Vector3 position = Position;
+            position = Position;
+            rotation = Rotation;
             if (position.x == 0
                 && position.y == 0
                 && position.z == 0
-                && findNodeByName(NodeName, out LocationNode node))
+                && findLocationByName(out Vector3 newPosition, out float newRotation))
             {
-                position = node.point + new Vector3(0f, 0.5f, 0f);
+                position = newPosition;
+                if (rotation == 0)
+                {
+                    rotation = newRotation;
+                }
             }
-            return position;
         }
-        private bool findNodeByName(string name, out LocationNode node)
+        internal bool findLocationByName(out Vector3 position, out float rotation)
         {
-            //TODO: fix allways 0,0,0
-            node = null;
-            if (name != "")
+            rotation = 0;
+            position = Vector3.zero;
+
+            LocationNode node = null;
+            Spawnpoint spawnpoint = null;
+            if (NodeName != "")
             {
-                node = LevelNodes.nodes.OfType<LocationNode>().Where(n => n.name.ToLower().Contains(name.ToLower())).FirstOrDefault();
+                spawnpoint = SpawnpointSystem.getSpawnpoint(NodeName);
+                
+                if(spawnpoint != null)
+                {
+                    position = spawnpoint.transform.position;
+                    rotation = spawnpoint.transform.rotation.eulerAngles.y;
+                    return true;
+                }
+                node = LevelNodes.nodes.OfType<LocationNode>().Where(n => n.name.ToLower().Contains(NodeName.ToLower())).FirstOrDefault();
+                if (node != null)
+                {
+                    position = node.point + new Vector3(0f, 0.5f, 0f);
+                    return true;
+                }
             }
-            return node != null;
+            return false;
         }
     }
 }
