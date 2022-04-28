@@ -61,11 +61,15 @@ namespace SpeedMann.Unturnov.Helper
                     case scavActive:
                         if (!tryStartScavRun(player))
                         {
-                            Logger.LogError($"Error starting ScavRun for player {player.DisplayName}");
+                            Logger.LogError($"Error starting ScavRun for {player.DisplayName}");
                         }
                         break;
                     // scav cooldown
                     case scavCooldown:
+                        if (!tryStopScavRun(player))
+                        {
+                            Logger.LogError($"Error stopping ScavRun for {player.DisplayName}");
+                        }
                         startScavCooldown(player, tier);
                         break;
                 }
@@ -138,6 +142,8 @@ namespace SpeedMann.Unturnov.Helper
                 StoredInventories.Remove(player.CSteamID.m_SteamID);
 
                 InventoryHelper.ClearAll(player);
+                player.Inventory.items[2].resize(storedInv.handWidth, storedInv.handHeight);
+
                 foreach (KeyValuePair<InventoryHelper.StorageType, Item> entry in storedInv.clothing)
                 {
                     player.Inventory.forceAddItem(entry.Value, true);
@@ -147,7 +153,7 @@ namespace SpeedMann.Unturnov.Helper
                     Unturnov.safeAddItem(player, itemJarWrap.itemJar.item, itemJarWrap.itemJar.x, itemJarWrap.itemJar.y, itemJarWrap.page, itemJarWrap.itemJar.rot);
                 }
 
-                player.Inventory.items[2].resize(storedInv.handWidth, storedInv.handHeight);
+                
                 ushort flag = Unturnov.Conf.ScavRunControlFlag;
                 if (controlFlagCheck(flag))
                 {

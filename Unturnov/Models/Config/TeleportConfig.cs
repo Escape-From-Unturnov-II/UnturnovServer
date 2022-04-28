@@ -10,5 +10,6 @@ namespace SpeedMann.Unturnov.Models.Config
     {
         public ushort TeleportFlag;
         public ushort SquadTeleportFlag;
+        public List<TeleportDestination> TeleportDestinations;
     }
 }

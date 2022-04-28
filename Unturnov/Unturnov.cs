@@ -37,8 +37,8 @@ namespace SpeedMann.Unturnov
         private List<CSteamID> ReplaceBypass;
         public static List<MainQueueEntry> MainThreadQueue = new List<MainQueueEntry>();
 
-        private int updateDelay;
-        private int frame;
+        private int updateDelay = 30;
+        private int frame = 0;
 
         public override TranslationList DefaultTranslations =>
             new TranslationList
@@ -51,9 +51,6 @@ namespace SpeedMann.Unturnov
         {
             Inst = this;
             Conf = Configuration.Instance;
-
-            updateDelay = 30;
-            frame = 0;
 
             UnturnedPrivateFields.Init();
             UnturnedPatches.Init();

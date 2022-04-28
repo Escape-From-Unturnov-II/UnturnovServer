@@ -107,6 +107,7 @@
     <Compile Include="Models\SpawnTableExtension.cs" />
     <Compile Include="Models\Config\ScavKitTier.cs" />
     <Compile Include="Models\SpawnTableEntry.cs" />
+    <Compile Include="Models\TeleportDescription.cs" />
     <Compile Include="UnturnovCommands.cs" />
     <Compile Include="Helper\UnturnedPatches.cs" />
     <Compile Include="Models\Config\CombineDescription.cs" />

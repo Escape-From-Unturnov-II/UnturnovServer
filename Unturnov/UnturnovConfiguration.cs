@@ -1691,6 +1691,16 @@ namespace SpeedMann.Unturnov
                 {
                     TeleportFlag = 50304,
                     SquadTeleportFlag = 50305,
+                    TeleportDestinations = new List<TeleportDestination>
+                    {
+                        new TeleportDestination("FA1"),
+                        new TeleportDestination("FA2"),
+                        new TeleportDestination("FA3"),
+                        new TeleportDestination("FA4"),
+                        new TeleportDestination("FA5"),
+                        new TeleportDestination("FA6"),
+                        new TeleportDestination("FA7"),
+                    }
                 }
             };
             ScavKitTiers = new List<ScavKitTier>
