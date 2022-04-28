@@ -51,15 +51,17 @@ namespace SpeedMann.Unturnov.Helper
             if (flag.id == Unturnov.Conf.ScavRunControlFlag && tryGetTier(quests, out ScavKitTier tier))
             {
                 UnturnedPlayer player = UnturnedPlayer.FromPlayer(quests.player);
-                stopScavCooldown(player);
+                
                 switch (flag.value)
                 {
                     // scav ready
                     case scavReady:
+                        stopScavCooldown(player);
                         UnturnedChat.Say(player, Util.Translate("scav_ready"), UnityEngine.Color.green);
                         break;
                     // scav active
                     case scavActive:
+                        stopScavCooldown(player);
                         if (PlayerCommandChanges.Contains(player.CSteamID.m_SteamID))
                         {
                             PlayerCommandChanges.Remove(player.CSteamID.m_SteamID);
@@ -195,7 +197,12 @@ namespace SpeedMann.Unturnov.Helper
                 {
                     Unturnov.safeAddItem(player, itemJarWrap.itemJar.item, itemJarWrap.itemJar.x, itemJarWrap.itemJar.y, itemJarWrap.page, itemJarWrap.itemJar.rot);
                 }
+
                 Logger.Log($"{player.DisplayName} stopped his ScavRun");
+                if (tryGetTier(player.Player.quests, out ScavKitTier tier))
+                {
+                    UnturnedChat.Say(player, Util.Translate("scav_cooldown", UnturnovCommands.formatTime(tier.Cooldown)), UnityEngine.Color.green);
+                }
                 return true;
             }
             Logger.LogError($"Error stopping ScavRun for {player.DisplayName}");

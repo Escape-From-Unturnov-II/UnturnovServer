@@ -44,6 +44,7 @@ namespace SpeedMann.Unturnov
             new TranslationList
             {
                 { "scav_ready", "Scav run is ready" },
+                { "scav_cooldown", "Scav mode is ready in {0}"},
                 { "container_item_restricted", "You are not allowed to store this {0} in the secure container!" },
             };
 

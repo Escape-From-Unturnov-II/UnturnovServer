@@ -90,13 +90,6 @@ namespace SpeedMann.Unturnov
                             {
                                 UnturnedChat.Say(caller, "You are not a scav", UnityEngine.Color.red);
                             }
-                            else
-                            {
-                                if(ScavRunControler.tryGetTier(player.Player.quests, out ScavKitTier tier))
-                                {
-                                    UnturnedChat.Say(caller, $"You can use scav mode again in {formatTime(tier.Cooldown)}", UnityEngine.Color.green);
-                                }
-                            }
                         }
                         break;
                     default:
