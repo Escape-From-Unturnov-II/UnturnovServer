@@ -178,6 +178,7 @@ namespace SpeedMann.Unturnov
 						}
 					}
 				}
+
 				player.Player.inventory.channel.send("tellSlot", ESteamCall.ALL, ESteamPacket.UPDATE_RELIABLE_BUFFER, new object[]
 				{
 					(byte)0,

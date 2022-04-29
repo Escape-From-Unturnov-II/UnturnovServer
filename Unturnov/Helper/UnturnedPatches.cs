@@ -100,7 +100,6 @@ namespace SpeedMann.Unturnov.Helper
                 OnPostAttachMagazine?.Invoke(__state);
             }
         }
-        
 
         [HarmonyPatch(typeof(PlayerInventory), nameof(PlayerInventory.tryAddItemAuto), new Type[] { typeof(Item), typeof(bool), typeof(bool), typeof(bool), typeof(bool) })]
         class TryAddItemAutoPatch
@@ -191,6 +190,18 @@ namespace SpeedMann.Unturnov.Helper
             }
         }
         #endregion
+        [HarmonyPatch(typeof(Provider), nameof(Provider.accept), new Type[] { typeof(SteamPending) })]
+        class ClientAcceptedPatch
+        {
+            internal static bool OnPreClientAcceptedInvoker(PlayerInventory __instance, SteamPending player)
+            {
+                Logger.Log($"Client Backpack cosmetic: {player.backpackItem}");
+                //player.backpackItem = 83000;
+
+                return true;
+            }
+        }
+
         #endregion
     }
 }

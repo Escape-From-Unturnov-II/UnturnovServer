@@ -88,6 +88,7 @@
   <ItemGroup>
     <Compile Include="Helper\EffectControler.cs" />
     <Compile Include="Helper\InventoryHelper.cs" />
+    <Compile Include="Helper\MessageHandler.cs" />
     <Compile Include="Helper\ScavRunControler.cs" />
     <Compile Include="Helper\SecureCaseControler.cs" />
     <Compile Include="Helper\TeleportControler.cs" />
