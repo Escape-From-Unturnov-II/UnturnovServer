@@ -94,6 +94,8 @@
     <Compile Include="Helper\TeleportControler.cs" />
     <Compile Include="Helper\UnturnedPrivateFields.cs" />
     <Compile Include="Models\CaseContent.cs" />
+    <Compile Include="Models\Config\FoundationSet.cs" />
+    <Compile Include="Models\Config\PlacementRestriction.cs" />
     <Compile Include="Models\Config\SecureCaseConfig.cs" />
     <Compile Include="Models\Config\CaseSize.cs" />
     <Compile Include="Models\Config\NotificationUIConfig.cs" />

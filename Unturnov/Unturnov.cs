@@ -10,6 +10,7 @@ using SDG.NetTransport;
 using SDG.Unturned;
 using SpeedMann.Unturnov.Helper;
 using SpeedMann.Unturnov.Models;
+using SpeedMann.Unturnov.Models.Config;
 using Steamworks;
 using System;
 using System.Collections.Generic;
@@ -89,6 +90,7 @@ namespace SpeedMann.Unturnov
             UnturnedPlayerEvents.OnPlayerDeath += OnPlayerDeath;
             UseableConsumeable.onConsumePerformed += OnConsumed;
             UseableConsumeable.onPerformingAid += OnAid;
+            BarricadeManager.onDeployBarricadeRequested += OnBarricadeDeploy;
 
             UnturnedPatches.OnPrePlayerDead += OnPlayerDead;
             UnturnedPatches.OnPostPlayerRevive += OnPlayerRevived;
@@ -170,6 +172,25 @@ namespace SpeedMann.Unturnov
         {
             ScavRunControler.OnFlagChanged(quests, flag);
             TeleportControler.OnFlagChanged(quests, flag);
+        }
+        private void onBarricadeDeploy(Barricade barricade, ItemBarricadeAsset asset, Transform hit, ref Vector3 point, ref float angle_x, ref float angle_y, ref float angle_z, ref ulong owner, ref ulong group, ref bool shouldAllow)
+        {
+            // check if ItemBarricaeAsset is in PlacementRestrictions
+            // check hit Transform if this is the object the barricade got placed on
+            // if not try find object below new barricade
+            /*
+            Regions.tryGetCoordinate(new Vector3(point.x, point.y, point.z), out byte x, out byte y);
+            List<RegionCoordinate> coordinates = new List<RegionCoordinate>() { new RegionCoordinate(x, y) };
+            List<Transform> transforms = new List<Transform>();
+            // find object bellow
+            // replace with object search
+            StructureManager.getStructuresInRadius(new Vector3(point.x, point.y - 0.5f, point.z), 2, coordinates, transforms);
+
+            foreach (var transform in transforms)
+            {
+                // check if valid object for barricade
+            }
+            */
         }
         private void OnPlayerDead(PlayerLife playerLife)
         {
@@ -651,6 +672,20 @@ namespace SpeedMann.Unturnov
                 }
             }
             return itemExtensionsDict;
+        }
+        internal static bool tryGetFoundationSet(string name, out List<ItemExtension> whitelist)
+        {
+            whitelist = new List<ItemExtension>();
+            foreach (FoundationSet list in Conf.FoundationSets)
+            {
+                if (list.Name.Equals(name))
+                {
+                    whitelist = list.WhitelistedItems;
+                    return true;
+                }
+            }
+
+            return false;
         }
         internal static void safeAddItem(UnturnedPlayer player, Item item, byte x, byte y, byte page, byte rot)
         {

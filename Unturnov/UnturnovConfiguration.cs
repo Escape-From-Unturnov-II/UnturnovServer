@@ -27,6 +27,9 @@ namespace SpeedMann.Unturnov
         public List<ScavKitTier> ScavKitTiers;
         public ScavSpawnTableSet ScavSpawnTables;
 
+        public PlacementRestriction PlacementRestrictions;
+        public FoundationSet FoundationSets;
+
         public SecureCaseConfig SecureCaseConfig;
 
         public void LoadDefaults()
