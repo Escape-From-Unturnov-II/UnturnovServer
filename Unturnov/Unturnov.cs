@@ -68,8 +68,10 @@ namespace SpeedMann.Unturnov
             MultiUseDict = createDictionaryFromItemExtensions(Conf.MultiUseItems);
             GunModdingDict = createDictionaryFromItemExtensions(Conf.GunModdingResults);
             ReloadExtensionByGun = createDictionaryFromReloadExtensionsByGun(Conf.ReloadExtensions);
+            createDictionaryForPlacementRestrictions(Conf.PlacementRestrictions);
 
-            
+
+
 
             Conf.updateConfig();
 
@@ -173,24 +175,27 @@ namespace SpeedMann.Unturnov
             ScavRunControler.OnFlagChanged(quests, flag);
             TeleportControler.OnFlagChanged(quests, flag);
         }
-        private void onBarricadeDeploy(Barricade barricade, ItemBarricadeAsset asset, Transform hit, ref Vector3 point, ref float angle_x, ref float angle_y, ref float angle_z, ref ulong owner, ref ulong group, ref bool shouldAllow)
+        private void OnBarricadeDeploy(Barricade barricade, ItemBarricadeAsset asset, Transform hit, ref Vector3 point, ref float angle_x, ref float angle_y, ref float angle_z, ref ulong owner, ref ulong group, ref bool shouldAllow)
         {
-            // check if ItemBarricaeAsset is in PlacementRestrictions
-            // check hit Transform if this is the object the barricade got placed on
-            // if not try find object below new barricade
-            /*
-            Regions.tryGetCoordinate(new Vector3(point.x, point.y, point.z), out byte x, out byte y);
+            float heightChange = -0.5f;
+            float searchRadius = 2f;
+
+            // hit != null is placed on vehicle
+
+            //TODO: check if ItemBarricaeAsset is in PlacementRestrictions
+
+            Regions.tryGetCoordinate(point, out byte x, out byte y);
             List<RegionCoordinate> coordinates = new List<RegionCoordinate>() { new RegionCoordinate(x, y) };
             List<Transform> transforms = new List<Transform>();
             // find object bellow
-            // replace with object search
-            StructureManager.getStructuresInRadius(new Vector3(point.x, point.y - 0.5f, point.z), 2, coordinates, transforms);
-
-            foreach (var transform in transforms)
+            BarricadeManager.getBarricadesInRadius(new Vector3(point.x, point.y + heightChange, point.z), searchRadius, coordinates, transforms);
+            //ObjectManager.getObjectsInRadius(new Vector3(point.x, point.y + heightChange, point.z), searchRadius, coordinates, transforms);
+            foreach (Transform transform in transforms)
             {
-                // check if valid object for barricade
+                Logger.Log($"Barricade was placed on barricade {transform.name}");
+
+                //TODO: check if valid object for barricade
             }
-            */
         }
         private void OnPlayerDead(PlayerLife playerLife)
         {
@@ -673,14 +678,41 @@ namespace SpeedMann.Unturnov
             }
             return itemExtensionsDict;
         }
-        internal static bool tryGetFoundationSet(string name, out List<ItemExtension> whitelist)
+        internal static void createDictionaryForPlacementRestrictions(List<PlacementRestriction> placementRestrictions)
         {
-            whitelist = new List<ItemExtension>();
+            foreach (PlacementRestriction restriction in placementRestrictions)
+            {
+                foreach (string name in restriction.ValidFoundationSetNames)
+                {
+                    if (tryGetFoundationSet(name, out List<ItemExtension> foundationSet))
+                    {
+                        foreach (ItemExtension foundation in foundationSet)
+                        {
+                            if (restriction.ValidFoundations.ContainsKey(foundation.Id))
+                            {
+                                Logger.LogWarning("Foundation with Id:" + foundation.Id + " is a duplicate!");
+                            }
+                            else
+                            {
+                                restriction.ValidFoundations.Add(foundation.Id, foundation);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        Logger.LogWarning("FoundationSet with name:" + name + " was not found!");
+                    }
+                }
+            }
+        }
+        internal static bool tryGetFoundationSet(string name, out List<ItemExtension> set)
+        {
+            set = new List<ItemExtension>();
             foreach (FoundationSet list in Conf.FoundationSets)
             {
-                if (list.Name.Equals(name))
+                if (list.Name.ToLower().Equals(name.ToLower()))
                 {
-                    whitelist = list.WhitelistedItems;
+                    set = list.Foundations;
                     return true;
                 }
             }

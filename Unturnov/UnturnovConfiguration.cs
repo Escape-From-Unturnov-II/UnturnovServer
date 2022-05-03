@@ -27,8 +27,8 @@ namespace SpeedMann.Unturnov
         public List<ScavKitTier> ScavKitTiers;
         public ScavSpawnTableSet ScavSpawnTables;
 
-        public PlacementRestriction PlacementRestrictions;
-        public FoundationSet FoundationSets;
+        public List<PlacementRestriction> PlacementRestrictions;
+        public List<FoundationSet> FoundationSets;
 
         public SecureCaseConfig SecureCaseConfig;
 
@@ -1901,6 +1901,30 @@ namespace SpeedMann.Unturnov
                     }
                 },
                 SupplyTable = new SpawnTableExtension(),
+            };
+
+            PlacementRestrictions = new List<PlacementRestriction>
+            {
+                new PlacementRestriction
+                {
+                    RestrictedItem = new ItemExtension(330, "carrot seed"),
+                    ValidFoundationSetNames = new List<string>
+                    {
+                        "planter"
+                    }
+                },
+            };
+            FoundationSets = new List<FoundationSet>
+            {
+                new FoundationSet
+                {
+                    Name = "planter",
+                    Foundations = new List<ItemExtension>
+                    {
+                        new ItemExtension(331, "planter"),
+                        new ItemExtension(1345, "plot"),
+                    }
+                },
             };
 
             SecureCaseConfig = new SecureCaseConfig
