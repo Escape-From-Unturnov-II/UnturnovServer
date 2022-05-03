@@ -17,9 +17,8 @@ namespace SpeedMann.Unturnov
 		{
 			if (player.Player.inventory.items[page] == null)
 				return;
-
-			for (byte p2 = 0; p2 < player.Player.inventory.getItemCount(page); p2++)
-			{
+			while(player.Player.inventory.getItemCount(page) > 0)
+            {
 				player.Player.inventory.removeItem(page, 0);
 			}
 		}
