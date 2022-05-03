@@ -7,11 +7,12 @@ using System.Xml.Serialization;
 
 namespace SpeedMann.Unturnov.Models.Config
 {
-    public class PlacementRestriction
+    public class PlacementRestriction : ItemExtension
     {
-        public ItemExtension RestrictedItem;
         public List<string> ValidFoundationSetNames;
         [XmlIgnore]
-        public Dictionary<ushort,ItemExtension> ValidFoundations = new Dictionary<ushort, ItemExtension>();
+        public Dictionary<ushort, PlacementFoundation> ValidItemFoundations = new Dictionary<ushort, PlacementFoundation>();
+        [XmlIgnore]
+        public Dictionary<ushort, PlacementFoundation> ValidObjectFoundations = new Dictionary<ushort, PlacementFoundation>();
     }
 }

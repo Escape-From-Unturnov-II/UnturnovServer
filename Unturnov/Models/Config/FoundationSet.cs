@@ -9,6 +9,6 @@ namespace SpeedMann.Unturnov.Models.Config
     public class FoundationSet
     {
         public string Name = "";
-        public List<ItemExtension> Foundations;
+        public List<PlacementFoundation> Foundations;
     }
 }

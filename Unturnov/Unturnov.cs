@@ -58,6 +58,7 @@ namespace SpeedMann.Unturnov
             UnturnedPrivateFields.Init();
             UnturnedPatches.Init();
             ScavRunControler.Init();
+            PlacementRestrictionControler.Init(Conf);
 
             ReplaceBypass = new List<CSteamID>();
             ReloadExtensionStates = new Dictionary<CSteamID, ItemJarWrapper>();
@@ -68,10 +69,6 @@ namespace SpeedMann.Unturnov
             MultiUseDict = createDictionaryFromItemExtensions(Conf.MultiUseItems);
             GunModdingDict = createDictionaryFromItemExtensions(Conf.GunModdingResults);
             ReloadExtensionByGun = createDictionaryFromReloadExtensionsByGun(Conf.ReloadExtensions);
-            createDictionaryForPlacementRestrictions(Conf.PlacementRestrictions);
-
-
-
 
             Conf.updateConfig();
 
@@ -177,25 +174,7 @@ namespace SpeedMann.Unturnov
         }
         private void OnBarricadeDeploy(Barricade barricade, ItemBarricadeAsset asset, Transform hit, ref Vector3 point, ref float angle_x, ref float angle_y, ref float angle_z, ref ulong owner, ref ulong group, ref bool shouldAllow)
         {
-            float heightChange = -0.5f;
-            float searchRadius = 2f;
-
-            // hit != null is placed on vehicle
-
-            //TODO: check if ItemBarricaeAsset is in PlacementRestrictions
-
-            Regions.tryGetCoordinate(point, out byte x, out byte y);
-            List<RegionCoordinate> coordinates = new List<RegionCoordinate>() { new RegionCoordinate(x, y) };
-            List<Transform> transforms = new List<Transform>();
-            // find object bellow
-            BarricadeManager.getBarricadesInRadius(new Vector3(point.x, point.y + heightChange, point.z), searchRadius, coordinates, transforms);
-            //ObjectManager.getObjectsInRadius(new Vector3(point.x, point.y + heightChange, point.z), searchRadius, coordinates, transforms);
-            foreach (Transform transform in transforms)
-            {
-                Logger.Log($"Barricade was placed on barricade {transform.name}");
-
-                //TODO: check if valid object for barricade
-            }
+            PlacementRestrictionControler.OnBarricadeDeploy(barricade, asset, hit, ref point, ref angle_x, ref angle_y, ref angle_z, ref owner, ref group, ref shouldAllow);
         }
         private void OnPlayerDead(PlayerLife playerLife)
         {
@@ -323,8 +302,8 @@ namespace SpeedMann.Unturnov
             if (GunModdingDict.ContainsKey(P.item.id) && ModdedGunAttachments.TryGetValue(player.CSteamID, out GunAttachments attachments))
             {
                 ModdedGunAttachments.Remove(player.CSteamID);
-                Asset asset = Assets.find(EAssetType.ITEM, P.item.id);
-                if (asset != null && asset is ItemGunAsset)
+                ItemAsset asset = Assets.find(EAssetType.ITEM, P.item.id) as ItemAsset;
+                if (asset != null)
                 {
 
                     // get initial state and remove mag and ammo
@@ -451,8 +430,8 @@ namespace SpeedMann.Unturnov
                     List<InventorySearch> itemList = inventory.search(supply.id, true, true);
                     if (itemList.Count > 0)
                     {
-                        Asset asset = Assets.find(EAssetType.ITEM, itemList[0].jar.item.id);
-                        if (asset != null && asset is ItemGunAsset)
+                        ItemAsset asset = Assets.find(EAssetType.ITEM, itemList[0].jar.item.id) as ItemAsset;
+                        if (asset != null)
                         {
                             attachments = new GunAttachments(itemList[0].jar.item.metadata);
                             if (Conf.Debug)
@@ -678,47 +657,7 @@ namespace SpeedMann.Unturnov
             }
             return itemExtensionsDict;
         }
-        internal static void createDictionaryForPlacementRestrictions(List<PlacementRestriction> placementRestrictions)
-        {
-            foreach (PlacementRestriction restriction in placementRestrictions)
-            {
-                foreach (string name in restriction.ValidFoundationSetNames)
-                {
-                    if (tryGetFoundationSet(name, out List<ItemExtension> foundationSet))
-                    {
-                        foreach (ItemExtension foundation in foundationSet)
-                        {
-                            if (restriction.ValidFoundations.ContainsKey(foundation.Id))
-                            {
-                                Logger.LogWarning("Foundation with Id:" + foundation.Id + " is a duplicate!");
-                            }
-                            else
-                            {
-                                restriction.ValidFoundations.Add(foundation.Id, foundation);
-                            }
-                        }
-                    }
-                    else
-                    {
-                        Logger.LogWarning("FoundationSet with name:" + name + " was not found!");
-                    }
-                }
-            }
-        }
-        internal static bool tryGetFoundationSet(string name, out List<ItemExtension> set)
-        {
-            set = new List<ItemExtension>();
-            foreach (FoundationSet list in Conf.FoundationSets)
-            {
-                if (list.Name.ToLower().Equals(name.ToLower()))
-                {
-                    set = list.Foundations;
-                    return true;
-                }
-            }
 
-            return false;
-        }
         internal static void safeAddItem(UnturnedPlayer player, Item item, byte x, byte y, byte page, byte rot)
         {
             if (!player.Inventory.tryAddItem(item, x, y, page, rot))

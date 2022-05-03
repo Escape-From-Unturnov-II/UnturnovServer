@@ -11,7 +11,7 @@ namespace SpeedMann.Unturnov.Models
     public class ScavCooldownTimer
     {
         public delegate void ScavCooldownElapsedEventHandler(PlayerQuests quests);
-        public new ScavCooldownElapsedEventHandler Elapsed;
+        public ScavCooldownElapsedEventHandler Elapsed;
 
         public PlayerQuests Quests;
         private Timer internalTimer;

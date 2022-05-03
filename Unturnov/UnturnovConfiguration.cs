@@ -27,8 +27,7 @@ namespace SpeedMann.Unturnov
         public List<ScavKitTier> ScavKitTiers;
         public ScavSpawnTableSet ScavSpawnTables;
 
-        public List<PlacementRestriction> PlacementRestrictions;
-        public List<FoundationSet> FoundationSets;
+        public PlacementRestrictionConfig PlacementRestrictionConfig;
 
         public SecureCaseConfig SecureCaseConfig;
 
@@ -1903,28 +1902,34 @@ namespace SpeedMann.Unturnov
                 SupplyTable = new SpawnTableExtension(),
             };
 
-            PlacementRestrictions = new List<PlacementRestriction>
+            PlacementRestrictionConfig = new PlacementRestrictionConfig
             {
-                new PlacementRestriction
+                SearchCenterHeightChange = -0.5f,
+                SearchRadius = 2f,
+                Restrictions = new List<PlacementRestriction>
                 {
-                    RestrictedItem = new ItemExtension(330, "carrot seed"),
-                    ValidFoundationSetNames = new List<string>
+                    new PlacementRestriction
                     {
-                        "planter"
-                    }
+                        Id = 330, 
+                        Name = "carrot seed",
+                        ValidFoundationSetNames = new List<string>
+                        {
+                            "planter"
+                        }
+                    },
                 },
-            };
-            FoundationSets = new List<FoundationSet>
-            {
-                new FoundationSet
+                FoundationSets = new List<FoundationSet>
                 {
-                    Name = "planter",
-                    Foundations = new List<ItemExtension>
+                    new FoundationSet
                     {
-                        new ItemExtension(331, "planter"),
-                        new ItemExtension(1345, "plot"),
-                    }
-                },
+                        Name = "planter",
+                        Foundations = new List<PlacementFoundation>
+                        {
+                            new PlacementFoundation(331, EAssetType.ITEM ,"planter"),
+                            new PlacementFoundation(1345, EAssetType.ITEM, "plot"),
+                        }
+                    },
+                }
             };
 
             SecureCaseConfig = new SecureCaseConfig

@@ -89,6 +89,7 @@
     <Compile Include="Helper\EffectControler.cs" />
     <Compile Include="Helper\InventoryHelper.cs" />
     <Compile Include="Helper\MessageHandler.cs" />
+    <Compile Include="Helper\PlacementRestrictionControler.cs" />
     <Compile Include="Helper\ScavRunControler.cs" />
     <Compile Include="Helper\SecureCaseControler.cs" />
     <Compile Include="Helper\TeleportControler.cs" />
@@ -96,6 +97,7 @@
     <Compile Include="Models\CaseContent.cs" />
     <Compile Include="Models\Config\FoundationSet.cs" />
     <Compile Include="Models\Config\PlacementRestriction.cs" />
+    <Compile Include="Models\Config\PlacementRestrictionConfig.cs" />
     <Compile Include="Models\Config\SecureCaseConfig.cs" />
     <Compile Include="Models\Config\CaseSize.cs" />
     <Compile Include="Models\Config\NotificationUIConfig.cs" />
@@ -111,6 +113,7 @@
     <Compile Include="Models\Config\ReloadExtension.cs" />
     <Compile Include="Models\KitTierEntry.cs" />
     <Compile Include="Models\MainQueueEntry.cs" />
+    <Compile Include="Models\PlacementFoundation.cs" />
     <Compile Include="Models\ScavCooldownTimer.cs" />
     <Compile Include="Models\SetFalgQueueEntry.cs" />
     <Compile Include="Models\SpawnTableExtension.cs" />
