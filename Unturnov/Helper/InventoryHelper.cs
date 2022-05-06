@@ -13,6 +13,78 @@ namespace SpeedMann.Unturnov
 {
 	public class InventoryHelper
 	{
+		public static ItemJar getItemJarOfEquiped(PlayerEquipment equipment)
+        {
+			if(equipment != null)
+            {
+				byte page = equipment.equippedPage;
+				byte x = equipment.equipped_x;
+				byte y = equipment.equipped_y;
+				byte index = equipment.player.inventory.findIndex(page, x, y, out byte found_x, out byte found_y);
+				if (index != 255)
+				{
+					return equipment.player.inventory.getItem(page, index);
+				}
+			}
+			return null;
+		}
+		public static void setMagForGun(PlayerEquipment gun, Item mag)
+		{
+			if (gun != null && gun.state.Length >= 18)
+			{
+				byte[] array = BitConverter.GetBytes(mag.id);
+				gun.state[8] = array[0];
+				gun.state[9] = array[1];
+				gun.state[10] = mag.amount;
+				gun.state[17] = mag.quality;
+				gun.sendUpdateState();
+			}
+		}
+		public static void setMagForGun(Item gun, Item mag)
+		{
+			if (gun != null && gun.state.Length >= 18)
+			{
+				byte[] array = BitConverter.GetBytes(mag.id);
+				gun.state[8] = array[0];
+				gun.state[9] = array[1];
+				gun.state[10] = mag.amount;
+				gun.state[17] = mag.quality;
+			}
+		}
+		public static Item getMagFromGun(Item gun)
+		{
+			if (gun != null && gun.state.Length >= 18)
+			{
+				byte[] mag = new byte[] { gun.state[8], gun.state[9] };
+				ushort itemId = BitConverter.ToUInt16(mag, 0);
+                if (itemId > 0)
+                {
+					return new Item(itemId, gun.state[10], gun.state[17]);
+				}
+            }
+			return null;
+		}
+		public static void removeMagFromGun(Item gun)
+		{
+			if(gun != null && gun.state.Length >= 18)
+            {
+				gun.state[8] = 0;
+				gun.state[9] = 0;
+				gun.state[10] = 0;
+				gun.state[17] = 0;
+			}
+		}
+		public static void removeMagFromGun(PlayerEquipment gun)
+		{
+			if (gun != null && gun.state.Length >= 18)
+			{
+				gun.state[8] = 0;
+				gun.state[9] = 0;
+				gun.state[10] = 0;
+				gun.state[17] = 0;
+				gun.sendUpdateState();
+			}
+		}
 		public static void clearInventoryPage(UnturnedPlayer player, byte page)
 		{
 			if (player.Player.inventory.items[page] == null)

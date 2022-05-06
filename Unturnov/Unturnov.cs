@@ -32,7 +32,7 @@ namespace SpeedMann.Unturnov
         private Dictionary<ushort, ItemExtension> MultiUseDict;
         private Dictionary<ushort, ItemExtension> GunModdingDict;
         private Dictionary<ushort, ReloadInner> ReloadExtensionByGun;
-        private Dictionary<CSteamID, ItemJarWrapper> ReloadExtensionStates;
+        private Dictionary<CSteamID, InternalMagReloadState> ReloadExtensionStates;
         private Dictionary<CSteamID, GunAttachments> ModdedGunAttachments;
         
         private List<CSteamID> ReplaceBypass;
@@ -61,7 +61,7 @@ namespace SpeedMann.Unturnov
             PlacementRestrictionControler.Init(Conf);
 
             ReplaceBypass = new List<CSteamID>();
-            ReloadExtensionStates = new Dictionary<CSteamID, ItemJarWrapper>();
+            ReloadExtensionStates = new Dictionary<CSteamID, InternalMagReloadState>();
             ModdedGunAttachments = new Dictionary<CSteamID, GunAttachments>();
 
             MagazineDict = createDictionaryFromMagazineExtensions(Conf.UnloadMagBlueprints);
@@ -243,7 +243,20 @@ namespace SpeedMann.Unturnov
             if (ReloadExtensionStates.ContainsKey(player.CSteamID)){
                 ReloadExtensionStates.Remove(player.CSteamID);
             }
-            ReloadExtensionStates.Add(player.CSteamID, new ItemJarWrapper{ page = page });
+
+            InternalMagReloadState state = new InternalMagReloadState { newMag = new ItemJarWrapper { page = page }, };
+            ReloadExtensionStates.Add(player.CSteamID, state);
+
+            ItemJar gunItemJar = InventoryHelper.getItemJarOfEquiped(player.Player.equipment);
+
+            //save and remove mag
+            Item mag = InventoryHelper.getMagFromGun(gunItemJar.item);
+            if (mag != null && page != 255)
+            {
+                state.oldMag = mag;
+                InventoryHelper.removeMagFromGun(player.Player.equipment);
+                Logger.Log("Removed mag from gun");
+            }
         }
         private void OnChangeMagazine(PlayerEquipment equipment, UseableGun gun, Item oldItem, ItemJar newItem, ref bool shouldAllow)
         {
@@ -254,16 +267,18 @@ namespace SpeedMann.Unturnov
             if (newItem?.item != null && ReloadExtensionByGun.TryGetValue(gun.equippedGunAsset.id, out ReloadInner reloadInfo) && reloadInfo.AmmoStackId == newItem.item.id)
             {
                 UnturnedPlayer player = UnturnedPlayer.FromPlayer(equipment.player);
-                if (!ReloadExtensionStates.TryGetValue(player.CSteamID, out ItemJarWrapper reloadState))
+                if (!ReloadExtensionStates.TryGetValue(player.CSteamID, out InternalMagReloadState reloadState) && reloadState.newMag == null)
                 {
                     Logger.LogError("Error getting saved reload state");
                     return;
                 }
 
-
+                
                 // save ammo stack
-                Item AmmoStack = new Item(newItem.item.id,newItem.item.amount, newItem.item.quality);
-                reloadState.itemJar = new ItemJar(newItem.x, newItem.y, newItem.rot, AmmoStack);
+                Item AmmoStack = new Item(newItem.item.id, newItem.item.amount, newItem.item.quality);
+                reloadState.newMag.itemJar = new ItemJar(newItem.x, newItem.y, newItem.rot, AmmoStack);
+                reloadState.reloaded = true;
+                
 
                 Logger.Log("reloaded with reloadExtension!");
             }
@@ -274,15 +289,47 @@ namespace SpeedMann.Unturnov
         private void OnPostAttachMag(UseableGun gun)
         {
             UnturnedPlayer player = UnturnedPlayer.FromPlayer(gun.player);
-            if (ReloadExtensionByGun.TryGetValue(gun.equippedGunAsset.id, out ReloadInner reloadInfo) && ReloadExtensionStates.TryGetValue(player.CSteamID, out ItemJarWrapper reloadState) && reloadState?.itemJar?.item?.amount > 0)
+            if (ReloadExtensionByGun.TryGetValue(gun.equippedGunAsset.id, out ReloadInner reloadInfo) && ReloadExtensionStates.TryGetValue(player.CSteamID, out InternalMagReloadState reloadState))
             {
-                // change ammo to max mag size
-                byte newMagAmount = reloadState.itemJar.item.amount < reloadInfo.MagazineSize ? reloadState.itemJar.item.amount : reloadInfo.MagazineSize;               
-                player.Player.equipment.state[10] = newMagAmount;
-
-                // give remaining ammo
-                Item remaining = new Item(reloadState.itemJar.item.id, (byte)(reloadState.itemJar.item.amount - newMagAmount), reloadState.itemJar.item.quality);
-                safeAddItem(player, remaining, reloadState.itemJar.x, reloadState.itemJar.y, reloadState.page, reloadState.itemJar.rot);
+                if (reloadState?.newMag?.itemJar?.item?.amount > 0 && reloadState.reloaded)
+                {
+                    ItemJar newMag = reloadState?.newMag.itemJar;
+                    byte newMagAmount;
+                    
+                    // add remaining ammo from old mag
+                    if (newMag.item.amount < reloadInfo.MagazineSize && reloadState.oldMag?.amount > 0 && reloadState.oldMag.id == newMag.item.id)
+                    {
+                        newMag.item.amount += reloadState.oldMag.amount;
+                        reloadState.oldMag.amount = 0;
+                        Logger.Log("added old ammo to new mag");
+                    }
+                    // change ammo to max mag size
+                    newMagAmount = newMag.item.amount < reloadInfo.MagazineSize ? newMag.item.amount : reloadInfo.MagazineSize;
+                    
+                    player.Player.equipment.state[10] = newMagAmount;
+                    player.Player.equipment.sendUpdateState();
+                    // give remaining ammo
+                    Item remaining = new Item(newMag.item.id, (byte)(newMag.item.amount - newMagAmount), newMag.item.quality);
+                    safeAddItem(player, remaining, newMag.x, newMag.y, reloadState.newMag.page, newMag.rot);
+                    Logger.Log("added remaining ammo to inventory");
+                }
+                // give old mag
+                if (reloadState.oldMag != null)
+                {
+                    ItemMagazineAsset magAsset = Assets.find(EAssetType.ITEM, reloadState.oldMag.id) as ItemMagazineAsset;
+                    if(reloadState.reloaded) 
+                    {
+                        if(reloadState.oldMag.amount > 0 || (!gun.equippedGunAsset.shouldDeleteEmptyMagazines && !magAsset.deleteEmpty)){
+                            player.Inventory.forceAddItem(reloadState.oldMag, false);
+                            Logger.Log("added old mag to inventory");
+                        }
+                    }
+                    else
+                    {
+                        InventoryHelper.setMagForGun(player.Player.equipment, reloadState.oldMag);
+                        Logger.Log("restored old mag");
+                    }
+                }
             }
         }
       
