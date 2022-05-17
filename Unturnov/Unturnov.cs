@@ -25,6 +25,7 @@ namespace SpeedMann.Unturnov
     {
         public static Unturnov Inst;
         public static UnturnovConfiguration Conf;
+        public static DatabaseManager Database;
         public static bool ModsLoaded = false;
 
         private Dictionary<ushort, CombineDescription> AutoCombineDict;
@@ -54,11 +55,13 @@ namespace SpeedMann.Unturnov
         {
             Inst = this;
             Conf = Configuration.Instance;
+            Database = new DatabaseManager();
 
             UnturnedPrivateFields.Init();
             UnturnedPatches.Init();
             ScavRunControler.Init();
             PlacementRestrictionControler.Init(Conf);
+            OpenableItemsControler.Init();
 
             ReplaceBypass = new List<CSteamID>();
             ReloadExtensionStates = new Dictionary<CSteamID, InternalMagReloadState>();

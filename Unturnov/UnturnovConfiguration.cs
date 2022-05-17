@@ -11,6 +11,7 @@ namespace SpeedMann.Unturnov
     public class UnturnovConfiguration : IRocketPluginConfiguration
     {
         public bool Debug;
+        public string DatabaseConnectionString;
         public ushort DeathDropFlag;
         public ushort ScavKitTierFlag;
         public ushort ScavRunControlFlag;
@@ -30,10 +31,12 @@ namespace SpeedMann.Unturnov
         public PlacementRestrictionConfig PlacementRestrictionConfig;
 
         public SecureCaseConfig SecureCaseConfig;
+        public OpenableItemsConfig OpenableItemsConfig;
 
         public void LoadDefaults()
         {
             Debug = true;
+            DatabaseConnectionString = "SERVER=127.0.0.1;DATABASE=openableitems;UID=root;PASSWORD=;PORT=3306;charset=utf8";
             DeathDropFlag = 0;
             ScavKitTierFlag = 0;
             ScavRunControlFlag = 50303;
@@ -1956,6 +1959,108 @@ namespace SpeedMann.Unturnov
                 },
 
                 StoredCaseContents = new List<CaseContent>(),
+            };
+            OpenableItemsConfig = new OpenableItemsConfig
+            {
+                Debug = true,
+                Notification_UI = new Notification_UI
+                {
+                    Enabled = true,
+                    UI_Id = 52312,
+                    UI_Key = 5230,
+                },
+                OpenableItems = new List<OpenableItem>
+                {
+                    new OpenableItem
+                    {
+                        Name = "KeyTool",
+                        TableName = "KeyTool",
+                        Id = 50303,
+                        Height = 3,
+                        Width = 3,
+                        UsedWhitelists = new List<string>
+                        {
+                            "Keys"
+                        }
+                    }
+                },
+                ItemWhitelists = new List<ItemWhitelist>
+            {
+                new ItemWhitelist
+                {
+                    Name = "Keys",
+                    WhitelistedItems = new List<ItemExtension>
+                    {
+                        new ItemExtension
+                        {
+                            Name = "Factory_Key",
+                            Id = 55206,
+                        },
+                        new ItemExtension
+                        {
+                            Name = "Factory_Pumping_Key",
+                            Id = 55225,
+                        },
+                    }
+                },
+                new ItemWhitelist
+                {
+                    Name = "Money",
+                    WhitelistedItems = new List<ItemExtension>
+                    {
+                        new ItemExtension
+                        {
+                            Name = "5 RUB",
+                            Id = 37001,
+                        },
+                        new ItemExtension
+                        {
+                            Name = "10 RUB",
+                            Id = 37002,
+                        },
+                        new ItemExtension
+                        {
+                            Name = "50 RUB",
+                            Id = 37003,
+                        },
+                        new ItemExtension
+                        {
+                            Name = "100 RUB",
+                            Id = 37004,
+                        },
+                        new ItemExtension
+                        {
+                            Name = "500 RUB",
+                            Id = 37005,
+                        },
+                        new ItemExtension
+                        {
+                            Name = "1.000 RUB",
+                            Id = 37006,
+                        },
+                        new ItemExtension
+                        {
+                            Name = "5.000 RUB",
+                            Id = 37007,
+                        },
+                        new ItemExtension
+                        {
+                            Name = "10.000 RUB",
+                            Id = 37008,
+                        },
+                        new ItemExtension
+                        {
+                            Name = "50.000 RUB",
+                            Id = 37009,
+                        },
+                        new ItemExtension
+                        {
+                            Name = "100.000 RUB",
+                            Id = 37010,
+                        },
+                    }
+                },
+            },
             };
         }
 
