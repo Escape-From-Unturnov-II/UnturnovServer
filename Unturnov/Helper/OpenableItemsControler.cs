@@ -17,8 +17,6 @@ namespace SpeedMann.Unturnov.Helper
 {
     internal static class OpenableItemsControler
     {
-        
-
         internal static Dictionary<ushort, OpenableItem> OpenableItemsDict;
         internal static Dictionary<ushort, List<ushort>> WhitelistedItems;
         internal static Dictionary<CSteamID, OpenedItem> OpenItems;
@@ -35,7 +33,7 @@ namespace SpeedMann.Unturnov.Helper
                 string tableName = pair.Value.TableName;
                 if (tableName != "")
                 {
-                    Unturnov.Database.CheckSchema(tableName);
+                    Unturnov.Database.CheckItemStorageSchema(tableName);
                 }
                 else
                 {
@@ -45,13 +43,13 @@ namespace SpeedMann.Unturnov.Helper
             }
         }
 
-        private static void OnInteractableConditionCheck(ObjectAsset objectAsset, Player player, ref bool shouldAllow)
+        public static void OnInteractableConditionCheck(ObjectAsset objectAsset, Player player, ref bool shouldAllow)
         {
             Logger.Log($"Object interaction for {objectAsset.id} from {player.name}!");
 
             //shouldAllow = false;
         }
-        private static void OnEquipmentChanged(PlayerEquipment equipment)
+        public static void OnEquipmentChanged(PlayerEquipment equipment)
         {
             CSteamID steamID = UnturnedPlayer.FromPlayer(equipment.player).CSteamID;
             if (OpenItems.TryGetValue(steamID, out OpenedItem openedItem))
@@ -61,7 +59,7 @@ namespace SpeedMann.Unturnov.Helper
                 equipment.player.inventory.closeStorageAndNotifyClient();
             }
         }
-        private static void OnInspect(PlayerEquipment equipment)
+        public static void OnInspect(PlayerEquipment equipment)
         {
             CSteamID steamID = UnturnedPlayer.FromPlayer(equipment.player).CSteamID;
             if (OpenItems.TryGetValue(steamID, out OpenedItem openedItem))
@@ -76,7 +74,7 @@ namespace SpeedMann.Unturnov.Helper
                 equipment.sendUpdateState();
             }
         }
-        private static void OnPlayerDisconnected(UnturnedPlayer player)
+        public static void OnPlayerDisconnected(UnturnedPlayer player)
         {
             if (OpenItems.TryGetValue(player.CSteamID, out OpenedItem openedItem))
             {
@@ -86,7 +84,7 @@ namespace SpeedMann.Unturnov.Helper
 
         }
 
-        private static void OnItemAdded(Items page, Item item, ref bool didAdditem, ref bool shouldAllow)
+        public static void OnPreItemAdded(Items page, Item item, ref bool didAdditem, ref bool shouldAllow)
         {
             shouldAllow = true;
 
@@ -104,7 +102,7 @@ namespace SpeedMann.Unturnov.Helper
                 }
             }
         }
-        private static void OnItemSwapped(PlayerInventory inventory, byte page_0, byte x_0, byte y_0, byte rot_0, byte page_1, byte x_1, byte y_1, byte rot_1, ref bool shouldAllow)
+        public static void OnItemSwapped(PlayerInventory inventory, byte page_0, byte x_0, byte y_0, byte rot_0, byte page_1, byte x_1, byte y_1, byte rot_1, ref bool shouldAllow)
         {
             UnturnedPlayer player = UnturnedPlayer.FromPlayer(inventory.player);
 
@@ -141,7 +139,7 @@ namespace SpeedMann.Unturnov.Helper
                 notifyNotAllowed(player, itemJar.item.id);
             }
         }
-        private static void OnTakeItem(Player player, byte x, byte y, uint instanceID, byte to_x, byte to_y, byte to_rot, byte to_page, ItemData itemData, ref bool shouldAllow)
+        public static void OnTakeItem(Player player, byte x, byte y, uint instanceID, byte to_x, byte to_y, byte to_rot, byte to_page, ItemData itemData, ref bool shouldAllow)
         {
             UnturnedPlayer uPlayer = UnturnedPlayer.FromPlayer(player);
             if (isItemStorageOpen(uPlayer) && to_page == (byte)InventoryGroup.Storage && !isWhitelisted(uPlayer, itemData.item.id))
@@ -150,7 +148,7 @@ namespace SpeedMann.Unturnov.Helper
                 notifyNotAllowed(uPlayer, itemData.item.id);
             }
         }
-        private static void OnItemDragged(PlayerInventory inventory, byte page_0, byte x_0, byte y_0, byte page_1, byte x_1, byte y_1, byte rot_1, ref bool shouldAllow)
+        public static void OnItemDragged(PlayerInventory inventory, byte page_0, byte x_0, byte y_0, byte page_1, byte x_1, byte y_1, byte rot_1, ref bool shouldAllow)
         {
             UnturnedPlayer player = UnturnedPlayer.FromPlayer(inventory.player);
 

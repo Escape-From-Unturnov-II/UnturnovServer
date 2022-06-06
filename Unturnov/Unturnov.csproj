@@ -171,6 +171,7 @@
     <Compile Include="Models\SpawnTableExtension.cs" />
     <Compile Include="Models\Config\ScavKitTier.cs" />
     <Compile Include="Models\SpawnTableEntry.cs" />
+    <Compile Include="Models\StoredInventory.cs" />
     <Compile Include="Models\StoredItem.cs" />
     <Compile Include="Models\TeleportDescription.cs" />
     <Compile Include="UnturnovCommands.cs" />

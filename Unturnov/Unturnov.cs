@@ -99,8 +99,12 @@ namespace SpeedMann.Unturnov
 
             UnturnedPatches.OnPrePlayerDraggedItem += OnItemDragged;
             UnturnedPatches.OnPrePlayerSwappedItem += OnItemSwapped;
-            UnturnedPatches.OnPrePlayerAddItem -= OnAddItem;
+            UnturnedPatches.OnPrePlayerAddItem += OnPreItemAdded;
             ItemManager.onTakeItemRequested += OnTakeItem;
+
+            UnturnedPatches.OnPreInteractabilityCondition += OnInteractableConditionCheck;
+            PlayerEquipment.OnUseableChanged_Global += OnEquipmentChanged;
+            PlayerEquipment.OnInspectingUseable_Global += OnInspect;
 
             U.Events.OnPlayerDisconnected += OnPlayerDisconnected;
             U.Events.OnPlayerConnected += OnPlayerConnected;
@@ -132,8 +136,12 @@ namespace SpeedMann.Unturnov
 
             UnturnedPatches.OnPrePlayerDraggedItem -= OnItemDragged;
             UnturnedPatches.OnPrePlayerSwappedItem -= OnItemSwapped;
-            UnturnedPatches.OnPrePlayerAddItem -= OnAddItem;
+            UnturnedPatches.OnPrePlayerAddItem -= OnPreItemAdded;
             ItemManager.onTakeItemRequested -= OnTakeItem;
+
+            UnturnedPatches.OnPreInteractabilityCondition -= OnInteractableConditionCheck;
+            PlayerEquipment.OnUseableChanged_Global -= OnEquipmentChanged;
+            PlayerEquipment.OnInspectingUseable_Global -= OnInspect;
 
             U.Events.OnPlayerDisconnected -= OnPlayerDisconnected;
             U.Events.OnPlayerConnected -= OnPlayerConnected;
@@ -161,6 +169,7 @@ namespace SpeedMann.Unturnov
         private void OnPlayerDisconnected(UnturnedPlayer player)
         {
             ScavRunControler.OnPlayerDisconnected(player);
+            OpenableItemsControler.OnPlayerDisconnected(player);
         }
         private void OnPlayerConnected(UnturnedPlayer player)
         {
@@ -169,6 +178,10 @@ namespace SpeedMann.Unturnov
                 ScavRunControler.OnPlayerConnected(player);
                 SecureCaseControler.OnPlayerConnected(player);
             }
+        }
+        private void OnEquipmentChanged(PlayerEquipment equipment)
+        {
+            OpenableItemsControler.OnEquipmentChanged(equipment);
         }
         private void OnFlagChanged(PlayerQuests quests, PlayerQuestFlag flag)
         {
@@ -179,6 +192,10 @@ namespace SpeedMann.Unturnov
         {
             PlacementRestrictionControler.OnBarricadeDeploy(barricade, asset, hit, ref point, ref angle_x, ref angle_y, ref angle_z, ref owner, ref group, ref shouldAllow);
         }
+        private void OnInteractableConditionCheck(ObjectAsset objectAsset, Player player, ref bool shouldAllow)
+        {
+            OpenableItemsControler.OnInteractableConditionCheck(objectAsset, player, ref shouldAllow);
+        }
         private void OnPlayerDead(PlayerLife playerLife)
         {
             SecureCaseControler.OnPlayerDead(playerLife);
@@ -187,21 +204,29 @@ namespace SpeedMann.Unturnov
         {
             SecureCaseControler.OnPlayerRevived(playerLife);
         }
+        private void OnInspect(PlayerEquipment equipment)
+        {
+            OpenableItemsControler.OnInspect(equipment);
+        }
         private void OnItemSwapped(PlayerInventory inventory, byte page_0, byte x_0, byte y_0, byte rot_0, byte page_1, byte x_1, byte y_1, byte rot_1, ref bool shouldAllow)
         {
             SecureCaseControler.OnItemSwapped(inventory, page_0, x_0, y_0, rot_0, page_1, x_1, y_1, rot_1, ref shouldAllow);
+            OpenableItemsControler.OnItemSwapped(inventory, page_0, x_0, y_0, rot_0, page_1, x_1, y_1, rot_1, ref shouldAllow);
         }
         private void OnItemDragged(PlayerInventory inventory, byte page_0, byte x_0, byte y_0, byte page_1, byte x_1, byte y_1, byte rot_1, ref bool shouldAllow)
         {
             SecureCaseControler.OnItemDragged(inventory, page_0, x_0, y_0, page_1, x_1, y_1, rot_1, ref shouldAllow);
+            OpenableItemsControler.OnItemDragged(inventory, page_0, x_0, y_0, page_1, x_1, y_1, rot_1, ref shouldAllow);
         }
-        private void OnAddItem(PlayerInventory inventory, Items page, Item item, ref bool shouldAllow)
+        private void OnPreItemAdded(PlayerInventory inventory, Items page, Item item, ref bool didAdditem, ref bool shouldAllow)
         {
+            OpenableItemsControler.OnPreItemAdded(page, item, ref didAdditem, ref shouldAllow);
             SecureCaseControler.OnAddItem(inventory, page, item, ref shouldAllow);
         }
         private void OnTakeItem(Player player, byte x, byte y, uint instanceID, byte to_x, byte to_y, byte to_rot, byte to_page, ItemData itemData, ref bool shouldAllow)
         {
             SecureCaseControler.OnTakeItem(player, x, y, instanceID, to_x, to_y, to_rot, to_page, itemData, ref shouldAllow);
+            OpenableItemsControler.OnTakeItem(player, x, y, instanceID, to_x, to_y, to_rot, to_page, itemData, ref shouldAllow);
         }
         private void OnPlayerDeath(UnturnedPlayer player, EDeathCause cause, ELimb limb, CSteamID murderer)
         {
@@ -229,7 +254,6 @@ namespace SpeedMann.Unturnov
                 // TODO: implement quest extension falg id check
             }
         }
-
         private void OnTryAddItem(PlayerInventory inventory, Item item, ref bool autoEquipWeapon, ref bool autoEquipUseable, ref bool autoEquipClothing)
         {
             UnturnedPlayer player = UnturnedPlayer.FromPlayer(inventory.player);
@@ -239,7 +263,6 @@ namespace SpeedMann.Unturnov
                 autoEquipClothing = autoEquipUseable = autoEquipWeapon = false;
             }
         }
-
         private void OnPreAttachMag(UseableGun gun, byte page, byte x, byte y, byte[] hash)
         {
             UnturnedPlayer player = UnturnedPlayer.FromPlayer(gun.player);
@@ -335,7 +358,6 @@ namespace SpeedMann.Unturnov
                 }
             }
         }
-      
         private void OnInventoryUpdated(UnturnedPlayer player, InventoryGroup inventoryGroup, byte inventoryIndex, ItemJar P)
         {
             if (ReplaceBypass.Contains(player.CSteamID))
@@ -572,7 +594,6 @@ namespace SpeedMann.Unturnov
             }
             #endregion
         }
-
         private void OnAid(Player instigator, Player target, ItemConsumeableAsset asset, ref bool shouldAllow)
         {
             UseConsumeable(instigator, asset);

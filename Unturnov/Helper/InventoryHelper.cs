@@ -181,40 +181,48 @@ namespace SpeedMann.Unturnov
 					if (item != null)
 					{
 						byte quality = 0;
+						byte[] state = new byte[0];
 						StorageType type = StorageType.Unknown;
 
 						switch (item)
 						{
 							case ItemHatAsset hat:
 								quality = player.Player.clothing.hatQuality;
+								state = player.Player.clothing.hatState;
 								type = StorageType.Hat;
 								break;
 							case ItemMaskAsset mask:
 								quality = player.Player.clothing.maskQuality;
+								state = player.Player.clothing.maskState;
 								type = StorageType.Mask;
 								break;
 							case ItemGlassesAsset glasses:
 								quality = player.Player.clothing.glassesQuality;
+								state = player.Player.clothing.glassesState;
 								type = StorageType.Glasses;
 								break;
 							case ItemBackpackAsset backpack:
 								quality = player.Player.clothing.backpackQuality;
+								state = player.Player.clothing.backpackState;
 								type = StorageType.Backpack;
 								break;
 							case ItemVestAsset vest:
 								quality = player.Player.clothing.vestQuality;
+								state = player.Player.clothing.vestState;
 								type = StorageType.Vest;
 								break;
 							case ItemShirtAsset shirt:
 								quality = player.Player.clothing.shirtQuality;
+								state = player.Player.clothing.shirtState;
 								type = StorageType.Shirt;
 								break;
 							case ItemPantsAsset pants:
 								quality = player.Player.clothing.pantsQuality;
+								state = player.Player.clothing.pantsState;
 								type = StorageType.Pants;
 								break;
 						}
-						foundItems.Add(new KeyValuePair<StorageType, Item>(type, new Item(item.id, true, quality)));
+						foundItems.Add(new KeyValuePair<StorageType, Item>(type, new Item(item.id, 1, quality, state)));
 					}
 				}
 				returnv = true;

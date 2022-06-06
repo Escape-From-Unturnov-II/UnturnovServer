@@ -14,7 +14,6 @@ using Logger = Rocket.Core.Logging.Logger;
 namespace SpeedMann.Unturnov.Helper
 {
     //TODO: save inventory to db
-    //TODO: fix relogging resetting hand size (SecureCase)
     public class ScavRunControler
     {
 
@@ -23,11 +22,11 @@ namespace SpeedMann.Unturnov.Helper
         private static List<ulong> PlayerCommandChanges = new List<ulong>();
         private static bool isInit = false;
 
+        public const string tableName = "ScavInventory";
+
         private const short scavReady = 0;
         private const short scavActive = 1;
         private const short scavCooldown = 2;
-
-       
 
         public static void Init()
         {
@@ -90,10 +89,26 @@ namespace SpeedMann.Unturnov.Helper
             {
                 Logger.LogError($"Error loading tier for player {player.DisplayName}");
             }
-            startScavCooldown(player, tier);
+            if (isScavRunActive(player))
+            {
+                if(!StoredInventories.TryGetValue(player.CSteamID.m_SteamID, out StoredInventory inventory))
+                {
+                    inventory = Unturnov.Database.GetInventory(tableName, player.CSteamID.m_SteamID);
+                    StoredInventories.Add(player.CSteamID.m_SteamID, inventory);
+                }
+                Unturnov.Database.RemoveInventory(tableName, player.CSteamID.m_SteamID);
+            }
+            else
+            {
+                startScavCooldown(player, tier);
+            }
         }
         internal static void OnPlayerDisconnected(UnturnedPlayer player)
         {
+            if (isScavRunActive(player) && StoredInventories.TryGetValue(player.CSteamID.m_SteamID, out StoredInventory inventory))
+            {
+                Unturnov.Database.SetInventory(tableName, player.CSteamID.m_SteamID, inventory);
+            }
             stopScavCooldown(player);
         }
         internal static void startScavCooldown(UnturnedPlayer player, ScavKitTier tier)
@@ -322,22 +337,6 @@ namespace SpeedMann.Unturnov.Helper
             return true;
         }
         #endregion
-        internal class StoredInventory
-        {
-            internal List<KeyValuePair<InventoryHelper.StorageType, Item>> clothing;
-            internal List<ItemJarWrapper> items;
-            internal byte handWidth;
-            internal byte handHeight;
-
-            internal StoredInventory(byte handWidth, byte handHeight)
-            {
-                this.handWidth = handWidth;
-                this.handHeight = handHeight;
-                
-                clothing = new List<KeyValuePair<InventoryHelper.StorageType, Item>>();
-                items = new List<ItemJarWrapper>();
-            }
-
-        }
+        
     }
 }

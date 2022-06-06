@@ -67,12 +67,17 @@ namespace SpeedMann.Unturnov.Helper
         public delegate void PostAttachMagazine(UseableGun gun);
         public static event PostAttachMagazine OnPostAttachMagazine;
 
+        public delegate void PreInteractabilityCondition(ObjectAsset objectAsset, Player player, ref bool shouldAllow);
+        public static event PreInteractabilityCondition OnPreInteractabilityCondition;
+        public delegate void PreItemConditionMet(NPCItemCondition itemCondition, Player player, ref bool shouldAllow);
+        public static event PreItemConditionMet OnPreItemConditionMet;
+
         #region SecureCase
         public delegate void PrePlayerDraggedItem(PlayerInventory inventory, byte page_0, byte x_0, byte y_0, byte page_1, byte x_1, byte y_1, byte rot_1, ref bool shouldAllow);
         public static event PrePlayerDraggedItem OnPrePlayerDraggedItem;
         public delegate void PrePlayerSwappedItem(PlayerInventory inventory, byte page_0, byte x_0, byte y_0, byte rot_0, byte page_1, byte x_1, byte y_1, byte rot_1, ref bool shouldAllow);
         public static event PrePlayerSwappedItem OnPrePlayerSwappedItem;
-        public delegate void PreplayerAddItem(PlayerInventory inventory, Items page, Item item, ref bool shouldAllow);
+        public delegate void PreplayerAddItem(PlayerInventory inventory, Items page, Item item, ref bool didAdditem, ref bool shouldAllow);
         public static event PreplayerAddItem OnPrePlayerAddItem;
 
         public delegate void PrePlayerDead(PlayerLife playerLife);
@@ -80,7 +85,6 @@ namespace SpeedMann.Unturnov.Helper
         public delegate void PostPlayerRevive(PlayerLife playerLife);
         public static event PostPlayerRevive OnPostPlayerRevive;
         #endregion
-
         #endregion
 
         #region Patches
@@ -109,6 +113,43 @@ namespace SpeedMann.Unturnov.Helper
             {
                 OnPreTryAddItemAuto?.Invoke(__instance, item, ref autoEquipWeapon, ref autoEquipUseable, ref autoEquipClothing);
                 return true;
+            }
+        }
+        [HarmonyPatch(typeof(ObjectAsset), nameof(ObjectAsset.areInteractabilityConditionsMet))]
+        class InteractabilityCondition
+        {
+            [HarmonyPrefix]
+            internal static bool OnPreInteractabilityConditionInvoker(ObjectAsset __instance, Player player, out bool __state)
+            {
+                var shouldAllow = true;
+                OnPreInteractabilityCondition?.Invoke(__instance, player, ref shouldAllow);
+                __state = shouldAllow;
+                return true;
+            }
+
+            [HarmonyPostfix]
+            internal static void OnPostInteractabilityConditionInvoker(ref bool __result, bool __state)
+            {
+                __result = __state;
+            }
+
+        }
+        [HarmonyPatch(typeof(NPCItemCondition), nameof(NPCItemCondition.isConditionMet))]
+        class ItemConditionMet
+        {
+            [HarmonyPrefix]
+            internal static bool OnPreItemConditionInvoker(NPCItemCondition __instance, Player player, out bool __state)
+            {
+                var shouldAllow = true;
+                OnPreItemConditionMet?.Invoke(__instance, player, ref shouldAllow);
+                __state = shouldAllow;
+                return true;
+            }
+
+            [HarmonyPostfix]
+            internal static void OnPostItemConditionInvoker(ref bool __result, bool __state)
+            {
+                __result = __state;
             }
         }
         #region SecureCase
@@ -183,7 +224,7 @@ namespace SpeedMann.Unturnov.Helper
                 object target = __instance.onStateUpdated.Target;
                 if (target is PlayerInventory)
                 {
-                    OnPrePlayerAddItem?.Invoke((PlayerInventory)target, __instance, item, ref shouldAllow);
+                    OnPrePlayerAddItem?.Invoke((PlayerInventory)target, __instance, item, ref __result, ref shouldAllow);
                 }
                 __result = shouldAllow;
                 return shouldAllow;
