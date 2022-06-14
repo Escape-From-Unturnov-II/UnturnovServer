@@ -36,7 +36,7 @@ namespace SpeedMann.Unturnov
         public void LoadDefaults()
         {
             Debug = true;
-            DatabaseConnectionString = "SERVER=127.0.0.1;DATABASE=openableitems;UID=root;PASSWORD=;PORT=3306;charset=utf8";
+            DatabaseConnectionString = "SERVER=127.0.0.1;DATABASE=unturnov;UID=root;PASSWORD=;PORT=3306;charset=utf8";
             DeathDropFlag = 0;
             ScavKitTierFlag = 0;
             ScavRunControlFlag = 50303;
@@ -1982,7 +1982,19 @@ namespace SpeedMann.Unturnov
                         {
                             "Keys"
                         }
-                    }
+                    },
+                    new OpenableItem
+                    {
+                        Name = "Wallet",
+                        TableName = "Wallet",
+                        Id = 50304,
+                        Height = 2,
+                        Width = 2,
+                        UsedWhitelists = new List<string>
+                        {
+                            "Money"
+                        }
+                    },
                 },
                 ItemWhitelists = new List<ItemWhitelist>
             {

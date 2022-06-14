@@ -173,9 +173,9 @@ namespace SpeedMann.Unturnov
         }
         private void OnPlayerConnected(UnturnedPlayer player)
         {
+            ScavRunControler.OnPlayerConnected(player);
             if (!ScavRunControler.isScavRunActive(player))
             {
-                ScavRunControler.OnPlayerConnected(player);
                 SecureCaseControler.OnPlayerConnected(player);
             }
         }

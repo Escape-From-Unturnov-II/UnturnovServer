@@ -22,7 +22,7 @@ namespace SpeedMann.Unturnov.Helper
         private static List<ulong> PlayerCommandChanges = new List<ulong>();
         private static bool isInit = false;
 
-        public const string tableName = "ScavInventory";
+        public const string tableName = "ScavPlayerInventory";
 
         private const short scavReady = 0;
         private const short scavActive = 1;
@@ -34,6 +34,7 @@ namespace SpeedMann.Unturnov.Helper
             {
                 tier.localSet = new ScavSpawnTableSet(tier, Unturnov.Conf.ScavSpawnTables);
             }
+            Unturnov.Database.CheckInventoryStorageSchema(tableName);
             isInit = true;
         }
         public static void Cleanup()
@@ -91,11 +92,13 @@ namespace SpeedMann.Unturnov.Helper
             }
             if (isScavRunActive(player))
             {
-                if(!StoredInventories.TryGetValue(player.CSteamID.m_SteamID, out StoredInventory inventory))
+                if(StoredInventories.TryGetValue(player.CSteamID.m_SteamID, out StoredInventory inventory))
                 {
-                    inventory = Unturnov.Database.GetInventory(tableName, player.CSteamID.m_SteamID);
-                    StoredInventories.Add(player.CSteamID.m_SteamID, inventory);
+                    StoredInventories.Remove(player.CSteamID.m_SteamID);
                 }
+                
+                inventory = Unturnov.Database.GetInventory(tableName, player.CSteamID.m_SteamID);
+                StoredInventories.Add(player.CSteamID.m_SteamID, inventory);
                 Unturnov.Database.RemoveInventory(tableName, player.CSteamID.m_SteamID);
             }
             else
@@ -163,7 +166,7 @@ namespace SpeedMann.Unturnov.Helper
         }
         private static bool tryStart(UnturnedPlayer player)
         {
-            StoredInventory inventory = new StoredInventory(player.Inventory.items[2].width, player.Inventory.items[2].height);
+            StoredInventory inventory = new StoredInventory();
 
             if (isInit
                 && InventoryHelper.getClothingItems(player, ref inventory.clothing)
@@ -202,7 +205,7 @@ namespace SpeedMann.Unturnov.Helper
                 StoredInventories.Remove(player.CSteamID.m_SteamID);
 
                 InventoryHelper.clearAll(player);
-                player.Inventory.items[2].resize(storedInv.handWidth, storedInv.handHeight);
+                SecureCaseControler.resizeHands(player.Player);
 
                 foreach (KeyValuePair<InventoryHelper.StorageType, Item> entry in storedInv.clothing)
                 {

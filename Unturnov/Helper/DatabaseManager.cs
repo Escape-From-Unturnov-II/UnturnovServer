@@ -28,8 +28,8 @@ namespace SpeedMann.Unturnov.Helper
 
         public void SetInventory(string tableName, ulong steamId, StoredInventory inventory)
         {
-            var clothing = new List<byte>();
-            var items = new List<byte>();
+            var clothing = new List<byte> { (byte)inventory.clothing.Count };
+            var items = new List<byte> { (byte)inventory.items.Count };
 
             foreach (var clothingPair in inventory.clothing)
             {
@@ -65,28 +65,40 @@ namespace SpeedMann.Unturnov.Helper
                 command.Parameters.AddWithValue("@inventoryId", steamId);
 
                 connection.Open();
-                var result = command.ExecuteScalar();
+                var existingEntry = command.ExecuteScalar();
 
                 command.Parameters.AddWithValue("@items", items.ToArray());
                 command.Parameters.AddWithValue("@clothing", clothing.ToArray());
-                if (result != null)
+
+                // comparing the string result because everithing else seems to not work
+                // if (existingEntry != null && !existingEntry.Equals(DBNull.Value))
+                if (existingEntry != null && existingEntry.ToString() != "0")
                 {
-                    Logger.Log($"Saved {items.Count} items");
                     command.CommandText = $"UPDATE {tableName} SET " +
-                                          $"Clothing = @clothing " +
+                                          $"Clothing = @clothing, " +
                                           $"Items = @items " +
                                           $"WHERE PlayerInventoryId = @inventoryId";
-                    command.ExecuteNonQuery();
                 }
                 else
                 {
                     command.CommandText = $"INSERT INTO {tableName} " +
                                           $"(PlayerInventoryId, Clothing, Items) VALUES " +
-                                          $"(@inventoryId, @clothing, @items);";
-                    command.ExecuteNonQuery();
+                                          $"(@inventoryId, @clothing, @items)";
                 }
 
+                var result = command.ExecuteNonQuery();
+
                 connection.Close();
+
+                if(result > 0)
+                {
+                    Logger.Log($"Saved {inventory.clothing.Count} clothing items and {inventory.items.Count} items to database: {tableName}/{steamId}");
+                }
+                else
+                {
+                    Logger.LogError($"Failed to save inventory of {steamId} to database: {tableName}/{steamId}");
+                }
+                
             }
             catch (Exception ex)
             {
@@ -106,16 +118,16 @@ namespace SpeedMann.Unturnov.Helper
 
                 while (reader.Read())
                 {
-
                     var bytes = (byte[])reader.GetValue(0);
                     var readBytes = 1;
-                    
+
                     for (var i = 0; i < bytes[0]; i++)
                     {
+                        
                         var id = BitConverter.ToUInt16(bytes, readBytes++);
                         readBytes++;
                         InventoryHelper.StorageType clothingType = (InventoryHelper.StorageType)Enum.Parse(typeof(InventoryHelper.StorageType), bytes[readBytes++].ToString());
-                       
+
                         var amount = bytes[readBytes++];
                         var quality = bytes[readBytes++];
 
@@ -126,7 +138,12 @@ namespace SpeedMann.Unturnov.Helper
                         }
                         output.clothing.Add(new KeyValuePair<InventoryHelper.StorageType, Item>(clothingType, new Item(id, amount, quality, state)));
                     }
-                    for (var i = 0; i < bytes[1]; i++)
+                    Logger.Log($"read {readBytes} item bytes");
+
+                    bytes = (byte[])reader.GetValue(1);
+                    readBytes = 1;
+
+                    for (var i = 0; i < bytes[0]; i++)
                     {
                         var id = BitConverter.ToUInt16(bytes, readBytes++);
                         readBytes++;
@@ -147,8 +164,10 @@ namespace SpeedMann.Unturnov.Helper
                         ItemJar itemJar = new ItemJar(x, y, rot, new Item(id, amount, quality, state));
                         output.items.Add(new ItemJarWrapper(itemJar, page));
                     }
-
+                    Logger.Log($"read {readBytes} clothing bytes");
                 }
+                Logger.Log($"loaded {output.clothing.Count} clothing items and {output.items?.Count} items from database: {tableName}/{steamId}");
+
                 reader.Close();
                 connection.Close();
             }
@@ -165,12 +184,21 @@ namespace SpeedMann.Unturnov.Helper
             {
                 var connection = CreateConnection();
                 var command = connection.CreateCommand();
-                command.CommandText = $"DELETE FROM {tableName} WHERE PlayerInventoryId = @inventoryId)";
+                command.CommandText = $"DELETE FROM {tableName} WHERE PlayerInventoryId = @inventoryId";
                 command.Parameters.AddWithValue("@inventoryId", steamId);
 
                 connection.Open();
-                command.ExecuteNonQuery();
+                var result = command.ExecuteNonQuery();
                 connection.Close();
+
+                if(result > 0)
+                {
+                    Logger.Log($"Removed entry {tableName}/{steamId} from database");
+                }
+                else
+                {
+                    Logger.LogWarning($"Failed to remove {tableName}/{steamId} from database");
+                }
             }
             catch (Exception ex)
             {
@@ -303,7 +331,7 @@ namespace SpeedMann.Unturnov.Helper
                 if (command.ExecuteScalar() == null)
                 {
                     command.CommandText = $"CREATE TABLE {tableName} " +
-                                          $"(StorageId INT UNSIGNED AUTO_INCREMENT PRIMARY KEY," +
+                                          $"(StorageId INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, " +
                                           $"Items BLOB NULL DEFAULT NULL)";
                     command.ExecuteNonQuery();
                 }
@@ -325,8 +353,8 @@ namespace SpeedMann.Unturnov.Helper
                 if (command.ExecuteScalar() == null)
                 {
                     command.CommandText = $"CREATE TABLE {tableName} " +
-                                          $"(PlayerInventoryId INT UNSIGNED PRIMARY KEY," +
-                                          $"Clothing BLOB NULL DEFAULT NULL)" +
+                                          $"(PlayerInventoryId BIGINT UNSIGNED PRIMARY KEY, " +
+                                          $"Clothing BLOB NULL DEFAULT NULL, " +
                                           $"Items BLOB NULL DEFAULT NULL)";
                     command.ExecuteNonQuery();
                 }
