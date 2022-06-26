@@ -57,6 +57,8 @@ namespace SpeedMann.Unturnov
             Conf = Configuration.Instance;
             Database = new DatabaseManager();
 
+            Provider.modeConfigData.Gameplay.Timer_Home = Conf.BedTimer;
+
             UnturnedPrivateFields.Init();
             UnturnedPatches.Init();
             ScavRunControler.Init();

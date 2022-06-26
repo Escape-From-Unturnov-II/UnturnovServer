@@ -27,6 +27,7 @@ namespace SpeedMann.Unturnov
         public List<ReloadExtension> ReloadExtensions;
         public List<ScavKitTier> ScavKitTiers;
         public ScavSpawnTableSet ScavSpawnTables;
+        public uint BedTimer;
 
         public PlacementRestrictionConfig PlacementRestrictionConfig;
 
@@ -41,6 +42,7 @@ namespace SpeedMann.Unturnov
             ScavKitTierFlag = 0;
             ScavRunControlFlag = 50303;
 
+            BedTimer = 1;
 
             DeathDrops = new List<DeathDrop>()
             {
@@ -1997,7 +1999,7 @@ namespace SpeedMann.Unturnov
                     },
                 },
                 ItemWhitelists = new List<ItemWhitelist>
-            {
+                {
                 new ItemWhitelist
                 {
                     Name = "Keys",
