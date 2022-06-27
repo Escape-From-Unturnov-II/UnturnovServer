@@ -137,6 +137,7 @@
     <Compile Include="Helper\MessageHandler.cs" />
     <Compile Include="Helper\OpenableItemsControler.cs" />
     <Compile Include="Helper\PlacementRestrictionControler.cs" />
+    <Compile Include="Helper\PlayerStatManager.cs" />
     <Compile Include="Helper\ScavRunControler.cs" />
     <Compile Include="Helper\SecureCaseControler.cs" />
     <Compile Include="Helper\TeleportControler.cs" />
@@ -166,6 +167,7 @@
     <Compile Include="Models\OpenableItem.cs" />
     <Compile Include="Models\OpenedItem.cs" />
     <Compile Include="Models\PlacementFoundation.cs" />
+    <Compile Include="Models\PlayerStats.cs" />
     <Compile Include="Models\ScavCooldownTimer.cs" />
     <Compile Include="Models\SetFalgQueueEntry.cs" />
     <Compile Include="Models\SpawnTableExtension.cs" />

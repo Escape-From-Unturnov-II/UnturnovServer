@@ -13,16 +13,19 @@ using Logger = Rocket.Core.Logging.Logger;
 
 namespace SpeedMann.Unturnov.Helper
 {
-    //TODO: save and reload water food radiation health
+    //TODO: make scav mode unload resistent (flag change checks)
+    //TODO: test stat save
     public class ScavRunControler
     {
 
         static Dictionary<ulong, StoredInventory> StoredInventories = new Dictionary<ulong, StoredInventory>();
+        static Dictionary<ulong, PlayerStats> StoredStats = new Dictionary<ulong, PlayerStats>();
         private static Dictionary<ulong, ScavCooldownTimer> ScavCooldownTimers = new Dictionary<ulong, ScavCooldownTimer>();
         private static List<ulong> PlayerCommandChanges = new List<ulong>();
         private static bool isInit = false;
 
-        public const string tableName = "ScavPlayerInventory";
+        public const string InventoryTableName = "ScavPlayerInventory";
+        public const string PlayerStatsTableName = "PlayerStats";
 
         private const short scavReady = 0;
         private const short scavActive = 1;
@@ -34,7 +37,8 @@ namespace SpeedMann.Unturnov.Helper
             {
                 tier.localSet = new ScavSpawnTableSet(tier, Unturnov.Conf.ScavSpawnTables);
             }
-            Unturnov.Database.CheckInventoryStorageSchema(tableName);
+            Unturnov.Database.CheckInventoryStorageSchema(InventoryTableName);
+            Unturnov.Database.CheckPlayerStatsSchema(PlayerStatsTableName);
             isInit = true;
         }
         public static void Cleanup()
@@ -97,9 +101,10 @@ namespace SpeedMann.Unturnov.Helper
                     StoredInventories.Remove(player.CSteamID.m_SteamID);
                 }
                 
-                inventory = Unturnov.Database.GetInventory(tableName, player.CSteamID.m_SteamID);
+                inventory = Unturnov.Database.GetInventory(InventoryTableName, player.CSteamID.m_SteamID);
+                StoredStats.Add(player.CSteamID.m_SteamID, Unturnov.Database.GetPlayerStats(PlayerStatsTableName, player.CSteamID.m_SteamID));
                 StoredInventories.Add(player.CSteamID.m_SteamID, inventory);
-                Unturnov.Database.RemoveInventory(tableName, player.CSteamID.m_SteamID);
+                Unturnov.Database.RemoveInventory(InventoryTableName, player.CSteamID.m_SteamID);
             }
             else
             {
@@ -108,9 +113,12 @@ namespace SpeedMann.Unturnov.Helper
         }
         internal static void OnPlayerDisconnected(UnturnedPlayer player)
         {
-            if (isScavRunActive(player) && StoredInventories.TryGetValue(player.CSteamID.m_SteamID, out StoredInventory inventory))
+            if (isScavRunActive(player) 
+                && StoredInventories.TryGetValue(player.CSteamID.m_SteamID, out StoredInventory inventory)
+                && StoredStats.TryGetValue(player.CSteamID.m_SteamID, out PlayerStats stats))
             {
-                Unturnov.Database.SetInventory(tableName, player.CSteamID.m_SteamID, inventory);
+                Unturnov.Database.SetInventory(InventoryTableName, player.CSteamID.m_SteamID, inventory);
+                Unturnov.Database.SetPlayerStats(PlayerStatsTableName, player.CSteamID.m_SteamID, stats);
             }
             stopScavCooldown(player);
         }
@@ -171,9 +179,11 @@ namespace SpeedMann.Unturnov.Helper
             if (isInit
                 && InventoryHelper.getClothingItems(player, ref inventory.clothing)
                 && InventoryHelper.getInvItems(player, ref inventory.items)
-                && !StoredInventories.ContainsKey(player.CSteamID.m_SteamID))
+                && !StoredInventories.ContainsKey(player.CSteamID.m_SteamID)
+                && !StoredStats.ContainsKey(player.CSteamID.m_SteamID))
             {
                 StoredInventories.Add(player.CSteamID.m_SteamID, inventory);
+                StoredStats.Add(player.CSteamID.m_SteamID, PlayerStatManager.GetPlayerStats(player));
 
                 InventoryHelper.clearAll(player);
 
@@ -200,12 +210,16 @@ namespace SpeedMann.Unturnov.Helper
         }
         private static bool tryStop(UnturnedPlayer player)
         {
-            if (StoredInventories.TryGetValue(player.CSteamID.m_SteamID, out StoredInventory storedInv))
+            ulong steamId = player.CSteamID.m_SteamID;
+            if (StoredInventories.TryGetValue(steamId, out StoredInventory storedInv) 
+                && StoredStats.TryGetValue(steamId, out PlayerStats stats))
             {
-                StoredInventories.Remove(player.CSteamID.m_SteamID);
+                StoredInventories.Remove(steamId);
+                StoredStats.Remove(steamId);
 
                 InventoryHelper.clearAll(player);
                 SecureCaseControler.resizeHands(player.Player);
+                PlayerStatManager.SetPlayerStats(player, stats);
 
                 foreach (KeyValuePair<InventoryHelper.StorageType, Item> entry in storedInv.clothing)
                 {

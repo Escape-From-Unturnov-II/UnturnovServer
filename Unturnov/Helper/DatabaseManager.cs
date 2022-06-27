@@ -1,4 +1,5 @@
 ﻿using MySql.Data.MySqlClient;
+using Rocket.Unturned.Player;
 using SDG.Unturned;
 using SpeedMann.Unturnov.Models;
 using System;
@@ -70,7 +71,7 @@ namespace SpeedMann.Unturnov.Helper
                 command.Parameters.AddWithValue("@items", items.ToArray());
                 command.Parameters.AddWithValue("@clothing", clothing.ToArray());
 
-                // comparing the string result because everithing else seems to not work
+                // comparing the string result because everithing else seems not to work
                 // if (existingEntry != null && !existingEntry.Equals(DBNull.Value))
                 if (existingEntry != null && existingEntry.ToString() != "0")
                 {
@@ -204,6 +205,96 @@ namespace SpeedMann.Unturnov.Helper
             {
                 Logger.LogException(ex);
             }
+        }
+
+        public void SetPlayerStats(string tableName, ulong steamId, PlayerStats stats)
+        {
+            PlayerStats output = new PlayerStats();
+
+            try
+            {
+                var connection = CreateConnection();
+                var command = connection.CreateCommand();
+                command.CommandText = $"SELECT EXISTS(SELECT * FROM {tableName} WHERE PlayerId = @playerId)";
+                command.Parameters.AddWithValue("@playerId", steamId);
+
+                connection.Open();
+                var existingEntry = command.ExecuteScalar();
+
+                command.Parameters.AddWithValue("@health", stats.health);
+                command.Parameters.AddWithValue("@food", stats.food);
+                command.Parameters.AddWithValue("@water", stats.water);
+                command.Parameters.AddWithValue("@virus", stats.virus);
+                command.Parameters.AddWithValue("@brokenLegs", stats.brokenLegs);
+                command.Parameters.AddWithValue("@bleeding", stats.bleeding);
+
+                // comparing the string result because everithing else seems not to work
+                // if (existingEntry != null && !existingEntry.Equals(DBNull.Value))
+                if (existingEntry != null && existingEntry.ToString() != "0")
+                {
+                    command.CommandText = $"UPDATE {tableName} SET " +
+                                          $"Health = @health, " +
+                                          $"Food = @food " +
+                                          $"Water = @water " +
+                                          $"Virus = @virus " +
+                                          $"BrokenLegs = @brokenLegs " +
+                                          $"Bleeding = @bleeding " +
+                                          $"WHERE PlayerId = @playerId";
+                }
+                else
+                {
+                    command.CommandText = $"INSERT INTO {tableName} " +
+                                          $"(PlayerId, Health, Food, Water, Virus, BrokenLegs, Bleeding) VALUES " +
+                                          $"(@playerId, @health, @food, @water, @virus, @brokenLegs, @bleeding)";
+                }
+
+                var result = command.ExecuteNonQuery();
+
+                connection.Close();
+
+                if (result > 0)
+                {
+                    Logger.Log($"Saved stats to database: {tableName}/{steamId}");
+                }
+                else
+                {
+                    Logger.LogError($"Failed to save stats to database: {tableName}/{steamId}");
+                }
+
+            }
+            catch (Exception ex)
+            {
+                Logger.LogException(ex);
+            }
+        }
+        public PlayerStats GetPlayerStats(string tableName, ulong steamId)
+        {
+            PlayerStats output = new PlayerStats();
+            MySqlConnection connection;
+            MySqlDataReader reader;
+
+            try
+            {
+                connection = CreateConnection();
+                reader = tryGetInventory(connection, tableName, steamId);
+
+                while (reader.Read())
+                {
+                    output.health = reader.GetByte(0);
+                    output.food = reader.GetByte(0);
+                    output.water = reader.GetByte(0);
+                    output.brokenLegs = reader.GetByte(0);
+                    output.bleeding = reader.GetByte(0);
+                }
+                reader.Close();
+                connection.Close();
+            }
+            catch (Exception ex)
+            {
+                Logger.LogException(ex);
+            }
+
+            return output;
         }
         public void SetItems(string tableName, ref uint storageId, Items storage)
         {
@@ -353,9 +444,38 @@ namespace SpeedMann.Unturnov.Helper
                 if (command.ExecuteScalar() == null)
                 {
                     command.CommandText = $"CREATE TABLE {tableName} " +
-                                          $"(PlayerInventoryId BIGINT UNSIGNED PRIMARY KEY, " +
+                                          $"(PlayerId BIGINT UNSIGNED PRIMARY KEY, " +
                                           $"Clothing BLOB NULL DEFAULT NULL, " +
                                           $"Items BLOB NULL DEFAULT NULL)";
+                    command.ExecuteNonQuery();
+                }
+                connection.Close();
+            }
+            catch (Exception ex)
+            {
+                Logger.LogException(ex, $"Database Schema Exception on Table: {tableName}");
+            }
+            
+        }
+
+        internal void CheckPlayerStatsSchema(string tableName)
+        {
+            try
+            {
+                var connection = CreateConnection();
+                var command = connection.CreateCommand();
+                command.CommandText = $"SHOW TABLES LIKE '{tableName}'";
+                connection.Open();
+                if (command.ExecuteScalar() == null)
+                {
+                    command.CommandText = $"CREATE TABLE {tableName} " +
+                                          $"(PlayerId BIGINT UNSIGNED PRIMARY KEY, " +
+                                          $"Health TINYINT UNSIGNED, " +
+                                          $"Food TINYINT UNSIGNED, " +
+                                          $"Water TINYINT UNSIGNED, " +
+                                          $"Virus TINYINT UNSIGNED," +
+                                          $"BrokenLegs TINYINT UNSIGNED," +
+                                          $"Bleeding TINYINT UNSIGNED)";
                     command.ExecuteNonQuery();
                 }
                 connection.Close();
