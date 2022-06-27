@@ -13,7 +13,7 @@ using Logger = Rocket.Core.Logging.Logger;
 
 namespace SpeedMann.Unturnov.Helper
 {
-    //TODO: save inventory to db
+    //TODO: save and reload water food radiation health
     public class ScavRunControler
     {
 

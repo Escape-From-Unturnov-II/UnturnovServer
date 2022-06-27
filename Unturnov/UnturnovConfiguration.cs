@@ -16,6 +16,8 @@ namespace SpeedMann.Unturnov
         public ushort ScavKitTierFlag;
         public ushort ScavRunControlFlag;
 
+        public uint BedTimer;
+
         public List<TeleportConfig> TeleportConfigs;
         public List<EmptyMagazineExtension> UnloadMagBlueprints;
         public List<DeathDrop> DeathDrops;
@@ -27,7 +29,7 @@ namespace SpeedMann.Unturnov
         public List<ReloadExtension> ReloadExtensions;
         public List<ScavKitTier> ScavKitTiers;
         public ScavSpawnTableSet ScavSpawnTables;
-        public uint BedTimer;
+        
 
         public PlacementRestrictionConfig PlacementRestrictionConfig;
 

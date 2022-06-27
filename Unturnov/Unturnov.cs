@@ -27,6 +27,7 @@ namespace SpeedMann.Unturnov
         public static UnturnovConfiguration Conf;
         public static DatabaseManager Database;
         public static bool ModsLoaded = false;
+        
 
         private Dictionary<ushort, CombineDescription> AutoCombineDict;
         private Dictionary<ushort, ushort> MagazineDict;
@@ -41,6 +42,8 @@ namespace SpeedMann.Unturnov
 
         private int updateDelay = 30;
         private int frame = 0;
+
+        private uint oldBedTimer;
 
         public override TranslationList DefaultTranslations =>
             new TranslationList
@@ -57,6 +60,8 @@ namespace SpeedMann.Unturnov
             Conf = Configuration.Instance;
             Database = new DatabaseManager();
 
+            // force set bed timer
+            oldBedTimer = Provider.modeConfigData.Gameplay.Timer_Home;
             Provider.modeConfigData.Gameplay.Timer_Home = Conf.BedTimer;
 
             UnturnedPrivateFields.Init();
@@ -119,6 +124,8 @@ namespace SpeedMann.Unturnov
         {
             UnturnedPatches.Cleanup();
             ScavRunControler.Cleanup();
+
+            Provider.modeConfigData.Gameplay.Timer_Home = oldBedTimer;
 
             UnturnedPatches.OnPreTryAddItemAuto -= OnTryAddItem;
 
