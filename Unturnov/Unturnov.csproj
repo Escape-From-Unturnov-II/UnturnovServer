@@ -163,6 +163,7 @@
     <Compile Include="Models\Config\QuestExtension.cs" />
     <Compile Include="Models\Config\ReloadExtension.cs" />
     <Compile Include="Models\KitTierEntry.cs" />
+    <Compile Include="Models\KitTierGunEntry.cs" />
     <Compile Include="Models\MainQueueEntry.cs" />
     <Compile Include="Models\OpenableItem.cs" />
     <Compile Include="Models\OpenedItem.cs" />
@@ -173,6 +174,7 @@
     <Compile Include="Models\SpawnTableExtension.cs" />
     <Compile Include="Models\Config\ScavKitTier.cs" />
     <Compile Include="Models\SpawnTableEntry.cs" />
+    <Compile Include="Models\SpawnTableGunEntry.cs" />
     <Compile Include="Models\StoredInventory.cs" />
     <Compile Include="Models\StoredItem.cs" />
     <Compile Include="Models\TeleportDescription.cs" />

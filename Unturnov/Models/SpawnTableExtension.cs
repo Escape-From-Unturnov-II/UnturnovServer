@@ -17,11 +17,11 @@ namespace SpeedMann.Unturnov.Models
         {
 
         }
-		public SpawnTableExtension(KitTierEntry entry, SpawnTableExtension gobalTable)
+		public SpawnTableExtension(KitTierEntry entry, SpawnTableExtension globalTable)
         {
 			if (entry.CountMax > 0)
 			{
-				Items = gobalTable.getSortedAndNormalizeWeights(entry.WeightMin, entry.WeightMax);
+				Items = globalTable.getSortedAndNormalizeWeights(entry.WeightMin, entry.WeightMax);
 			}
 		}
 		public List<SpawnTableEntry> getSortedAndNormalizeWeights(int WeightMin, int WeightMax)
@@ -52,7 +52,16 @@ namespace SpeedMann.Unturnov.Models
 			}
 			return spawnList;
 		}
-		public ushort getItem()
+		public ushort getRandomItem()
+		{
+			SpawnTableEntry entry = getRandomEntry();
+			if(entry != null)
+            {
+				return entry.Id;
+            }
+			return 0;
+		}
+		public SpawnTableEntry getRandomEntry()
 		{
 			float value = UnityEngine.Random.value;
 			int i = 0;
@@ -70,14 +79,14 @@ namespace SpeedMann.Unturnov.Models
 						y++;
 					}
 					// selecting an item between index i and y-1 (first - last with equal chance)
-					return Items[UnityEngine.Random.Range(i, y)].Id;
+					return Items[UnityEngine.Random.Range(i, y)];
 				}
 				else
 				{
 					i++;
 				}
 			}
-			return 0;
+			return null;
 		}
 	}
 }

@@ -13,7 +13,7 @@ using Logger = Rocket.Core.Logging.Logger;
 
 namespace SpeedMann.Unturnov.Helper
 {
-    //TODO: make scav mode unload resistent (store and reload states inventories on load / unload)
+    //TODO: test reload persistance
     public class ScavRunControler
     {
 
@@ -291,6 +291,33 @@ namespace SpeedMann.Unturnov.Helper
                 giveScavItems(player, tier.SupplyConfig, tier.localSet.SupplyTable);
             }
         }
+        internal static void giveScavGuns(UnturnedPlayer player, KitTierGunEntry entry, SpawnTableExtension table)
+        {
+            if (table.Items.Count > 0)
+            {
+                int count = entry.CountMax > entry.CountMin ? entry.CountMax : entry.CountMin;
+
+                for (int i = 0; i < count; i++)
+                {
+                    if (i >= entry.CountMin && UnityEngine.Random.value < entry.NoItemChance)
+                    {
+                        continue;
+                    }
+                    Item item = null;
+                    SpawnTableGunEntry gunEntry = table.getRandomEntry() as SpawnTableGunEntry;
+                    if(gunEntry != null)
+                    {
+                        item = new Item(gunEntry.Id, true);
+                    }
+                    if (item == null)
+                    {
+                        Logger.LogError($"Error in Scav Spawn table, could not give gun");
+                        continue;
+                    }
+                    player.Inventory.forceAddItem(item, true);
+                }
+            }
+        }
         internal static void giveScavItems(UnturnedPlayer player, KitTierEntry entry, SpawnTableExtension table)
         {
             if (table.Items.Count > 0)
@@ -303,13 +330,14 @@ namespace SpeedMann.Unturnov.Helper
                     {
                         continue;
                     }
-                    ushort itemId = table.getItem();
+                    ushort itemId = table.getRandomItem();
                     Item item = new Item(itemId, true);
-                    if (item == null)
+                    if (item == null || itemId == 0)
                     {
                         Logger.LogError($"Error in Scav Spawn table, invalid ItemId: {itemId}");
                         continue;
                     }
+                    
                     player.Inventory.forceAddItem(item, true);
                 }
             }

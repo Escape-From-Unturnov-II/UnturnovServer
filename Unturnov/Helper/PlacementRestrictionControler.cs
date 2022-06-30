@@ -23,7 +23,7 @@ namespace SpeedMann.Unturnov.Helper
         }
         internal static void OnBarricadeDeploy(Barricade barricade, ItemBarricadeAsset asset, Transform hit, ref Vector3 point, ref float angle_x, ref float angle_y, ref float angle_z, ref ulong owner, ref ulong group, ref bool shouldAllow)
         {
-            // hit != null abrricade is placed on vehicle
+            // hit != null barricade is placed on vehicle
 
             if (PlacementRestrictionDict.TryGetValue(barricade.asset.id, out PlacementRestriction restriction))
             {
@@ -33,6 +33,8 @@ namespace SpeedMann.Unturnov.Helper
                 List<RegionCoordinate> coordinates = new List<RegionCoordinate>() { new RegionCoordinate(x, y) };
                 List<Transform> transformsObjects = new List<Transform>();
                 List<Transform> transformsBarricades = new List<Transform>();
+
+                // TODO: replace get_InRadius with raicast
                 // find object
                 ObjectManager.getObjectsInRadius(new Vector3(point.x, point.y + Conf.SearchCenterHeightChange, point.z), Conf.SearchRadius, coordinates, transformsObjects);
                 // find barricade
@@ -40,8 +42,8 @@ namespace SpeedMann.Unturnov.Helper
                 if (Conf.Debug)
                 {
                     Logger.Log($"Barricade was placed near " +
-                        $"{(transformsBarricades.Count > 0 ? "barricades: " + String.Join(", ", transformsBarricades.Select(t => $"{t.name}").ToArray()) + " " : "")}" +
-                        $"{ (transformsObjects.Count > 0 ? "objects: " + String.Join(", ", transformsObjects.Select(t => $"{t.name}").ToArray()) : "")}");
+                        $"{(transformsBarricades.Count > 0 ? "barricades: " + string.Join(", ", transformsBarricades.Select(t => $"{t.name}").ToArray()) + " " : "")}" +
+                        $"{ (transformsObjects.Count > 0 ? "objects: " + string.Join(", ", transformsObjects.Select(t => $"{t.name}").ToArray()) : "")}");
                 }
                 foreach (Transform transform in transformsObjects)
                 {
