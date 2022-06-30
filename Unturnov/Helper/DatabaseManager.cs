@@ -50,7 +50,7 @@ namespace SpeedMann.Unturnov.Helper
                 items.Add(itemWrapper.itemJar.x);
                 items.Add(itemWrapper.itemJar.y);
                 items.Add(itemWrapper.itemJar.rot);
-
+                
                 items.Add(itemWrapper.itemJar.item.amount);
                 items.Add(itemWrapper.itemJar.item.quality);
 
@@ -62,8 +62,8 @@ namespace SpeedMann.Unturnov.Helper
             {
                 var connection = CreateConnection();
                 var command = connection.CreateCommand();
-                command.CommandText = $"SELECT EXISTS(SELECT * FROM {tableName} WHERE PlayerInventoryId = @inventoryId)";
-                command.Parameters.AddWithValue("@inventoryId", steamId);
+                command.CommandText = $"SELECT EXISTS(SELECT * FROM {tableName} WHERE PlayerId = @playerId)";
+                command.Parameters.AddWithValue("@playerId", steamId);
 
                 connection.Open();
                 var existingEntry = command.ExecuteScalar();
@@ -78,13 +78,13 @@ namespace SpeedMann.Unturnov.Helper
                     command.CommandText = $"UPDATE {tableName} SET " +
                                           $"Clothing = @clothing, " +
                                           $"Items = @items " +
-                                          $"WHERE PlayerInventoryId = @inventoryId";
+                                          $"WHERE PlayerId = @playerId";
                 }
                 else
                 {
                     command.CommandText = $"INSERT INTO {tableName} " +
-                                          $"(PlayerInventoryId, Clothing, Items) VALUES " +
-                                          $"(@inventoryId, @clothing, @items)";
+                                          $"(PlayerId, Clothing, Items) VALUES " +
+                                          $"(@playerId, @clothing, @items)";
                 }
 
                 var result = command.ExecuteNonQuery();
@@ -139,7 +139,6 @@ namespace SpeedMann.Unturnov.Helper
                         }
                         output.clothing.Add(new KeyValuePair<InventoryHelper.StorageType, Item>(clothingType, new Item(id, amount, quality, state)));
                     }
-                    Logger.Log($"read {readBytes} item bytes");
 
                     bytes = (byte[])reader.GetValue(1);
                     readBytes = 1;
@@ -165,7 +164,6 @@ namespace SpeedMann.Unturnov.Helper
                         ItemJar itemJar = new ItemJar(x, y, rot, new Item(id, amount, quality, state));
                         output.items.Add(new ItemJarWrapper(itemJar, page));
                     }
-                    Logger.Log($"read {readBytes} clothing bytes");
                 }
                 Logger.Log($"loaded {output.clothing.Count} clothing items and {output.items?.Count} items from database: {tableName}/{steamId}");
 
@@ -185,7 +183,7 @@ namespace SpeedMann.Unturnov.Helper
             {
                 var connection = CreateConnection();
                 var command = connection.CreateCommand();
-                command.CommandText = $"DELETE FROM {tableName} WHERE PlayerInventoryId = @inventoryId";
+                command.CommandText = $"DELETE FROM {tableName} WHERE PlayerId = @inventoryId";
                 command.Parameters.AddWithValue("@inventoryId", steamId);
 
                 connection.Open();
@@ -209,8 +207,6 @@ namespace SpeedMann.Unturnov.Helper
 
         public void SetPlayerStats(string tableName, ulong steamId, PlayerStats stats)
         {
-            PlayerStats output = new PlayerStats();
-
             try
             {
                 var connection = CreateConnection();
@@ -234,10 +230,10 @@ namespace SpeedMann.Unturnov.Helper
                 {
                     command.CommandText = $"UPDATE {tableName} SET " +
                                           $"Health = @health, " +
-                                          $"Food = @food " +
-                                          $"Water = @water " +
-                                          $"Virus = @virus " +
-                                          $"BrokenLegs = @brokenLegs " +
+                                          $"Food = @food, " +
+                                          $"Water = @water, " +
+                                          $"Virus = @virus, " +
+                                          $"BrokenLegs = @brokenLegs, " +
                                           $"Bleeding = @bleeding " +
                                           $"WHERE PlayerId = @playerId";
                 }
@@ -276,15 +272,15 @@ namespace SpeedMann.Unturnov.Helper
             try
             {
                 connection = CreateConnection();
-                reader = tryGetInventory(connection, tableName, steamId);
+                reader = tryGetStats(connection, tableName, steamId);
 
                 while (reader.Read())
                 {
-                    output.health = reader.GetByte(0);
-                    output.food = reader.GetByte(0);
-                    output.water = reader.GetByte(0);
-                    output.brokenLegs = reader.GetByte(0);
-                    output.bleeding = reader.GetByte(0);
+                    output.health = reader.GetByte(1);
+                    output.food = reader.GetByte(2);
+                    output.water = reader.GetByte(3);
+                    output.brokenLegs = reader.GetByte(4);
+                    output.bleeding = reader.GetByte(5);
                 }
                 reader.Close();
                 connection.Close();
@@ -296,6 +292,7 @@ namespace SpeedMann.Unturnov.Helper
 
             return output;
         }
+
         public void SetItems(string tableName, ref uint storageId, Items storage)
         {
             var items = storage.items;
@@ -355,7 +352,6 @@ namespace SpeedMann.Unturnov.Helper
                 Logger.LogException(ex);
             }
         }
-
         public List<ItemJar> GetItems(string tableName, uint storageId, out byte height, out byte width)
         {
             height = 0;
@@ -457,7 +453,6 @@ namespace SpeedMann.Unturnov.Helper
             }
             
         }
-
         internal void CheckPlayerStatsSchema(string tableName)
         {
             try
@@ -507,14 +502,30 @@ namespace SpeedMann.Unturnov.Helper
             try
             {
                 var command = connection.CreateCommand();
-                command.CommandText = $"SELECT Clothing, Items FROM {tableName} WHERE PlayerInventoryId = @inventoryId";
-                command.Parameters.AddWithValue("@inventoryId", steamId);
+                command.CommandText = $"SELECT Clothing, Items FROM {tableName} WHERE PlayerId = @playerId";
+                command.Parameters.AddWithValue("@playerId", steamId);
                 connection.Open();
                 return command.ExecuteReader();
             }
             catch (Exception ex)
             {
                 Logger.LogException(ex, $"Inventory for {steamId} could not be found");
+                return null;
+            }
+        }
+        internal MySqlDataReader tryGetStats(MySqlConnection connection, string tableName, ulong steamId)
+        {
+            try
+            {
+                var command = connection.CreateCommand();
+                command.CommandText = $"SELECT Health, Food, Water, Virus, BrokenLegs, Bleeding FROM {tableName} WHERE PlayerId = @playerId";
+                command.Parameters.AddWithValue("@playerId", steamId);
+                connection.Open();
+                return command.ExecuteReader();
+            }
+            catch (Exception ex)
+            {
+                Logger.LogException(ex, $"Stats for {steamId} could not be found");
                 return null;
             }
         }

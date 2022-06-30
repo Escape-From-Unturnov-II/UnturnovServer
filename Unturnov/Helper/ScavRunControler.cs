@@ -14,7 +14,6 @@ using Logger = Rocket.Core.Logging.Logger;
 namespace SpeedMann.Unturnov.Helper
 {
     //TODO: make scav mode unload resistent (flag change checks)
-    //TODO: test stat save
     public class ScavRunControler
     {
 
@@ -96,11 +95,15 @@ namespace SpeedMann.Unturnov.Helper
             }
             if (isScavRunActive(player))
             {
-                if(StoredInventories.TryGetValue(player.CSteamID.m_SteamID, out StoredInventory inventory))
+                if(StoredStats.TryGetValue(player.CSteamID.m_SteamID, out PlayerStats stats))
+                {
+                    StoredStats.Remove(player.CSteamID.m_SteamID);
+                }
+                if (StoredInventories.TryGetValue(player.CSteamID.m_SteamID, out StoredInventory inventory))
                 {
                     StoredInventories.Remove(player.CSteamID.m_SteamID);
                 }
-                
+
                 inventory = Unturnov.Database.GetInventory(InventoryTableName, player.CSteamID.m_SteamID);
                 StoredStats.Add(player.CSteamID.m_SteamID, Unturnov.Database.GetPlayerStats(PlayerStatsTableName, player.CSteamID.m_SteamID));
                 StoredInventories.Add(player.CSteamID.m_SteamID, inventory);
@@ -186,6 +189,7 @@ namespace SpeedMann.Unturnov.Helper
                 StoredStats.Add(player.CSteamID.m_SteamID, PlayerStatManager.GetPlayerStats(player));
 
                 InventoryHelper.clearAll(player);
+                PlayerStatManager.SetPlayerStats(player, new PlayerStats());
 
                 giveScavKit(player);
 

@@ -1,11 +1,14 @@
-﻿using Rocket.Unturned.Player;
+﻿using Rocket.Core.Logging;
+using Rocket.Unturned.Player;
 using SDG.Unturned;
 using SpeedMann.Unturnov.Models;
+using Steamworks;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using UnityEngine;
 
 namespace SpeedMann.Unturnov.Helper
 {
@@ -35,13 +38,23 @@ namespace SpeedMann.Unturnov.Helper
                 return;
 
             PlayerLife life = player.Player.life;
-
-            life.ReceiveHealth(stats.health);
-            life.ReceiveFood(stats.food);
-            life.ReceiveWater(stats.water);
-            life.ReceiveVirus(stats.virus);
-            life.ReceiveBroken(stats.brokenLegs > 0);
-            life.ReceiveBleeding(stats.bleeding > 0);
+            
+            if(life.health <= stats.health)
+            {
+                life.serverModifyHealth(stats.health - life.health);
+            }
+            else
+            {
+                // to damage player in safezone
+                life.askDamage((byte)(life.health - stats.health), Vector3.up, EDeathCause.SUICIDE, ELimb.SPINE, CSteamID.Nil, out EPlayerKill eplayerKill, false, ERagdollEffect.NONE, false, true);
+            }
+            
+            life.serverModifyFood(stats.food - life.food);
+            life.serverModifyWater(stats.water - life.water);
+            life.serverModifyVirus(stats.virus - life.virus);
+            life.serverSetBleeding(stats.bleeding > 0);
+            life.serverSetLegsBroken(stats.brokenLegs > 0);
+            
         }
     }
 }
