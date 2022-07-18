@@ -738,6 +738,26 @@ namespace SpeedMann.Unturnov
             return itemExtensionsDict;
         }
 
+        public static bool wasPvpDeath(Player player, out CSteamID killer)
+        {
+            killer = CSteamID.Nil;
+            if (!UnturnedPrivateFields.TryGetLastTimeDamaged(player.life, out float lastTimeDamaged)
+                || !UnturnedPrivateFields.TryGetRecentKiller(player.life, out CSteamID oponent)
+                || !UnturnedPrivateFields.TryGetCombatCooldown(player.life, out float combatCooldown))
+            {
+                Logger.LogError("Could not load private fields for EventManager.wasPvpDeath()");
+                return false;
+            }
+            if (oponent != CSteamID.Nil
+                && oponent != player.channel.owner.playerID.steamID
+                && Time.realtimeSinceStartup - lastTimeDamaged < combatCooldown)
+            {
+                killer = oponent;
+                return true;
+            }
+            return false;
+        }
+
         internal static void safeAddItem(UnturnedPlayer player, Item item, byte x, byte y, byte page, byte rot)
         {
             if (!player.Inventory.tryAddItem(item, x, y, page, rot))
