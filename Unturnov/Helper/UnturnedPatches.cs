@@ -60,6 +60,11 @@ namespace SpeedMann.Unturnov.Helper
         }
 
         #region Events
+        // teleport
+        //PlayerMovement: EnterTeleporterVolume EnterCollisionTeleporter
+        // weight system
+        //PlayerMovement: ReceivePluginGravityMultiplier ReceivePluginJumpMultiplier ReceivePluginSpeedMultiplier
+
         public delegate void PreTryAddItemAuto(PlayerInventory inventory, Item item, ref bool autoEquipWeapon, ref bool autoEquipUseable, ref bool autoEquipClothing);
         public static event PreTryAddItemAuto OnPreTryAddItemAuto;
         public delegate void PreAttachMagazine(UseableGun gun, byte page, byte x, byte y, byte[] hash);
@@ -84,6 +89,12 @@ namespace SpeedMann.Unturnov.Helper
         public static event PrePlayerDead OnPrePlayerDead;
         public delegate void PostPlayerRevive(PlayerLife playerLife);
         public static event PostPlayerRevive OnPostPlayerRevive;
+        #endregion
+        #region QuestExtension
+        public delegate void AnimalDeath(Animal animal);  
+        public static event AnimalDeath onAnimalDeath;
+        public delegate void ZombieDeath(Zombie zombie);
+        public static event ZombieDeath onZombieDeath;
         #endregion
         #endregion
 
@@ -228,6 +239,28 @@ namespace SpeedMann.Unturnov.Helper
                 }
                 __result = shouldAllow;
                 return shouldAllow;
+            }
+        }
+        #endregion
+        #region QuestExtension
+        [HarmonyPatch(typeof(AnimalManager), nameof(AnimalManager.sendAnimalDead))]
+        class AnimalDeathManager
+        {
+            [HarmonyPrefix]
+            internal static bool OnPreAnimalDeathInvoker(Animal animal)
+            {
+                onAnimalDeath?.Invoke(animal);
+                return true;
+            }
+        }
+        [HarmonyPatch(typeof(ZombieManager), nameof(ZombieManager.sendZombieDead))]
+        class ZombieDeathManager
+        {
+            [HarmonyPrefix]
+            internal static bool OnPreZombieDeathInvoker(Zombie zombie)
+            {
+                onZombieDeath?.Invoke(zombie);
+                return true;
             }
         }
         #endregion

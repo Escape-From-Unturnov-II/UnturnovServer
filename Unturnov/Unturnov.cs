@@ -8,6 +8,7 @@ using Rocket.Unturned.Events;
 using Rocket.Unturned.Player;
 using SDG.NetTransport;
 using SDG.Unturned;
+using SpeedMann.Unturnov.Classes;
 using SpeedMann.Unturnov.Helper;
 using SpeedMann.Unturnov.Models;
 using SpeedMann.Unturnov.Models.Config;
@@ -104,6 +105,15 @@ namespace SpeedMann.Unturnov
             UnturnedPatches.OnPrePlayerDead += OnPlayerDead;
             UnturnedPatches.OnPostPlayerRevive += OnPlayerRevived;
 
+            UnturnedPlayerEvents.OnPlayerDeath += OnPlayerDeath;
+            DamageTool.damageAnimalRequested += OnAnimalDamage;
+            DamageTool.damageZombieRequested += OnZombieDamage;
+            ResourceManager.onDamageResourceRequested += OnResourceDamage;
+            Player.onPlayerStatIncremented += OnStatIncremented;
+
+            UnturnedPatches.onZombieDeath += OnZombieDeath;
+            UnturnedPatches.onAnimalDeath += OnAnimalDeath;
+
             UnturnedPatches.OnPrePlayerDraggedItem += OnItemDragged;
             UnturnedPatches.OnPrePlayerSwappedItem += OnItemSwapped;
             UnturnedPatches.OnPrePlayerAddItem += OnPreItemAdded;
@@ -143,6 +153,15 @@ namespace SpeedMann.Unturnov
             UnturnedPatches.OnPrePlayerDead -= OnPlayerDead;
             UnturnedPatches.OnPostPlayerRevive -= OnPlayerRevived;
 
+            UnturnedPlayerEvents.OnPlayerDeath -= OnPlayerDeath;
+            DamageTool.damageAnimalRequested -= OnAnimalDamage;
+            DamageTool.damageZombieRequested -= OnZombieDamage;
+            ResourceManager.onDamageResourceRequested -= OnResourceDamage;
+            Player.onPlayerStatIncremented -= OnStatIncremented;
+
+            UnturnedPatches.onZombieDeath -= OnZombieDeath;
+            UnturnedPatches.onAnimalDeath -= OnAnimalDeath;
+
             UnturnedPatches.OnPrePlayerDraggedItem -= OnItemDragged;
             UnturnedPatches.OnPrePlayerSwappedItem -= OnItemSwapped;
             UnturnedPatches.OnPrePlayerAddItem -= OnPreItemAdded;
@@ -179,6 +198,7 @@ namespace SpeedMann.Unturnov
         {
             ScavRunControler.OnPlayerDisconnected(player);
             OpenableItemsControler.OnPlayerDisconnected(player);
+            QuestExtensionControler.OnPlayerDisconected(player);
         }
         private void OnPlayerConnected(UnturnedPlayer player)
         {
@@ -209,6 +229,34 @@ namespace SpeedMann.Unturnov
         {
             SecureCaseControler.OnPlayerDead(playerLife);
         }
+        private void OnPlayerDeath(UnturnedPlayer player, EDeathCause cause, ELimb limb, CSteamID murderer)
+        {
+            if (cause != EDeathCause.SUICIDE)
+            {
+
+                if (Conf.DeathDrops?.Count > 0)
+                {
+                    // defaults to index 0 if no flag it set or found
+                    Item item = new Item(Conf.DeathDrops[0].Id, true);
+                    if (Conf.DeathDropFlag != 0 && player.Player.quests.getFlag(Conf.DeathDropFlag, out short dropFlagValue))
+                    {
+                        DeathDrop drop = Conf.DeathDrops.Find(x => x.RequiredFalgValue == dropFlagValue);
+                        if (drop != null)
+                        {
+                            item = new Item(drop.Id, true);
+                        }
+                    }
+                    if (Conf.Debug)
+                    {
+                        Logger.Log($"deathdrop {item.id} dropped");
+                    }
+                    ItemManager.dropItem(item, player.Position, true, false, true);
+                }
+                UnturnedPlayer murderPlayer = UnturnedPlayer.FromCSteamID(murderer);
+                
+                QuestExtensionControler.OnPlayerDeath(player, cause, limb, murderer);
+            }
+        }
         private void OnPlayerRevived(PlayerLife playerLife)
         {
             SecureCaseControler.OnPlayerRevived(playerLife);
@@ -236,32 +284,6 @@ namespace SpeedMann.Unturnov
         {
             SecureCaseControler.OnTakeItem(player, x, y, instanceID, to_x, to_y, to_rot, to_page, itemData, ref shouldAllow);
             OpenableItemsControler.OnTakeItem(player, x, y, instanceID, to_x, to_y, to_rot, to_page, itemData, ref shouldAllow);
-        }
-        private void OnPlayerDeath(UnturnedPlayer player, EDeathCause cause, ELimb limb, CSteamID murderer)
-        {
-            if(cause != EDeathCause.SUICIDE){
-
-                if(Conf.DeathDrops?.Count > 0)
-                {
-                    // defaults to index 0 if no flag it set or found
-                    Item item = new Item(Conf.DeathDrops[0].Id, true);
-                    if(Conf.DeathDropFlag != 0 && player.Player.quests.getFlag(Conf.DeathDropFlag, out short dropFlagValue))
-                    {
-                        DeathDrop drop = Conf.DeathDrops.Find(x => x.RequiredFalgValue == dropFlagValue);
-                        if (drop != null)
-                        {
-                            item = new Item(drop.Id, true);
-                        }
-                    }
-                    if (Conf.Debug)
-                    {
-                        Logger.Log($"deathdrop {item.id} dropped");
-                    }
-                    ItemManager.dropItem(item, player.Position, true, false, true);
-                }
-                UnturnedPlayer murderPlayer = UnturnedPlayer.FromCSteamID(murderer);
-                // TODO: implement quest extension falg id check
-            }
         }
         private void OnTryAddItem(PlayerInventory inventory, Item item, ref bool autoEquipWeapon, ref bool autoEquipUseable, ref bool autoEquipClothing)
         {
@@ -612,7 +634,51 @@ namespace SpeedMann.Unturnov
             UseConsumeable(instigatingPlayer, consumeableAsset);
         }
 
+        private void OnZombieDamage(ref DamageZombieParameters parameters, ref bool canDamage)
+        {
+            UnturnedPlayer player = null;
+            if (parameters.instigator is CSteamID)
+                player = UnturnedPlayer.FromCSteamID((CSteamID)parameters.instigator);
+            else if (parameters.instigator is Player)
+                player = UnturnedPlayer.FromPlayer((Player)parameters.instigator);
+            
+            QuestExtensionControler.OnZombieDamage(player, ref parameters, ref canDamage);
+        }
+        private void OnZombieDeath(Zombie zombie)
+        {
+            QuestExtensionControler.OnZombieDeath(zombie);
+        }
 
+        private void OnAnimalDamage(ref DamageAnimalParameters parameters, ref bool canDamage)
+        {
+            UnturnedPlayer player = null;
+            if (parameters.instigator is CSteamID)
+                player = UnturnedPlayer.FromCSteamID((CSteamID)parameters.instigator);
+            else if (parameters.instigator is Player)
+                player = UnturnedPlayer.FromPlayer((Player)parameters.instigator);
+
+            QuestExtensionControler.OnAnimalDamage(player, ref parameters, ref canDamage);
+        }
+        private void OnAnimalDeath(Animal animal)
+        {
+            QuestExtensionControler.OnAnimalDeath(animal);
+        }
+        private void OnResourceDamage(CSteamID instigatorSteamID, Transform resource, ref ushort pendingTotalDamage, ref bool shouldAllow, EDamageOrigin damageOrigin)
+        {
+            UnturnedPlayer player = UnturnedPlayer.FromCSteamID(instigatorSteamID);
+            QuestExtensionControler.OnResourceDamage(resource, pendingTotalDamage, player);
+        }
+        private void OnStatIncremented(Player player, EPlayerStat stat)
+        {
+            UnturnedPlayer uPlayer = UnturnedPlayer.FromPlayer(player);
+            switch (stat)
+            {
+                case EPlayerStat.FOUND_FISHES:
+                    QuestExtensionControler.OnFishCaught(uPlayer);
+                    break;
+            }
+
+        }
         #region HelperFunctions
         private void UseConsumeable(Player instigatingPlayer, ItemConsumeableAsset consumeableAsset)
         {
@@ -736,26 +802,6 @@ namespace SpeedMann.Unturnov
                 }
             }
             return itemExtensionsDict;
-        }
-
-        public static bool wasPvpDeath(Player player, out CSteamID killer)
-        {
-            killer = CSteamID.Nil;
-            if (!UnturnedPrivateFields.TryGetLastTimeDamaged(player.life, out float lastTimeDamaged)
-                || !UnturnedPrivateFields.TryGetRecentKiller(player.life, out CSteamID oponent)
-                || !UnturnedPrivateFields.TryGetCombatCooldown(player.life, out float combatCooldown))
-            {
-                Logger.LogError("Could not load private fields for EventManager.wasPvpDeath()");
-                return false;
-            }
-            if (oponent != CSteamID.Nil
-                && oponent != player.channel.owner.playerID.steamID
-                && Time.realtimeSinceStartup - lastTimeDamaged < combatCooldown)
-            {
-                killer = oponent;
-                return true;
-            }
-            return false;
         }
 
         internal static void safeAddItem(UnturnedPlayer player, Item item, byte x, byte y, byte page, byte rot)
