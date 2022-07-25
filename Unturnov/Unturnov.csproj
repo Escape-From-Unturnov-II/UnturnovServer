@@ -130,17 +130,18 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Helper\CraftingStationControler.cs" />
+    <Compile Include="Controlers\CraftingStationControler.cs" />
+    <Compile Include="Controlers\QuestExtensionControler.cs" />
     <Compile Include="Helper\DatabaseManager.cs" />
     <Compile Include="Helper\EffectControler.cs" />
     <Compile Include="Helper\InventoryHelper.cs" />
     <Compile Include="Helper\MessageHandler.cs" />
-    <Compile Include="Helper\OpenableItemsControler.cs" />
-    <Compile Include="Helper\PlacementRestrictionControler.cs" />
+    <Compile Include="Controlers\OpenableItemsControler.cs" />
+    <Compile Include="Controlers\PlacementRestrictionControler.cs" />
     <Compile Include="Helper\PlayerStatManager.cs" />
-    <Compile Include="Helper\ScavRunControler.cs" />
-    <Compile Include="Helper\SecureCaseControler.cs" />
-    <Compile Include="Helper\TeleportControler.cs" />
+    <Compile Include="Controlers\ScavRunControler.cs" />
+    <Compile Include="Controlers\SecureCaseControler.cs" />
+    <Compile Include="Controlers\TeleportControler.cs" />
     <Compile Include="Helper\UnturnedPrivateFields.cs" />
     <Compile Include="Models\CaseContent.cs" />
     <Compile Include="Models\Config\FoundationSet.cs" />
