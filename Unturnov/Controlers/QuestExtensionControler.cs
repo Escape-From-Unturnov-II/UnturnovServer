@@ -1,6 +1,7 @@
 ﻿using Rocket.Unturned.Player;
 using SDG.Unturned;
 using SpeedMann.Unturnov.Helper;
+using SpeedMann.Unturnov.Models;
 using Steamworks;
 using System;
 using System.Collections.Generic;
@@ -14,13 +15,13 @@ namespace SpeedMann.Unturnov.Classes
 {
     internal class QuestExtensionControler
     {
-        private static Dictionary<CSteamID, Zombie> lastDamagedZombie;
-        private static Dictionary<CSteamID, Animal> lastDamagedAnimal;
+        private static Dictionary<CSteamID, GenericOccurrence<Zombie>> lastDamagedZombie;
+        private static Dictionary<CSteamID, GenericOccurrence<Animal>> lastDamagedAnimal;
 
         internal static void Init()
         {
-            lastDamagedZombie = new Dictionary<CSteamID, Zombie>();
-            lastDamagedAnimal = new Dictionary<CSteamID, Animal>();
+            lastDamagedZombie = new Dictionary<CSteamID, GenericOccurrence<Zombie>>();
+            lastDamagedAnimal = new Dictionary<CSteamID, GenericOccurrence<Animal>>();
         }
         internal static void Cleanup()
         {
@@ -65,22 +66,28 @@ namespace SpeedMann.Unturnov.Classes
         {
             if (parameters.zombie == null) return;
 
+            GenericOccurrence<Zombie> occurrence = new GenericOccurrence<Zombie>(Time.realtimeSinceStartup, parameters.zombie);
+
             if (lastDamagedZombie.ContainsKey(player.CSteamID))
             {
-                lastDamagedZombie[player.CSteamID] = parameters.zombie;
+                lastDamagedZombie[player.CSteamID] = occurrence;
                 return;
             }
-            lastDamagedZombie.Add(player.CSteamID, parameters.zombie);
+            lastDamagedZombie.Add(player.CSteamID, occurrence);
         }
         internal static void OnZombieDeath(Zombie zombie)
         {
             UnturnedPlayer player = null;
-            foreach (KeyValuePair<CSteamID, Zombie> entry in lastDamagedZombie)
+            float latestOccurence = float.MaxValue;
+
+            foreach (KeyValuePair<CSteamID, GenericOccurrence<Zombie>> entry in lastDamagedZombie)
             {
-                if (entry.Value.Equals(zombie))
+                float currrentOccurrence = Time.realtimeSinceStartup - entry.Value.lastTime;
+                if (entry.Value.occurredEvent.Equals(zombie) && currrentOccurrence < latestOccurence)
                 {
+                    latestOccurence = currrentOccurrence;
                     player = UnturnedPlayer.FromCSteamID(entry.Key);
-                    lastDamagedZombie.Remove(entry.Key);
+
                 }
             }
             if(player != null)
@@ -92,22 +99,25 @@ namespace SpeedMann.Unturnov.Classes
         {
             if (parameters.animal == null) return;
 
+            GenericOccurrence<Animal> occurrence = new GenericOccurrence<Animal>(Time.realtimeSinceStartup, parameters.animal);
             if (lastDamagedAnimal.ContainsKey(player.CSteamID))
             {
-                lastDamagedAnimal[player.CSteamID] = parameters.animal;
+                lastDamagedAnimal[player.CSteamID] = occurrence;
                 return;
             }
-            lastDamagedAnimal.Add(player.CSteamID, parameters.animal);
+            lastDamagedAnimal.Add(player.CSteamID, occurrence);
         }
         internal static void OnAnimalDeath(Animal animal)
         {
             UnturnedPlayer player = null;
-            foreach (KeyValuePair<CSteamID, Animal> entry in lastDamagedAnimal)
+            float latestOccurence = float.MaxValue;
+            foreach (KeyValuePair<CSteamID, GenericOccurrence<Animal>> entry in lastDamagedAnimal)
             {
-                if (entry.Value.Equals(animal))
+                float currrentOccurrence = Time.realtimeSinceStartup - entry.Value.lastTime;
+                if (entry.Value.occurredEvent.Equals(animal) && currrentOccurrence < latestOccurence)
                 {
+                    latestOccurence = currrentOccurrence;
                     player = UnturnedPlayer.FromCSteamID(entry.Key);
-                    lastDamagedAnimal.Remove(entry.Key);
                 }
             }
             if (player != null)

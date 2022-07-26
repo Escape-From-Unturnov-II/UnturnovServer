@@ -70,6 +70,7 @@ namespace SpeedMann.Unturnov
             ScavRunControler.Init();
             PlacementRestrictionControler.Init(Conf);
             OpenableItemsControler.Init();
+            QuestExtensionControler.Init();
 
             ReplaceBypass = new List<CSteamID>();
             ReloadExtensionStates = new Dictionary<CSteamID, InternalMagReloadState>();
@@ -134,6 +135,7 @@ namespace SpeedMann.Unturnov
         {
             UnturnedPatches.Cleanup();
             ScavRunControler.Cleanup();
+            QuestExtensionControler.Cleanup();
 
             Provider.modeConfigData.Gameplay.Timer_Home = oldBedTimer;
 
@@ -633,7 +635,6 @@ namespace SpeedMann.Unturnov
         {
             UseConsumeable(instigatingPlayer, consumeableAsset);
         }
-
         private void OnZombieDamage(ref DamageZombieParameters parameters, ref bool canDamage)
         {
             UnturnedPlayer player = null;
@@ -648,7 +649,6 @@ namespace SpeedMann.Unturnov
         {
             QuestExtensionControler.OnZombieDeath(zombie);
         }
-
         private void OnAnimalDamage(ref DamageAnimalParameters parameters, ref bool canDamage)
         {
             UnturnedPlayer player = null;
@@ -680,26 +680,6 @@ namespace SpeedMann.Unturnov
 
         }
         #region HelperFunctions
-        private void UseConsumeable(Player instigatingPlayer, ItemConsumeableAsset consumeableAsset)
-        {
-            if (MultiUseDict.ContainsKey(consumeableAsset.id))
-            {
-                byte page = instigatingPlayer.equipment.equippedPage;
-                byte x = instigatingPlayer.equipment.equipped_x;
-                byte y = instigatingPlayer.equipment.equipped_y;
-                byte index = instigatingPlayer.inventory.getIndex(page, x, y);
-                ItemJar itemJar = instigatingPlayer.inventory.getItem(page, index);
-
-                if (itemJar.item.amount > 1)
-                {
-                    instigatingPlayer.inventory.sendUpdateAmount(page, x, y, (byte)(itemJar.item.amount - 1));
-                }
-                else
-                {
-                    instigatingPlayer.inventory.removeItem(page, index);
-                }
-            }
-        }
         private Dictionary<ushort, ushort> createDictionaryFromMagazineExtensions(List<EmptyMagazineExtension> magExtensions)
         {
             Dictionary<ushort, ushort> itemExtensionsDict = new Dictionary<ushort, ushort>();
@@ -752,7 +732,6 @@ namespace SpeedMann.Unturnov
             }
             return autoCombineDict;
         }
-
         private Dictionary<ushort, ReloadInner> createDictionaryFromReloadExtensionsByGun(List<ReloadExtension> reloadExtensions)
         {
             Dictionary<ushort, ReloadInner> ReloadExtensionDict = new Dictionary<ushort, ReloadInner>();
@@ -803,7 +782,26 @@ namespace SpeedMann.Unturnov
             }
             return itemExtensionsDict;
         }
+        private void UseConsumeable(Player instigatingPlayer, ItemConsumeableAsset consumeableAsset)
+        {
+            if (MultiUseDict.ContainsKey(consumeableAsset.id))
+            {
+                byte page = instigatingPlayer.equipment.equippedPage;
+                byte x = instigatingPlayer.equipment.equipped_x;
+                byte y = instigatingPlayer.equipment.equipped_y;
+                byte index = instigatingPlayer.inventory.getIndex(page, x, y);
+                ItemJar itemJar = instigatingPlayer.inventory.getItem(page, index);
 
+                if (itemJar.item.amount > 1)
+                {
+                    instigatingPlayer.inventory.sendUpdateAmount(page, x, y, (byte)(itemJar.item.amount - 1));
+                }
+                else
+                {
+                    instigatingPlayer.inventory.removeItem(page, index);
+                }
+            }
+        }
         internal static void safeAddItem(UnturnedPlayer player, Item item, byte x, byte y, byte page, byte rot)
         {
             if (!player.Inventory.tryAddItem(item, x, y, page, rot))
