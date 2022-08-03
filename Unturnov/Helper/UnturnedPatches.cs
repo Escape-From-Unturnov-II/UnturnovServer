@@ -267,9 +267,11 @@ namespace SpeedMann.Unturnov.Helper
         [HarmonyPatch(typeof(Provider), nameof(Provider.accept), new Type[] { typeof(SteamPending) })]
         class ClientAcceptedPatch
         {
-            internal static bool OnPreClientAcceptedInvoker(PlayerInventory __instance, SteamPending player)
+            internal static bool OnPreClientAcceptedInvoker(SteamPending player)
             {
-                Logger.Log($"Client Backpack cosmetic: {player.backpackItem}");
+
+                Logger.Log($"{player.playerID.characterName}");
+
                 //player.backpackItem = 83000;
 
                 return true;

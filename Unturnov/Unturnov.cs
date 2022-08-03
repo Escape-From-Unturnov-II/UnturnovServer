@@ -204,6 +204,11 @@ namespace SpeedMann.Unturnov
         }
         private void OnPlayerConnected(UnturnedPlayer player)
         {
+
+            if (!PlayerSavedata.fileExists(player.SteamPlayer().playerID, "/Player/Player.dat"))
+            {
+                // new player connected
+            }
             ScavRunControler.OnPlayerConnected(player);
             if (!ScavRunControler.isScavRunActive(player))
             {
