@@ -25,48 +25,42 @@ namespace SpeedMann.Unturnov.Helper
         {
             // hit != null barricade is placed on vehicle
 
-            if (PlacementRestrictionDict.TryGetValue(barricade.asset.id, out PlacementRestriction restriction))
+            if (PlacementRestrictionDict.TryGetValue(asset.id, out PlacementRestriction restriction))
             {
                 shouldAllow = false;
 
-                Regions.tryGetCoordinate(point, out byte x, out byte y);
-                List<RegionCoordinate> coordinates = new List<RegionCoordinate>() { new RegionCoordinate(x, y) };
-                List<Transform> transformsObjects = new List<Transform>();
-                List<Transform> transformsBarricades = new List<Transform>();
+                PhysicsEx.Raycast(new Vector3(point.x, point.y + 0.5f, angle_z), Vector3.down, out RaycastHit rayHit, 1, RayMasks.SLOTS_INTERACT, QueryTriggerInteraction.UseGlobal);
 
-                // TODO: replace get_InRadius with raicast
-                // find object
-                ObjectManager.getObjectsInRadius(new Vector3(point.x, point.y + Conf.SearchCenterHeightChange, point.z), Conf.SearchRadius, coordinates, transformsObjects);
-                // find barricade
-                BarricadeManager.getBarricadesInRadius(new Vector3(point.x, point.y + Conf.SearchCenterHeightChange, point.z), Conf.SearchRadius, coordinates, transformsBarricades);
-                if (Conf.Debug)
+                if (rayHit.transform == null) return;
+
+                switch(rayHit.transform.tag)
                 {
-                    Logger.Log($"Barricade was placed near " +
-                        $"{(transformsBarricades.Count > 0 ? "barricades: " + string.Join(", ", transformsBarricades.Select(t => $"{t.name}").ToArray()) + " " : "")}" +
-                        $"{ (transformsObjects.Count > 0 ? "objects: " + string.Join(", ", transformsObjects.Select(t => $"{t.name}").ToArray()) : "")}");
-                }
-                foreach (Transform transform in transformsObjects)
-                {
-                    if(int.TryParse(transform.name, out int id))
-                    {
-                        if (restriction.ValidObjectFoundations.ContainsKey((ushort)id))
+                    case "Barricade":
+                        BarricadeDrop barricadeDrop = BarricadeManager.FindBarricadeByRootTransform(rayHit.transform);
+                        if (barricadeDrop?.asset != null && restriction.ValidBarricades.ContainsKey(barricadeDrop.asset.id))
                         {
                             shouldAllow = true;
-                            return;
+                            if (Conf.Debug)
+                            {
+                                Logger.Log($"RestrictedBarricade was placed on {barricadeDrop.asset.name}");
+                            }
                         }
-                    }
-                }
-                foreach (Transform transform in transformsBarricades)
-                {
-                    if (int.TryParse(transform.name, out int id))
-                    {
-                        if (restriction.ValidItemFoundations.ContainsKey((ushort)id))
+                        break;
+                    case "Large":
+                    case "Medium":
+                    case "Small":
+                        ObjectAsset objectAsset = LevelObjects.getAsset(rayHit.transform);
+                        if (objectAsset != null && restriction.ValidObjects.ContainsKey(objectAsset.id))
                         {
                             shouldAllow = true;
-                            return;
+                            if (Conf.Debug)
+                            {
+                                Logger.Log($"RestrictedBarricade was placed on {objectAsset.name}");
+                            }
                         }
-                    }
+                        break;
                 }
+
             }
         }
         internal static void createDictionaryForPlacementRestrictions(List<PlacementRestriction> placementRestrictions, List<FoundationSet> foundationSets)
@@ -83,10 +77,10 @@ namespace SpeedMann.Unturnov.Helper
                             switch (foundation.type)
                             {
                                 case EAssetType.ITEM:
-                                    selectedDict = restriction.ValidItemFoundations;
+                                    selectedDict = restriction.ValidBarricades;
                                     break;
                                 case EAssetType.OBJECT:
-                                    selectedDict = restriction.ValidObjectFoundations;
+                                    selectedDict = restriction.ValidObjects;
                                     break;
                                 default:
                                     Logger.LogError($"Foundation with Id: {foundation.Id} has invalid type {foundation.type}! \n" +

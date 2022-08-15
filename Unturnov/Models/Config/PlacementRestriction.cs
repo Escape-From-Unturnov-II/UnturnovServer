@@ -11,8 +11,8 @@ namespace SpeedMann.Unturnov.Models.Config
     {
         public List<string> ValidFoundationSetNames;
         [XmlIgnore]
-        public Dictionary<ushort, PlacementFoundation> ValidItemFoundations = new Dictionary<ushort, PlacementFoundation>();
+        public Dictionary<ushort, PlacementFoundation> ValidBarricades = new Dictionary<ushort, PlacementFoundation>();
         [XmlIgnore]
-        public Dictionary<ushort, PlacementFoundation> ValidObjectFoundations = new Dictionary<ushort, PlacementFoundation>();
+        public Dictionary<ushort, PlacementFoundation> ValidObjects = new Dictionary<ushort, PlacementFoundation>();
     }
 }
