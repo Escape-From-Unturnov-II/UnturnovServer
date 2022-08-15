@@ -1911,8 +1911,6 @@ namespace SpeedMann.Unturnov
 
             PlacementRestrictionConfig = new PlacementRestrictionConfig
             {
-                SearchCenterHeightChange = -0.5f,
-                SearchRadius = 2f,
                 Restrictions = new List<PlacementRestriction>
                 {
                     new PlacementRestriction

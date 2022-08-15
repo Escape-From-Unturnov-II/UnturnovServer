@@ -9,8 +9,7 @@ namespace SpeedMann.Unturnov.Models.Config
     public class PlacementRestrictionConfig
     {
         public bool Debug = true;
-        public float SearchCenterHeightChange = -0.5f;
-        public float SearchRadius = 2f;
+        public int Offset = 1;
         public List<PlacementRestriction> Restrictions;
         public List<FoundationSet> FoundationSets;
     }

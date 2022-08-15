@@ -1,4 +1,5 @@
-﻿using SDG.Unturned;
+﻿using SDG.Framework.Utilities;
+using SDG.Unturned;
 using SpeedMann.Unturnov.Models;
 using SpeedMann.Unturnov.Models.Config;
 using System;
@@ -24,19 +25,19 @@ namespace SpeedMann.Unturnov.Helper
         internal static void OnBarricadeDeploy(Barricade barricade, ItemBarricadeAsset asset, Transform hit, ref Vector3 point, ref float angle_x, ref float angle_y, ref float angle_z, ref ulong owner, ref ulong group, ref bool shouldAllow)
         {
             // hit != null barricade is placed on vehicle
-
+            
             if (PlacementRestrictionDict.TryGetValue(asset.id, out PlacementRestriction restriction))
             {
                 shouldAllow = false;
 
-                PhysicsEx.Raycast(new Vector3(point.x, point.y + 0.5f, angle_z), Vector3.down, out RaycastHit rayHit, 1, RayMasks.SLOTS_INTERACT, QueryTriggerInteraction.UseGlobal);
+                Physics.Raycast(new Vector3(point.x, point.y + Conf.Offset, point.z), Vector3.down, out RaycastHit raycastHit, Conf.Offset * 2, RayMasks.WAYPOINT);
+                Logger.Log($"RestrictedBarricade was placed [{point.x},{point.y},{point.z}] hit: {raycastHit.transform?.name}");
+                if (raycastHit.transform == null) return;
 
-                if (rayHit.transform == null) return;
-
-                switch(rayHit.transform.tag)
+                switch(raycastHit.transform.tag)
                 {
                     case "Barricade":
-                        BarricadeDrop barricadeDrop = BarricadeManager.FindBarricadeByRootTransform(rayHit.transform);
+                        BarricadeDrop barricadeDrop = BarricadeManager.FindBarricadeByRootTransform(raycastHit.transform);
                         if (barricadeDrop?.asset != null && restriction.ValidBarricades.ContainsKey(barricadeDrop.asset.id))
                         {
                             shouldAllow = true;
@@ -49,7 +50,7 @@ namespace SpeedMann.Unturnov.Helper
                     case "Large":
                     case "Medium":
                     case "Small":
-                        ObjectAsset objectAsset = LevelObjects.getAsset(rayHit.transform);
+                        ObjectAsset objectAsset = LevelObjects.getAsset(raycastHit.transform);
                         if (objectAsset != null && restriction.ValidObjects.ContainsKey(objectAsset.id))
                         {
                             shouldAllow = true;
