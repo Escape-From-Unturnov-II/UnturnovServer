@@ -31,7 +31,6 @@ namespace SpeedMann.Unturnov.Helper
                 shouldAllow = false;
 
                 Physics.Raycast(new Vector3(point.x, point.y + Conf.Offset, point.z), Vector3.down, out RaycastHit raycastHit, Conf.Offset * 2, RayMasks.WAYPOINT);
-                Logger.Log($"RestrictedBarricade was placed [{point.x},{point.y},{point.z}] hit: {raycastHit.transform?.name}");
                 if (raycastHit.transform == null) return;
 
                 switch(raycastHit.transform.tag)
