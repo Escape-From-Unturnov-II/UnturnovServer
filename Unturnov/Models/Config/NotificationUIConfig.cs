@@ -14,9 +14,13 @@ namespace SpeedMann.Unturnov.Models
 
         public Notification_UI()
         {
-            Enabled = true;
-            UI_Id = 52310;
-            UI_Key = 5230;
+
+        }
+        public Notification_UI(ushort id, short key, bool enabled = true)
+        {
+            Enabled = enabled;
+            UI_Id = id;
+            UI_Key = key;
         }
     }
 }

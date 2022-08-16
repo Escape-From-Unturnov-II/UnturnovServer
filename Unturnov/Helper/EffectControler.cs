@@ -22,5 +22,6 @@ namespace SpeedMann.Unturnov.Helper
             }
             EffectManager.sendUIEffect(effectId, effectKey, transportConnection, true);
         }
+
     }
 }

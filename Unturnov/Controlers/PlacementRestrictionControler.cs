@@ -1,7 +1,9 @@
-﻿using SDG.Framework.Utilities;
+﻿using Rocket.Unturned.Player;
+using SDG.Framework.Utilities;
 using SDG.Unturned;
 using SpeedMann.Unturnov.Models;
 using SpeedMann.Unturnov.Models.Config;
+using Steamworks;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,11 +18,47 @@ namespace SpeedMann.Unturnov.Helper
     {
         private static PlacementRestrictionConfig Conf;
         private static Dictionary<ushort, PlacementRestriction> PlacementRestrictionDict;
+
+        private static Dictionary<CSteamID, ushort> lastPlaceRequest = new Dictionary<CSteamID, ushort>();
+
         public static void Init(UnturnovConfiguration config)
         {
             Conf = config.PlacementRestrictionConfig;
             createDictionaryForPlacementRestrictions(Conf.Restrictions, Conf.FoundationSets);
             PlacementRestrictionDict = Unturnov.createDictionaryFromItemExtensions(Conf.Restrictions);
+        }
+        internal static void OnPlayerDisconnect(UnturnedPlayer player)
+        {
+            lastPlaceRequest.Remove(player.CSteamID);
+        }
+        internal static void OnUseBarricade(UseableBarricade useableBarricade, bool post)
+        {
+            if (useableBarricade?.player?.equipment?.asset == null) return;
+            ItemAsset asset = useableBarricade.player.equipment.asset;
+            if (PlacementRestrictionDict.ContainsKey(asset.id))
+            {
+                UnturnedPlayer player = UnturnedPlayer.FromPlayer(useableBarricade.player);
+                
+                if (!post)
+                {
+                    if (Conf.Debug)
+                    {
+                        Logger.Log($"{player.CSteamID} use RestrictedBarricade {asset.name} [{asset.id}]");
+                    }
+                    if (lastPlaceRequest.ContainsKey(player.CSteamID))
+                    {
+                        lastPlaceRequest[player.CSteamID] = asset.id;
+                    }
+                    else
+                    {
+                        lastPlaceRequest.Add(player.CSteamID, asset.id);
+                    }
+                }
+                else
+                {
+                    lastPlaceRequest.Remove(player.CSteamID);
+                }
+            }
         }
         internal static void OnBarricadeDeploy(Barricade barricade, ItemBarricadeAsset asset, Transform hit, ref Vector3 point, ref float angle_x, ref float angle_y, ref float angle_z, ref ulong owner, ref ulong group, ref bool shouldAllow)
         {
@@ -30,7 +68,7 @@ namespace SpeedMann.Unturnov.Helper
             {
                 shouldAllow = false;
 
-                Physics.Raycast(new Vector3(point.x, point.y + Conf.Offset, point.z), Vector3.down, out RaycastHit raycastHit, Conf.Offset * 2, RayMasks.WAYPOINT);
+                Physics.Raycast(new Vector3(point.x, point.y + Conf.Offset, point.z), Vector3.down, out RaycastHit raycastHit, Conf.Offset * 2, RayMasks.BLOCK_COLLISION);
                 if (raycastHit.transform == null) return;
 
                 switch(raycastHit.transform.tag)
@@ -60,8 +98,25 @@ namespace SpeedMann.Unturnov.Helper
                         }
                         break;
                 }
-
+                if(!shouldAllow && tryFindPlacingPlayer(asset.id, out CSteamID playerId))
+                {
+                    EffectControler.spawnUI(Conf.Notification_UI.UI_Id, Conf.Notification_UI.UI_Key, playerId);
+                }
             }
+
+        }
+        private static bool tryFindPlacingPlayer(ushort itemId, out CSteamID playerId)
+        {
+            playerId = CSteamID.Nil;
+            foreach (KeyValuePair<CSteamID, ushort> entry in lastPlaceRequest)
+            {
+                if(entry.Value == itemId)
+                {
+                    playerId = entry.Key;
+                    return true;
+                }
+            }
+            return false;
         }
         internal static void createDictionaryForPlacementRestrictions(List<PlacementRestriction> placementRestrictions, List<FoundationSet> foundationSets)
         {

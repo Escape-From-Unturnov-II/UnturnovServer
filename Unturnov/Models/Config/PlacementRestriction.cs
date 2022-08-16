@@ -10,6 +10,7 @@ namespace SpeedMann.Unturnov.Models.Config
     public class PlacementRestriction : ItemExtension
     {
         public List<string> ValidFoundationSetNames;
+        public string RequiredInfo = "FoundationName";
         [XmlIgnore]
         public Dictionary<ushort, PlacementFoundation> ValidBarricades = new Dictionary<ushort, PlacementFoundation>();
         [XmlIgnore]

@@ -101,6 +101,8 @@ namespace SpeedMann.Unturnov
             UnturnedPlayerEvents.OnPlayerDeath += OnPlayerDeath;
             UseableConsumeable.onConsumePerformed += OnConsumed;
             UseableConsumeable.onPerformingAid += OnAid;
+
+            UnturnedPatches.OnUseBarricade += OnUseBarricade;
             BarricadeManager.onDeployBarricadeRequested += OnBarricadeDeploy;
 
             UnturnedPatches.OnPrePlayerDead += OnPlayerDead;
@@ -152,6 +154,9 @@ namespace SpeedMann.Unturnov
             UseableConsumeable.onConsumePerformed -= OnConsumed;
             UseableConsumeable.onPerformingAid -= OnAid;
 
+            UnturnedPatches.OnUseBarricade -= OnUseBarricade;
+            BarricadeManager.onDeployBarricadeRequested -= OnBarricadeDeploy;
+
             UnturnedPatches.OnPrePlayerDead -= OnPlayerDead;
             UnturnedPatches.OnPostPlayerRevive -= OnPlayerRevived;
 
@@ -201,6 +206,7 @@ namespace SpeedMann.Unturnov
             ScavRunControler.OnPlayerDisconnected(player);
             OpenableItemsControler.OnPlayerDisconnected(player);
             QuestExtensionControler.OnPlayerDisconected(player);
+            PlacementRestrictionControler.OnPlayerDisconnect(player);
         }
         private void OnPlayerConnected(UnturnedPlayer player)
         {
@@ -223,6 +229,10 @@ namespace SpeedMann.Unturnov
         {
             ScavRunControler.OnFlagChanged(quests, flag);
             TeleportControler.OnFlagChanged(quests, flag);
+        }
+        private void OnUseBarricade(UseableBarricade useableBarricade, bool post)
+        {
+            PlacementRestrictionControler.OnUseBarricade(useableBarricade, post);
         }
         private void OnBarricadeDeploy(Barricade barricade, ItemBarricadeAsset asset, Transform hit, ref Vector3 point, ref float angle_x, ref float angle_y, ref float angle_z, ref ulong owner, ref ulong group, ref bool shouldAllow)
         {

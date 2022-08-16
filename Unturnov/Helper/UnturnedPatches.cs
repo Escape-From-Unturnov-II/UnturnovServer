@@ -65,6 +65,10 @@ namespace SpeedMann.Unturnov.Helper
         // weight system
         //PlayerMovement: ReceivePluginGravityMultiplier ReceivePluginJumpMultiplier ReceivePluginSpeedMultiplier
 
+        public delegate void UseBarricade(UseableBarricade useableBarricade, bool post);
+        public static event UseBarricade OnUseBarricade;
+        
+
         public delegate void PreTryAddItemAuto(PlayerInventory inventory, Item item, ref bool autoEquipWeapon, ref bool autoEquipUseable, ref bool autoEquipClothing);
         public static event PreTryAddItemAuto OnPreTryAddItemAuto;
         public delegate void PreAttachMagazine(UseableGun gun, byte page, byte x, byte y, byte[] hash);
@@ -99,6 +103,26 @@ namespace SpeedMann.Unturnov.Helper
         #endregion
 
         #region Patches
+        [HarmonyPatch(typeof(UseableBarricade), nameof(UseableBarricade.simulate))]
+        class PlaceBarricadePatch
+        {
+            [HarmonyPrefix]
+            internal static bool OnPrePlaceBarricadeInvoker(UseableBarricade __instance, out UseableBarricade __state)
+            {
+                __state = null;
+                if (!UnturnedPrivateFields.TryGetIsUsing(__instance) || !UnturnedPrivateFields.TryGetIsUseable(__instance)) return true;
+
+                __state = __instance;
+                OnUseBarricade?.Invoke(__instance, false);
+                return true;
+            }
+            [HarmonyPostfix]
+            internal static void OnPostPlaceBarricadeInvoker(UseableBarricade __state)
+            {
+                if (__state == null) return;
+                OnUseBarricade?.Invoke(__state, true);
+            }
+        }
         [HarmonyPatch(typeof(UseableGun), nameof(UseableGun.ReceiveAttachMagazine), new Type[] { typeof(byte), typeof(byte), typeof(byte), typeof(byte[])})]
         class ReceiveAttachMagazinePatch
         {
@@ -115,7 +139,6 @@ namespace SpeedMann.Unturnov.Helper
                 OnPostAttachMagazine?.Invoke(__state);
             }
         }
-
         [HarmonyPatch(typeof(PlayerInventory), nameof(PlayerInventory.tryAddItemAuto), new Type[] { typeof(Item), typeof(bool), typeof(bool), typeof(bool), typeof(bool) })]
         class TryAddItemAutoPatch
         {

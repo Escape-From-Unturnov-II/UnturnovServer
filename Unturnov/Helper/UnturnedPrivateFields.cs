@@ -21,9 +21,13 @@ namespace SpeedMann.Unturnov.Helper
         private static MethodInfo BroadcastDisconnectInfo;
         private static FieldInfo WriterInfo;
 
-        private static FieldInfo lastTimeDamaged;
-        private static FieldInfo recentKiller;
-        private static FieldInfo conbatCooldown;
+        private static FieldInfo LastTimeDamagedInfo;
+        private static FieldInfo RecentKillerInfo;
+        private static FieldInfo ConbatCooldownInfo;
+
+        private static FieldInfo IsUsingInfo;
+        private static FieldInfo IsUseableInfo;
+        
 
 
         public static bool TryBroadcastConnect(SteamPlayer player)
@@ -54,7 +58,6 @@ namespace SpeedMann.Unturnov.Helper
             }
             return false;
         }
-
         public static bool WriteConnectedMessage(NetPakWriter writer, SteamPlayer aboutPlayer, SteamPlayer forPlayer)
         {
             if (WriteConnectedMessageInfo != null)
@@ -78,11 +81,11 @@ namespace SpeedMann.Unturnov.Helper
         {
             result = -100f;
 
-            if (lastTimeDamaged != null)
+            if (LastTimeDamagedInfo != null)
             {
                 try
                 {
-                    result = (float)lastTimeDamaged.GetValue(playerLife);
+                    result = (float)LastTimeDamagedInfo.GetValue(playerLife);
                 }
                 catch (Exception e)
                 {
@@ -97,11 +100,11 @@ namespace SpeedMann.Unturnov.Helper
         {
             result = CSteamID.Nil;
 
-            if (recentKiller != null)
+            if (RecentKillerInfo != null)
             {
                 try
                 {
-                    result = (CSteamID)recentKiller.GetValue(playerLife);
+                    result = (CSteamID)RecentKillerInfo.GetValue(playerLife);
                 }
                 catch (Exception e)
                 {
@@ -116,11 +119,11 @@ namespace SpeedMann.Unturnov.Helper
         {
             result = 30;
 
-            if (conbatCooldown != null)
+            if (ConbatCooldownInfo != null)
             {
                 try
                 {
-                    result = (float)conbatCooldown.GetValue(playerLife);
+                    result = (float)ConbatCooldownInfo.GetValue(playerLife);
                 }
                 catch (Exception e)
                 {
@@ -132,6 +135,42 @@ namespace SpeedMann.Unturnov.Helper
             return false;
         }
 
+        public static bool TryGetIsUsing(UseableBarricade useableBarricade)
+        {
+            bool result = false;
+
+            if (ConbatCooldownInfo != null)
+            {
+                try
+                {
+                    result = (bool)IsUsingInfo.GetValue(useableBarricade);
+                }
+                catch (Exception e)
+                {
+                    Logger.LogException(e, "Exception loading private field IsUsing");
+                    return false;
+                }
+            }
+            return result;
+        }
+        public static bool TryGetIsUseable(UseableBarricade useableBarricade)
+        {
+            bool result = false;
+
+            if (ConbatCooldownInfo != null)
+            {
+                try
+                {
+                    result = (bool)IsUseableInfo.GetValue(useableBarricade);
+                }
+                catch (Exception e)
+                {
+                    Logger.LogException(e, "Exception loading private field IsUseable");
+                    return false;
+                }
+            }
+            return result;
+        }
 
         public static void Init()
         {
@@ -146,9 +185,13 @@ namespace SpeedMann.Unturnov.Helper
             ItemJarItemInfo = type.GetField("_item", BindingFlags.NonPublic);
 
             type = typeof(PlayerLife);
-            lastTimeDamaged = type.GetField("lastTimeTookDamage", BindingFlags.NonPublic | BindingFlags.Instance);
-            recentKiller = type.GetField("recentKiller", BindingFlags.NonPublic | BindingFlags.Instance);
-            conbatCooldown = type.GetField("COMBAT_COOLDOWN", BindingFlags.NonPublic | BindingFlags.Static);
+            LastTimeDamagedInfo = type.GetField("lastTimeTookDamage", BindingFlags.NonPublic | BindingFlags.Instance);
+            RecentKillerInfo = type.GetField("recentKiller", BindingFlags.NonPublic | BindingFlags.Instance);
+            ConbatCooldownInfo = type.GetField("COMBAT_COOLDOWN", BindingFlags.NonPublic | BindingFlags.Static);
+
+            type = typeof(UseableBarricade);
+            IsUseableInfo = type.GetField("isUsing", BindingFlags.NonPublic | BindingFlags.Instance);
+            IsUsingInfo = type.GetField("isUseable", BindingFlags.NonPublic | BindingFlags.Instance);
             /*
             type = AccessTools.TypeByName("SDG.Unturned.NetMessages");
             WriterInfo = AccessTools.Field(type, "writer");

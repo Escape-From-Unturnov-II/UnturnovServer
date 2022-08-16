@@ -1911,6 +1911,9 @@ namespace SpeedMann.Unturnov
 
             PlacementRestrictionConfig = new PlacementRestrictionConfig
             {
+                Debug = true,
+                Offset = 1,
+                Notification_UI = new Notification_UI(52310, 5230),
                 Restrictions = new List<PlacementRestriction>
                 {
                     new PlacementRestriction
@@ -1934,18 +1937,21 @@ namespace SpeedMann.Unturnov
                             new PlacementFoundation(1345, EAssetType.ITEM, "plot"),
                         }
                     },
+                    new FoundationSet
+                    {
+                        Name = "craftingtest",
+                        Foundations = new List<PlacementFoundation>
+                        {
+                            new PlacementFoundation(331, EAssetType.OBJECT ,"planter"),
+                        }
+                    },
                 }
             };
 
             SecureCaseConfig = new SecureCaseConfig
             {
                 Debug = true,
-                Notification_UI = new Notification_UI
-                {
-                    Enabled = true,
-                    UI_Id = 52310,
-                    UI_Key = 5230,
-                },
+                Notification_UI = new Notification_UI(52310, 5230),
                 CaseUpgradeFlagId = 50302,
                 CaseSizes = new List<CaseSize>()
                 {
