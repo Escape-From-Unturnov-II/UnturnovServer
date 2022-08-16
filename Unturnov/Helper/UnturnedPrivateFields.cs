@@ -9,6 +9,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using UnityEngine;
 using Logger = Rocket.Core.Logging.Logger;
 
 namespace SpeedMann.Unturnov.Helper
@@ -26,9 +27,8 @@ namespace SpeedMann.Unturnov.Helper
         private static FieldInfo ConbatCooldownInfo;
 
         private static FieldInfo IsUsingInfo;
-        private static FieldInfo IsUseableInfo;
-        
-
+        private static FieldInfo StartedUseInfo;
+        private static FieldInfo UseTimeInfo;
 
         public static bool TryBroadcastConnect(SteamPlayer player)
         {
@@ -139,7 +139,7 @@ namespace SpeedMann.Unturnov.Helper
         {
             bool result = false;
 
-            if (ConbatCooldownInfo != null)
+            if (IsUsingInfo != null && useableBarricade != null)
             {
                 try
                 {
@@ -157,15 +157,19 @@ namespace SpeedMann.Unturnov.Helper
         {
             bool result = false;
 
-            if (ConbatCooldownInfo != null)
+            if (StartedUseInfo != null && UseTimeInfo != null && useableBarricade != null)
             {
                 try
                 {
-                    result = (bool)IsUseableInfo.GetValue(useableBarricade);
+                    float startedUse = (float)StartedUseInfo.GetValue(useableBarricade);
+                    float useTime = (float)UseTimeInfo.GetValue(useableBarricade);
+
+                    result = Time.realtimeSinceStartup - startedUse > useTime;
+                    
                 }
                 catch (Exception e)
                 {
-                    Logger.LogException(e, "Exception loading private field IsUseable");
+                    Logger.LogException(e, "Exception loading private field StartedUseInfo or UseTimeInfo");
                     return false;
                 }
             }
@@ -190,8 +194,9 @@ namespace SpeedMann.Unturnov.Helper
             ConbatCooldownInfo = type.GetField("COMBAT_COOLDOWN", BindingFlags.NonPublic | BindingFlags.Static);
 
             type = typeof(UseableBarricade);
-            IsUseableInfo = type.GetField("isUsing", BindingFlags.NonPublic | BindingFlags.Instance);
-            IsUsingInfo = type.GetField("isUseable", BindingFlags.NonPublic | BindingFlags.Instance);
+            IsUsingInfo = type.GetField("isUsing", BindingFlags.NonPublic | BindingFlags.Instance);
+            StartedUseInfo = type.GetField("startedUse", BindingFlags.NonPublic | BindingFlags.Instance);
+            UseTimeInfo = type.GetField("useTime", BindingFlags.NonPublic | BindingFlags.Instance); 
             /*
             type = AccessTools.TypeByName("SDG.Unturned.NetMessages");
             WriterInfo = AccessTools.Field(type, "writer");
