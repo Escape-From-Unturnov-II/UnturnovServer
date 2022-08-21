@@ -192,8 +192,6 @@ namespace SpeedMann.Unturnov.Helper
             internal PlayerInventory inventory;
             internal List<StoredItem> items;
         }
-
-
         [HarmonyPatch(typeof(PlayerLife), "ReceiveDead")]
         class PlayerDead
         {
@@ -219,7 +217,6 @@ namespace SpeedMann.Unturnov.Helper
                 OnPostPlayerRevive?.Invoke(__state);
             }
         }
-
         [HarmonyPatch(typeof(PlayerInventory), "ReceiveDragItem")]
         class InventoryDrag
         {
@@ -232,8 +229,6 @@ namespace SpeedMann.Unturnov.Helper
                 return shouldAllow;
             }
         }
-
-
         [HarmonyPatch(typeof(PlayerInventory), "ReceiveSwapItem")]
         class InventoryMove
         {
@@ -247,7 +242,6 @@ namespace SpeedMann.Unturnov.Helper
                 return shouldAllow;
             }
         }
-
         [HarmonyPatch(typeof(Items), nameof(Items.tryAddItem), new Type[] { typeof(Item), typeof(bool) })]
         class PageAddItem
         {

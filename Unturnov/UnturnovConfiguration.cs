@@ -12,7 +12,6 @@ namespace SpeedMann.Unturnov
     {
         public bool Debug;
         public string DatabaseConnectionString;
-        public ushort DeathDropFlag;
         public ushort ScavKitTierFlag;
         public ushort ScavRunControlFlag;
 
@@ -20,7 +19,7 @@ namespace SpeedMann.Unturnov
 
         public List<TeleportConfig> TeleportConfigs;
         public List<EmptyMagazineExtension> UnloadMagBlueprints;
-        public List<DeathDrop> DeathDrops;
+        
         public List<CombineDescription> AutoCombine;
         [XmlArrayItem(ElementName = "Item")]
         public List<ItemExtension> MultiUseItems;
@@ -32,7 +31,7 @@ namespace SpeedMann.Unturnov
         
 
         public PlacementRestrictionConfig PlacementRestrictionConfig;
-
+        public DeathDropConfig DeathDropConfig;
         public SecureCaseConfig SecureCaseConfig;
         public OpenableItemsConfig OpenableItemsConfig;
 
@@ -40,20 +39,24 @@ namespace SpeedMann.Unturnov
         {
             Debug = true;
             DatabaseConnectionString = "SERVER=127.0.0.1;DATABASE=unturnov;UID=root;PASSWORD=;PORT=3306;charset=utf8";
-            DeathDropFlag = 0;
+            
             ScavKitTierFlag = 0;
             ScavRunControlFlag = 50303;
 
             BedTimer = 1;
-
-            DeathDrops = new List<DeathDrop>()
+            DeathDropConfig = new DeathDropConfig()
             {
-                new DeathDrop()
+                DeathDropFlag = 0,
+
+                DeathDrops = new List<DeathDrop>()
                 {
-                  Id = 37125,
-                  RequiredFalgValue = 0,
+                    new DeathDrop()
+                    {
+                      Id = 37125,
+                      RequiredFalgValue = 0,
+                    },
                 },
-            };
+            };           
 
             UnloadMagBlueprints = new List<EmptyMagazineExtension>
             {
@@ -2086,7 +2089,7 @@ namespace SpeedMann.Unturnov
 
         public void addNames()
         {
-            addNames(DeathDrops);
+            addNames(DeathDropConfig.DeathDrops);
             addNames(MultiUseItems);
             addNames(GunModdingResults);
 
@@ -2121,6 +2124,8 @@ namespace SpeedMann.Unturnov
 
         private void addNames<T>(List<T> itemExtensions) where T : ItemExtension
         {
+            if (itemExtensions == null) return;
+
             foreach (T itemExtension in itemExtensions)
             {
                 addName(itemExtension);

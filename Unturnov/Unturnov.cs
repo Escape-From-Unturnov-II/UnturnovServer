@@ -9,6 +9,7 @@ using Rocket.Unturned.Player;
 using SDG.NetTransport;
 using SDG.Unturned;
 using SpeedMann.Unturnov.Classes;
+using SpeedMann.Unturnov.Controlers;
 using SpeedMann.Unturnov.Helper;
 using SpeedMann.Unturnov.Models;
 using SpeedMann.Unturnov.Models.Config;
@@ -68,9 +69,10 @@ namespace SpeedMann.Unturnov
             UnturnedPrivateFields.Init();
             UnturnedPatches.Init();
             ScavRunControler.Init();
-            PlacementRestrictionControler.Init(Conf);
+            PlacementRestrictionControler.Init(Conf.PlacementRestrictionConfig);
             OpenableItemsControler.Init();
             QuestExtensionControler.Init();
+            DropControler.Init(Conf.DeathDropConfig);
 
             ReplaceBypass = new List<CSteamID>();
             ReloadExtensionStates = new Dictionary<CSteamID, InternalMagReloadState>();
@@ -99,8 +101,6 @@ namespace SpeedMann.Unturnov
             UnturnedPlayerEvents.OnPlayerInventoryAdded += OnInventoryUpdated;
             PlayerCrafting.onCraftBlueprintRequested += OnCraft;
             UnturnedPlayerEvents.OnPlayerDeath += OnPlayerDeath;
-            UseableConsumeable.onConsumePerformed += OnConsumed;
-            UseableConsumeable.onPerformingAid += OnAid;
 
             UnturnedPatches.OnUseBarricade += OnUseBarricade;
             BarricadeManager.onDeployBarricadeRequested += OnBarricadeDeploy;
@@ -151,8 +151,6 @@ namespace SpeedMann.Unturnov
             UnturnedPlayerEvents.OnPlayerInventoryAdded -= OnInventoryUpdated;
             PlayerCrafting.onCraftBlueprintRequested -= OnCraft;
             UnturnedPlayerEvents.OnPlayerDeath -= OnPlayerDeath;
-            UseableConsumeable.onConsumePerformed -= OnConsumed;
-            UseableConsumeable.onPerformingAid -= OnAid;
 
             UnturnedPatches.OnUseBarricade -= OnUseBarricade;
             BarricadeManager.onDeployBarricadeRequested -= OnBarricadeDeploy;
@@ -248,31 +246,8 @@ namespace SpeedMann.Unturnov
         }
         private void OnPlayerDeath(UnturnedPlayer player, EDeathCause cause, ELimb limb, CSteamID murderer)
         {
-            if (cause != EDeathCause.SUICIDE)
-            {
-
-                if (Conf.DeathDrops?.Count > 0)
-                {
-                    // defaults to index 0 if no flag it set or found
-                    Item item = new Item(Conf.DeathDrops[0].Id, true);
-                    if (Conf.DeathDropFlag != 0 && player.Player.quests.getFlag(Conf.DeathDropFlag, out short dropFlagValue))
-                    {
-                        DeathDrop drop = Conf.DeathDrops.Find(x => x.RequiredFalgValue == dropFlagValue);
-                        if (drop != null)
-                        {
-                            item = new Item(drop.Id, true);
-                        }
-                    }
-                    if (Conf.Debug)
-                    {
-                        Logger.Log($"deathdrop {item.id} dropped");
-                    }
-                    ItemManager.dropItem(item, player.Position, true, false, true);
-                }
-                UnturnedPlayer murderPlayer = UnturnedPlayer.FromCSteamID(murderer);
-                
-                QuestExtensionControler.OnPlayerDeath(player, cause, limb, murderer);
-            }
+            DropControler.OnPlayerDeath(player, cause, limb, murderer);
+            QuestExtensionControler.OnPlayerDeath(player, cause, limb, murderer);
         }
         private void OnPlayerRevived(PlayerLife playerLife)
         {
@@ -642,14 +617,6 @@ namespace SpeedMann.Unturnov
             }
             #endregion
         }
-        private void OnAid(Player instigator, Player target, ItemConsumeableAsset asset, ref bool shouldAllow)
-        {
-            UseConsumeable(instigator, asset);
-        }
-        private void OnConsumed(Player instigatingPlayer, ItemConsumeableAsset consumeableAsset)
-        {
-            UseConsumeable(instigatingPlayer, consumeableAsset);
-        }
         private void OnZombieDamage(ref DamageZombieParameters parameters, ref bool canDamage)
         {
             UnturnedPlayer player = null;
@@ -797,26 +764,7 @@ namespace SpeedMann.Unturnov
             }
             return itemExtensionsDict;
         }
-        private void UseConsumeable(Player instigatingPlayer, ItemConsumeableAsset consumeableAsset)
-        {
-            if (MultiUseDict.ContainsKey(consumeableAsset.id))
-            {
-                byte page = instigatingPlayer.equipment.equippedPage;
-                byte x = instigatingPlayer.equipment.equipped_x;
-                byte y = instigatingPlayer.equipment.equipped_y;
-                byte index = instigatingPlayer.inventory.getIndex(page, x, y);
-                ItemJar itemJar = instigatingPlayer.inventory.getItem(page, index);
 
-                if (itemJar.item.amount > 1)
-                {
-                    instigatingPlayer.inventory.sendUpdateAmount(page, x, y, (byte)(itemJar.item.amount - 1));
-                }
-                else
-                {
-                    instigatingPlayer.inventory.removeItem(page, index);
-                }
-            }
-        }
         internal static void safeAddItem(UnturnedPlayer player, Item item, byte x, byte y, byte page, byte rot)
         {
             if (!player.Inventory.tryAddItem(item, x, y, page, rot))

@@ -133,6 +133,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Controlers\CraftingStationControler.cs" />
+    <Compile Include="Controlers\DropControler.cs" />
     <Compile Include="Controlers\QuestExtensionControler.cs" />
     <Compile Include="Helper\DatabaseManager.cs" />
     <Compile Include="Helper\EffectControler.cs" />
@@ -146,6 +147,7 @@
     <Compile Include="Controlers\TeleportControler.cs" />
     <Compile Include="Helper\UnturnedPrivateFields.cs" />
     <Compile Include="Models\Config\CaseContent.cs" />
+    <Compile Include="Models\Config\DeathDropConfig.cs" />
     <Compile Include="Models\Config\FoundationSet.cs" />
     <Compile Include="Models\Config\ItemWhitelist.cs" />
     <Compile Include="Models\Config\OpenableItemsConfig.cs" />

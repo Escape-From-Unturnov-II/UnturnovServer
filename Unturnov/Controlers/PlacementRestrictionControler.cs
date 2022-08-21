@@ -21,9 +21,9 @@ namespace SpeedMann.Unturnov.Helper
 
         private static Dictionary<CSteamID, ushort> lastPlaceRequest = new Dictionary<CSteamID, ushort>();
 
-        public static void Init(UnturnovConfiguration config)
+        public static void Init(PlacementRestrictionConfig config)
         {
-            Conf = config.PlacementRestrictionConfig;
+            Conf = config;
             createDictionaryForPlacementRestrictions(Conf.Restrictions, Conf.FoundationSets);
             PlacementRestrictionDict = Unturnov.createDictionaryFromItemExtensions(Conf.Restrictions);
         }
