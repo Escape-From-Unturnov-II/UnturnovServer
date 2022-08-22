@@ -100,7 +100,6 @@ namespace SpeedMann.Unturnov
             UseableGun.onChangeMagazineRequested += OnChangeMagazine;
             UnturnedPlayerEvents.OnPlayerInventoryAdded += OnInventoryUpdated;
             PlayerCrafting.onCraftBlueprintRequested += OnCraft;
-            UnturnedPlayerEvents.OnPlayerDeath += OnPlayerDeath;
 
             UnturnedPatches.OnUseBarricade += OnUseBarricade;
             BarricadeManager.onDeployBarricadeRequested += OnBarricadeDeploy;
@@ -150,7 +149,6 @@ namespace SpeedMann.Unturnov
             UseableGun.onChangeMagazineRequested -= OnChangeMagazine;
             UnturnedPlayerEvents.OnPlayerInventoryAdded -= OnInventoryUpdated;
             PlayerCrafting.onCraftBlueprintRequested -= OnCraft;
-            UnturnedPlayerEvents.OnPlayerDeath -= OnPlayerDeath;
 
             UnturnedPatches.OnUseBarricade -= OnUseBarricade;
             BarricadeManager.onDeployBarricadeRequested -= OnBarricadeDeploy;
@@ -252,6 +250,7 @@ namespace SpeedMann.Unturnov
         private void OnPlayerRevived(PlayerLife playerLife)
         {
             SecureCaseControler.OnPlayerRevived(playerLife);
+            DropControler.OnPlayerRevived(playerLife);
         }
         private void OnInspect(PlayerEquipment equipment)
         {
