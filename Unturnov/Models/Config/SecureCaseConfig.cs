@@ -16,6 +16,5 @@ namespace SpeedMann.Unturnov.Models.Config
 
         [XmlArrayItem(ElementName = "Item")]
         public List<ItemExtension> BlacklistedItems;
-        public List<CaseContent> StoredCaseContents;
     }
 }

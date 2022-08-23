@@ -4,6 +4,7 @@ using Rocket.Unturned.Enumerations;
 using Rocket.Unturned.Player;
 using SDG.Unturned;
 using SpeedMann.Unturnov.Models;
+using SpeedMann.Unturnov.Models.Config;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,11 +17,17 @@ namespace SpeedMann.Unturnov.Helper
 {
     public class SecureCaseControler
     {
+        public static SecureCaseConfig Conf { get; private set; }
         public static Dictionary<ulong, CaseContent> storedPlayerItems = new Dictionary<ulong, CaseContent>();
+
+        internal static void Init(SecureCaseConfig conf)
+        {
+            Conf = conf;
+        }
 
         public static void OnFlagChanged(PlayerQuests quests, PlayerQuestFlag flag)
         {
-            if (flag.id == Unturnov.Conf.SecureCaseConfig.CaseUpgradeFlagId)
+            if (flag.id == Conf.CaseUpgradeFlagId)
             {
                 resizeHands(quests.player);
             }
@@ -42,13 +49,11 @@ namespace SpeedMann.Unturnov.Helper
             storedPlayerItems.Add(player.CSteamID.m_SteamID, content);
 
             InventoryHelper.clearInventoryPage(player, 2);
-            if (Unturnov.Conf.SecureCaseConfig.Debug)
+            if (Conf.Debug)
             {
                 Logger.Log("saved " + content.Items.Count() + " Items");
             }
         }
-
-
         public static void OnPlayerRevived(PlayerLife playerLife)
         {
             UnturnedPlayer player = UnturnedPlayer.FromPlayer(playerLife.player);
@@ -59,7 +64,6 @@ namespace SpeedMann.Unturnov.Helper
                 storedPlayerItems.Remove(player.CSteamID.m_SteamID);
             }
         }
-
         public static void OnPlayerConnected(UnturnedPlayer player)
         {
             List<StoredItem> storedItems;
@@ -85,7 +89,7 @@ namespace SpeedMann.Unturnov.Helper
             if (page_0 != 2 && page_1 != 2 || page_0 == 2 && page_1 == 2)
                 return;
 
-            if (Unturnov.Conf.SecureCaseConfig.Debug)
+            if (Conf.Debug)
                 Logger.Log("Swapped Item to Hands");
 
             byte otherPage = page_0;
@@ -121,7 +125,7 @@ namespace SpeedMann.Unturnov.Helper
                 return;
 
 
-            if (Unturnov.Conf.SecureCaseConfig.Debug)
+            if (Conf.Debug)
                 Logger.Log("Dragged Item to Hands");
 
             var index = inventory.getIndex(page_0, x_0, y_0);
@@ -157,7 +161,6 @@ namespace SpeedMann.Unturnov.Helper
                 notifyNotAllowed(uPlayer, itemData.item.id);
             }
         }
-
         public static void OnAddItem(PlayerInventory inventory, Items page, Item item, ref bool shouldAllow)
         {
             UnturnedPlayer player = UnturnedPlayer.FromPlayer(inventory.player);
@@ -183,7 +186,7 @@ namespace SpeedMann.Unturnov.Helper
                 addedItem = player.Inventory.tryAddItem(item, 255, 255, page, 0);
                 page++;
             }
-            if (addedItem && Unturnov.Conf.SecureCaseConfig.Debug)
+            if (addedItem && Conf.Debug)
             {
                 Logger.Log("Item " + item + " was added to page: " + page);
             }
@@ -191,64 +194,39 @@ namespace SpeedMann.Unturnov.Helper
         }
         public static void resizeHands(Player player)
         {
-            if (Unturnov.Conf.SecureCaseConfig.CaseSizes.Count < 1)
+            if (Conf.CaseSizes.Count < 1)
             {
                 Logger.LogError("No CaseSizes Defined!");
                 return;
             }
             short caseLvl;
-            if (!player.quests.getFlag(Unturnov.Conf.SecureCaseConfig.CaseUpgradeFlagId, out caseLvl) || caseLvl < 0)
+            if (!player.quests.getFlag(Conf.CaseUpgradeFlagId, out caseLvl) || caseLvl < 0)
             {
                 caseLvl = 0;
             }
-            if (caseLvl >= Unturnov.Conf.SecureCaseConfig.CaseSizes.Count)
+            if (caseLvl >= Conf.CaseSizes.Count)
             {
-                caseLvl = (short)(Unturnov.Conf.SecureCaseConfig.CaseSizes.Count - 1);
+                caseLvl = (short)(Conf.CaseSizes.Count - 1);
             }
 
-            player.inventory.items[2].resize(Unturnov.Conf.SecureCaseConfig.CaseSizes[caseLvl].Width, Unturnov.Conf.SecureCaseConfig.CaseSizes[caseLvl].Height);
+            player.inventory.items[2].resize(Conf.CaseSizes[caseLvl].Width, Conf.CaseSizes[caseLvl].Height);
         }
         public static bool isBlacklisted(ushort itemId)
         {
-            return Unturnov.Conf.SecureCaseConfig.BlacklistedItems.Find(x => x.Id == itemId) != null;
+            return Conf.BlacklistedItems.Find(x => x.Id == itemId) != null;
         }
         public static void notifyNotAllowed(UnturnedPlayer player, ushort itemId)
         {
-            if (Unturnov.Conf.SecureCaseConfig.Notification_UI.Enabled)
+            if (Conf.Notification_UI.Enabled)
             {
-                EffectControler.spawnUI(Unturnov.Conf.SecureCaseConfig.Notification_UI.UI_Id, Unturnov.Conf.SecureCaseConfig.Notification_UI.UI_Key, player.CSteamID);
+                EffectControler.spawnUI(Conf.Notification_UI.UI_Id, Conf.Notification_UI.UI_Key, player.CSteamID);
             }
             else
             {
                 UnturnedChat.Say(player, Util.Translate("item_restricted", Assets.find(EAssetType.ITEM, itemId).name), Color.red);
             }
         }
-        public static void saveStoredHands()
-        {
-            foreach (KeyValuePair<ulong, CaseContent> entry in storedPlayerItems)
-            {
-                Unturnov.Conf.SecureCaseConfig.StoredCaseContents.Add(entry.Value);
-            }
-            Unturnov.Inst.Configuration.Save();
-        }
-        public static void loadStoredHands()
-        {
-            storedPlayerItems = new Dictionary<ulong, CaseContent>();
-            foreach (CaseContent content in Unturnov.Conf.SecureCaseConfig.StoredCaseContents)
-            {
-                if (!storedPlayerItems.ContainsKey(content.PlayerId))
-                {
-                    storedPlayerItems.Add(content.PlayerId, content);
-                }
-                else
-                {
-                    Logger.LogWarning($"CaseContet for player {content.PlayerId} was a duplicate!");
-                }
-            }
 
-            Unturnov.Conf.SecureCaseConfig.StoredCaseContents = new List<CaseContent>();
-            Unturnov.Inst.Configuration.Save();
-        }
         public static void RestoreHands(UnturnedPlayer player, CaseContent content)
         {
             InventoryHelper.RestorePage(player.Inventory, player.Inventory.items[2], content.Items);

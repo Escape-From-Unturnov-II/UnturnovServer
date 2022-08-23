@@ -4,6 +4,7 @@ using Rocket.Unturned.Enumerations;
 using Rocket.Unturned.Player;
 using SDG.Unturned;
 using SpeedMann.Unturnov.Models;
+using Steamworks;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -80,6 +81,11 @@ namespace SpeedMann.Unturnov.Helper
         public static event PreInteractabilityCondition OnPreInteractabilityCondition;
         public delegate void PreItemConditionMet(NPCItemCondition itemCondition, Player player, ref bool shouldAllow);
         public static event PreItemConditionMet OnPreItemConditionMet;
+
+        public delegate void PreShutdownSave(ref bool shouldAllow);
+        public static event PreShutdownSave OnPreShutdownSave;
+        public delegate void PreDisconnectSave(CSteamID steamID, ref bool shouldAllow);
+        public static event PreDisconnectSave OnPreDisconnectSave;
 
         #region SecureCase
         public delegate void PrePlayerDraggedItem(PlayerInventory inventory, byte page_0, byte x_0, byte y_0, byte page_1, byte x_1, byte y_1, byte rot_1, ref bool shouldAllow);
@@ -184,6 +190,29 @@ namespace SpeedMann.Unturnov.Helper
             internal static void OnPostItemConditionInvoker(ref bool __result, bool __state)
             {
                 __result = __state;
+            }
+        }
+        
+        [HarmonyPatch(typeof(SaveManager), "onServerDisconnected")]
+        class DisconnectSave
+        {
+            [HarmonyPrefix]
+            internal static bool OnPreDisconnectSaveInvoker(CSteamID steamID)
+            {
+                var shouldAllow = true;
+                OnPreDisconnectSave?.Invoke(steamID, ref shouldAllow);
+                return shouldAllow;
+            }
+        }
+        [HarmonyPatch(typeof(SaveManager), "onServerShutdown")]
+        class ShutdownSave
+        {
+            [HarmonyPrefix]
+            internal static bool OnPreShutdownSaveInvoker()
+            {
+                var shouldAllow = true;
+                OnPreShutdownSave?.Invoke(ref shouldAllow);
+                return shouldAllow;
             }
         }
         #region SecureCase

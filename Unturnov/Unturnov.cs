@@ -69,6 +69,7 @@ namespace SpeedMann.Unturnov
             UnturnedPrivateFields.Init();
             UnturnedPatches.Init();
             ScavRunControler.Init();
+            SecureCaseControler.Init(Conf.SecureCaseConfig);
             PlacementRestrictionControler.Init(Conf.PlacementRestrictionConfig);
             OpenableItemsControler.Init();
             QuestExtensionControler.Init();
@@ -125,6 +126,7 @@ namespace SpeedMann.Unturnov
             PlayerEquipment.OnUseableChanged_Global += OnEquipmentChanged;
             PlayerEquipment.OnInspectingUseable_Global += OnInspect;
 
+            UnturnedPatches.OnPreDisconnectSave += OnPreDisconnectSave;
             U.Events.OnPlayerDisconnected += OnPlayerDisconnected;
             U.Events.OnPlayerConnected += OnPlayerConnected;
 
@@ -174,6 +176,7 @@ namespace SpeedMann.Unturnov
             PlayerEquipment.OnUseableChanged_Global -= OnEquipmentChanged;
             PlayerEquipment.OnInspectingUseable_Global -= OnInspect;
 
+            UnturnedPatches.OnPreDisconnectSave -= OnPreDisconnectSave;
             U.Events.OnPlayerDisconnected -= OnPlayerDisconnected;
             U.Events.OnPlayerConnected -= OnPlayerConnected;
 
@@ -197,6 +200,28 @@ namespace SpeedMann.Unturnov
                 MainThreadQueue.RemoveAt(0);
             }
         }
+        private void OnPreDisconnectSave(CSteamID steamID, ref bool shouldAllow)
+        {
+            Logger.Log("pre save");
+            UnturnedPlayer player = UnturnedPlayer.FromCSteamID(steamID);
+            if (player == null) return;
+
+            Logger.Log("pre save not null");
+            if (player.Dead)
+            {
+                player.Player.life.sendRevive();
+                PlayerSpawnpoint spawn = LevelPlayers.getSpawn(isAlt: false);
+                if (spawn != null)
+                {
+                    byte b = MeasurementTool.angleToByte(spawn.angle);
+                    player.Player.life.ReceiveRevive(spawn.point + new Vector3(0f, 0.5f, 0f), b);
+                }
+                else
+                {
+                    Logger.LogError($"Could not revive {steamID}!");
+                }
+            }
+        }
         private void OnPlayerDisconnected(UnturnedPlayer player)
         {
             ScavRunControler.OnPlayerDisconnected(player);
@@ -206,7 +231,6 @@ namespace SpeedMann.Unturnov
         }
         private void OnPlayerConnected(UnturnedPlayer player)
         {
-
             if (!PlayerSavedata.fileExists(player.SteamPlayer().playerID, "/Player/Player.dat"))
             {
                 // new player connected

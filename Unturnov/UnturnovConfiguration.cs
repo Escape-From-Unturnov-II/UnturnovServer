@@ -1968,8 +1968,6 @@ namespace SpeedMann.Unturnov
                 {
                     new ItemExtension(10),
                 },
-
-                StoredCaseContents = new List<CaseContent>(),
             };
             OpenableItemsConfig = new OpenableItemsConfig
             {

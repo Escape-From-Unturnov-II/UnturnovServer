@@ -111,6 +111,10 @@ namespace SpeedMann.Unturnov.Helper
                     case scavRequestEnd:
                         tryStopScavRun(player);
                         break;
+                    case scavActive:
+                    case scavCooldown:
+                        // dont log error if scav start / stop
+                        break;
                     default:
                         Logger.LogError($"Error ScavRunControlFlag for {player.DisplayName} was set to an invalid value");
                         break;
