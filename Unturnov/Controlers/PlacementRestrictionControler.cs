@@ -19,39 +19,13 @@ namespace SpeedMann.Unturnov.Helper
         private static PlacementRestrictionConfig Conf;
         private static Dictionary<ushort, PlacementRestriction> PlacementRestrictionDict;
 
-        private static Dictionary<CSteamID, ushort> lastPlaceRequest = new Dictionary<CSteamID, ushort>();
-
         public static void Init(PlacementRestrictionConfig config)
         {
             Conf = config;
             createDictionaryForPlacementRestrictions(Conf.Restrictions, Conf.FoundationSets);
             PlacementRestrictionDict = Unturnov.createDictionaryFromItemExtensions(Conf.Restrictions);
         }
-        internal static void OnPlayerDisconnect(UnturnedPlayer player)
-        {
-            lastPlaceRequest.Remove(player.CSteamID);
-        }
-        internal static void OnUseBarricade(UseableBarricade useableBarricade, bool post)
-        {
-            if (useableBarricade?.player?.equipment?.asset == null) return;
-            ItemAsset asset = useableBarricade.player.equipment.asset;
 
-            UnturnedPlayer player = UnturnedPlayer.FromPlayer(useableBarricade.player);
-
-            if (!post)
-            {
-                if (lastPlaceRequest.ContainsKey(player.CSteamID))
-                {
-                    lastPlaceRequest[player.CSteamID] = asset.id;
-                    return;
-                }
-
-                lastPlaceRequest.Add(player.CSteamID, asset.id);
-                return;
-            }
-
-            lastPlaceRequest.Remove(player.CSteamID);
-        }
         internal static void OnBarricadeDeploy(Barricade barricade, ItemBarricadeAsset asset, Transform hit, ref Vector3 point, ref float angle_x, ref float angle_y, ref float angle_z, ref ulong owner, ref ulong group, ref bool shouldAllow)
         {
             // hit != null barricade is placed on vehicle
@@ -92,26 +66,16 @@ namespace SpeedMann.Unturnov.Helper
                     Logger.Log($"RestrictedBarricade was placed on {target}");
                 }
 
-                if (!shouldAllow && tryFindPlacingPlayer(asset.id, out CSteamID playerId))
+                CSteamID playerId = new CSteamID(owner);
+
+                if (!shouldAllow && playerId != CSteamID.Nil)
                 {
                     EffectControler.spawnUI(Conf.Notification_UI.UI_Id, Conf.Notification_UI.UI_Key, playerId);
                 }
             }
 
         }
-        internal static bool tryFindPlacingPlayer(ushort itemId, out CSteamID playerId)
-        {
-            playerId = CSteamID.Nil;
-            foreach (KeyValuePair<CSteamID, ushort> entry in lastPlaceRequest)
-            {
-                if(entry.Value == itemId)
-                {
-                    playerId = entry.Key;
-                    return true;
-                }
-            }
-            return false;
-        }
+
         internal static void createDictionaryForPlacementRestrictions(List<PlacementRestriction> placementRestrictions, List<FoundationSet> foundationSets)
         {
             foreach (PlacementRestriction restriction in placementRestrictions)

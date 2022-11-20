@@ -1,4 +1,5 @@
 ﻿using SDG.Unturned;
+using SpeedMann.Unturnov.Helper;
 using Steamworks;
 using System;
 using System.Collections.Generic;
@@ -13,28 +14,18 @@ namespace SpeedMann.Unturnov.Models
 {
     internal class Hideout
     {
-        public CSteamID owner { get; private set; }
+        internal Vector3[] bounds;
         private Vector3 origin;
-        private float rotation;
-        private Vector3[] bounds;
+        private Vector3 rotation;
         private List<BarricadeStruct> barricades = new List<BarricadeStruct>();
 
-        internal Hideout(Vector3 origin, float rotation, Vector3[] bounds)
+        internal Hideout(Vector3 origin, float rotation)
         {
-            this.owner = CSteamID.Nil;
             this.origin = origin;
-            this.rotation = rotation;
+            this.rotation = new Vector3(0,rotation);
+
+            Vector3[] bounds = calcBounds(origin);
             setBounds(bounds);
-        }
-
-        internal void addBarricade(ushort id, Vector3 pos, Vector3 rot)
-        {
-            barricades.Add(new BarricadeStruct(id, pos, rot));
-        }
-
-        internal void saveBarricades()
-        {
-
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -48,14 +39,38 @@ namespace SpeedMann.Unturnov.Models
             }
             return false;
         }
-        internal bool isOwned()
-        {
-            return owner != CSteamID.Nil;
+        internal void restoreBarricade(BarricadeWrapper barricade, CSteamID playerId)
+        { 
+            BarricadeHelper.tryPlaceBarricade(barricade.id, barricade.location, barricade.rotation, playerId, CSteamID.Nil);
         }
-        private void restoreBarricades()
+        internal BarricadeWrapper convertToRelativePosition(BarricadeWrapper barricade)
         {
+            barricade.location = barricade.location - origin;
+            barricade.rotation = barricade.rotation - rotation;
+            return barricade;
+        }
+        internal BarricadeWrapper convertToAbsolutePosition(BarricadeWrapper barricade)
+        {
+            barricade.location = barricade.location + origin;
+            barricade.rotation = barricade.rotation + rotation;
+            return barricade;
+        }
 
+        private Vector3[] calcBounds(Vector3 point)
+        {
+            float height = 5;
+            float length = 8;
+            float width = 10;
+            Vector3 offset = new Vector3(width, height, length);
+
+            Vector3[] bounds = new Vector3[2];
+
+            bounds[0] = point;
+            bounds[1] = point + Quaternion.Euler(rotation) * offset;
+
+            return bounds;
         }
+
         private void setBounds(Vector3[] bounds)
         {
             this.bounds = new Vector3[2];
@@ -89,6 +104,8 @@ namespace SpeedMann.Unturnov.Models
                 min = valA;
             }
         }
+
+       
 
         struct BarricadeStruct
         {

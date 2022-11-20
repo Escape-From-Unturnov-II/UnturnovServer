@@ -1,6 +1,7 @@
 ﻿using Rocket.Unturned.Chat;
 using Rocket.Unturned.Player;
 using SDG.Unturned;
+using SpeedMann.Unturnov.Commands;
 using SpeedMann.Unturnov.Models;
 using SpeedMann.Unturnov.Models.Config;
 using System;
@@ -256,7 +257,7 @@ namespace SpeedMann.Unturnov.Helper
                 Logger.Log($"{player.DisplayName} stopped his ScavRun");
                 if (tryGetTier(player.Player.quests, out ScavKitTier tier))
                 {
-                    UnturnedChat.Say(player, Util.Translate("scav_cooldown", UnturnovCommands.formatTime(tier.Cooldown)), UnityEngine.Color.green);
+                    UnturnedChat.Say(player, Util.Translate("scav_cooldown", ScavCommands.formatTime(tier.Cooldown)), UnityEngine.Color.green);
                 }
                 return true;
             }

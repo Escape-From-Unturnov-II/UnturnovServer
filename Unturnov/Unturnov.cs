@@ -90,6 +90,7 @@ namespace SpeedMann.Unturnov
 
             if (ModsLoaded)
             {
+                //TODO: claim hideouts on reload
                 Conf.addNames();
             }
 
@@ -103,7 +104,6 @@ namespace SpeedMann.Unturnov
             UnturnedPlayerEvents.OnPlayerInventoryAdded += OnInventoryUpdated;
             PlayerCrafting.onCraftBlueprintRequested += OnCraft;
 
-            UnturnedPatches.OnUseBarricade += OnUseBarricade;
             BarricadeManager.onDeployBarricadeRequested += OnBarricadeDeploy;
 
             UnturnedPatches.OnPrePlayerDead += OnPlayerDead;
@@ -153,7 +153,6 @@ namespace SpeedMann.Unturnov
             UnturnedPlayerEvents.OnPlayerInventoryAdded -= OnInventoryUpdated;
             PlayerCrafting.onCraftBlueprintRequested -= OnCraft;
 
-            UnturnedPatches.OnUseBarricade -= OnUseBarricade;
             BarricadeManager.onDeployBarricadeRequested -= OnBarricadeDeploy;
 
             UnturnedPatches.OnPrePlayerDead -= OnPlayerDead;
@@ -226,7 +225,6 @@ namespace SpeedMann.Unturnov
             ScavRunControler.OnPlayerDisconnected(player);
             OpenableItemsControler.OnPlayerDisconnected(player);
             QuestExtensionControler.OnPlayerDisconected(player);
-            PlacementRestrictionControler.OnPlayerDisconnect(player);
         }
         private void OnPlayerConnected(UnturnedPlayer player)
         {
@@ -249,11 +247,6 @@ namespace SpeedMann.Unturnov
         {
             ScavRunControler.OnFlagChanged(quests, flag);
             TeleportControler.OnFlagChanged(quests, flag);
-        }
-        private void OnUseBarricade(UseableBarricade useableBarricade, bool post)
-        {
-
-            PlacementRestrictionControler.OnUseBarricade(useableBarricade, post);
         }
         private void OnBarricadeDeploy(Barricade barricade, ItemBarricadeAsset asset, Transform hit, ref Vector3 point, ref float angle_x, ref float angle_y, ref float angle_z, ref ulong owner, ref ulong group, ref bool shouldAllow)
         {

@@ -132,11 +132,13 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Commands\HideoutCommands.cs" />
     <Compile Include="Controlers\CraftingStationControler.cs" />
     <Compile Include="Controlers\DropControler.cs" />
     <Compile Include="Controlers\HideoutControler.cs" />
     <Compile Include="Controlers\QuestExtensionControler.cs" />
     <Compile Include="Controlers\SkinControler.cs" />
+    <Compile Include="Helper\BarricadeHelper.cs" />
     <Compile Include="Helper\DatabaseManager.cs" />
     <Compile Include="Helper\EffectControler.cs" />
     <Compile Include="Helper\InventoryHelper.cs" />
@@ -148,6 +150,7 @@
     <Compile Include="Controlers\SecureCaseControler.cs" />
     <Compile Include="Controlers\TeleportControler.cs" />
     <Compile Include="Helper\UnturnedPrivateFields.cs" />
+    <Compile Include="Models\BarricadeWrapper.cs" />
     <Compile Include="Models\Config\CaseContent.cs" />
     <Compile Include="Models\Config\DeathDropConfig.cs" />
     <Compile Include="Models\Config\FoundationSet.cs" />
@@ -188,7 +191,7 @@
     <Compile Include="Models\ScavMode\StoredInventory.cs" />
     <Compile Include="Models\ScavMode\StoredItem.cs" />
     <Compile Include="Models\Config\TeleportDescription.cs" />
-    <Compile Include="UnturnovCommands.cs" />
+    <Compile Include="Commands\ScavCommands.cs" />
     <Compile Include="Helper\UnturnedPatches.cs" />
     <Compile Include="Models\Config\CombineDescription.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

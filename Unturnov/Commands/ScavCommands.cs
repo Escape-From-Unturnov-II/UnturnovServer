@@ -12,9 +12,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace SpeedMann.Unturnov
+namespace SpeedMann.Unturnov.Commands
 {
-    class UnturnovCommands : IRocketCommand
+    class ScavCommands : IRocketCommand
     {
         public string Help
         {
@@ -91,53 +91,6 @@ namespace SpeedMann.Unturnov
                                 UnturnedChat.Say(caller, "You are not a scav", UnityEngine.Color.red);
                             }
                         }
-                        break;
-                    case "getpos":
-                        string pos = $"Your position: x: {player.Position.x}, y: {player.Position.y}, z: {player.Position.z}";
-                        UnturnedChat.Say(caller, pos, UnityEngine.Color.cyan);
-                        Logger.Log(pos);
-                        break;
-                    case "skin":
-                        // player.Player.clothing.thirdClothes.visualBackpack;
-                        UnturnedChat.Say($"hat channel owner: {player.Player.channel.owner.hatItem}");
-                        UnturnedChat.Say($"hat third: {player.Player.clothing.thirdClothes?.visualHat}");
-                        player.Player.clothing.thirdClothes.visualHat = 93301;
-                        player.Player.channel.owner.hatItem = 93301;
-
-                        SteamPlayer aboutPlayer = player.SteamPlayer();
-                        aboutPlayer.hatItem = 93301;
-
-                        UnturnedPrivateFields.TryBroadcastDisconnect(aboutPlayer);
-                        UnturnedPrivateFields.TryBroadcastConnect(aboutPlayer);
-                        /*
-                        foreach (SteamPlayer sPlayer in Provider.clients)
-                        {
-                            MessageHandler.SendMessageToClient(EClientMessage.InvokeMethod, ENetReliability.Reliable, sPlayer.transportConnection, delegate (NetPakWriter writer)
-                            {
-                                UnturnedPrivateFields.WriteConnectedMessage(writer, aboutPlayer, sPlayer);
-                            });
-
-                        }
-                        
-                        ITransportConnection transportConnection = Provider.findTransportConnection(player.CSteamID);
-                        if (transportConnection == null)
-                        {
-                            Logger.LogError("Error CSteamID not found");
-                            return;
-                        }
-
-                        SteamPending pending = new SteamPending(transportConnection, steamPlayerID, newPro, newFace, newHair, newBeard, c, c2, c3, newHand, newPackageShirt, newPackagePants, newPackageHat, newPackageBackpack, newPackageVest, newPackageMask, newPackageGlasses, ServerMessageHandler_ReadyToConnect.pendingPackageSkins.ToArray(), newSkillset, newLanguage, newLobbyID);
-                        pending.getInventoryItem();
-
-
-                        foreach (SteamPlayer sPlayer in Provider.clients)
-                        {
-                            MessageHandler.SendMessageToClient(EClientMessage.InvokeMethod, ENetReliability.Reliable, sPlayer.transportConnection, delegate (NetPakWriter writer)
-                            {
-
-                            });
-                        }
-                        */
                         break;
                     default:
                         UnturnedChat.Say(caller, "Invalid Command parameters", UnityEngine.Color.red);
