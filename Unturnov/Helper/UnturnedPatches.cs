@@ -8,8 +8,7 @@ using Steamworks;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Logger = Rocket.Core.Logging.Logger;
 
 namespace SpeedMann.Unturnov.Helper
 {
@@ -313,12 +312,11 @@ namespace SpeedMann.Unturnov.Helper
         [HarmonyPatch(typeof(Provider), nameof(Provider.accept), new Type[] { typeof(SteamPending) })]
         class ClientAcceptedPatch
         {
+            [HarmonyPrefix]
             internal static bool OnPreClientAcceptedInvoker(SteamPending player)
             {
-
+                
                 Logger.Log($"{player.playerID.characterName}");
-
-                //player.backpackItem = 83000;
 
                 return true;
             }

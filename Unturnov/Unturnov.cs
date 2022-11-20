@@ -71,6 +71,7 @@ namespace SpeedMann.Unturnov
             ScavRunControler.Init();
             SecureCaseControler.Init(Conf.SecureCaseConfig);
             PlacementRestrictionControler.Init(Conf.PlacementRestrictionConfig);
+            HideoutControler.Init(Conf.HideoutConfig);
             OpenableItemsControler.Init();
             QuestExtensionControler.Init();
             DropControler.Init(Conf.DeathDropConfig);
@@ -202,11 +203,9 @@ namespace SpeedMann.Unturnov
         }
         private void OnPreDisconnectSave(CSteamID steamID, ref bool shouldAllow)
         {
-            Logger.Log("pre save");
             UnturnedPlayer player = UnturnedPlayer.FromCSteamID(steamID);
             if (player == null) return;
 
-            Logger.Log("pre save not null");
             if (player.Dead)
             {
                 player.Player.life.sendRevive();
@@ -235,6 +234,7 @@ namespace SpeedMann.Unturnov
             {
                 // new player connected
             }
+            HideoutControler.OnPlayerConnected(player);
             ScavRunControler.OnPlayerConnected(player);
             if (!ScavRunControler.isScavRunActive(player))
             {
@@ -252,11 +252,15 @@ namespace SpeedMann.Unturnov
         }
         private void OnUseBarricade(UseableBarricade useableBarricade, bool post)
         {
+
             PlacementRestrictionControler.OnUseBarricade(useableBarricade, post);
         }
         private void OnBarricadeDeploy(Barricade barricade, ItemBarricadeAsset asset, Transform hit, ref Vector3 point, ref float angle_x, ref float angle_y, ref float angle_z, ref ulong owner, ref ulong group, ref bool shouldAllow)
         {
+            if (!shouldAllow) return;
+
             PlacementRestrictionControler.OnBarricadeDeploy(barricade, asset, hit, ref point, ref angle_x, ref angle_y, ref angle_z, ref owner, ref group, ref shouldAllow);
+            HideoutControler.OnBarricadeDeploy(barricade, asset, hit, ref point, ref angle_x, ref angle_y, ref angle_z, ref owner, ref group, ref shouldAllow);
         }
         private void OnInteractableConditionCheck(ObjectAsset objectAsset, Player player, ref bool shouldAllow)
         {

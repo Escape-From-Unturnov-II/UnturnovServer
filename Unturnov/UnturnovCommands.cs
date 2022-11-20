@@ -92,6 +92,11 @@ namespace SpeedMann.Unturnov
                             }
                         }
                         break;
+                    case "getpos":
+                        string pos = $"Your position: x: {player.Position.x}, y: {player.Position.y}, z: {player.Position.z}";
+                        UnturnedChat.Say(caller, pos, UnityEngine.Color.cyan);
+                        Logger.Log(pos);
+                        break;
                     case "skin":
                         // player.Player.clothing.thirdClothes.visualBackpack;
                         UnturnedChat.Say($"hat channel owner: {player.Player.channel.owner.hatItem}");

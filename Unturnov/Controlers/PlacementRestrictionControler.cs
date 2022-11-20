@@ -35,42 +35,37 @@ namespace SpeedMann.Unturnov.Helper
         {
             if (useableBarricade?.player?.equipment?.asset == null) return;
             ItemAsset asset = useableBarricade.player.equipment.asset;
-            if (PlacementRestrictionDict.ContainsKey(asset.id))
+
+            UnturnedPlayer player = UnturnedPlayer.FromPlayer(useableBarricade.player);
+
+            if (!post)
             {
-                UnturnedPlayer player = UnturnedPlayer.FromPlayer(useableBarricade.player);
-                
-                if (!post)
+                if (lastPlaceRequest.ContainsKey(player.CSteamID))
                 {
-                    if (Conf.Debug)
-                    {
-                        Logger.Log($"{player.CSteamID} use RestrictedBarricade {asset.name} [{asset.id}]");
-                    }
-                    if (lastPlaceRequest.ContainsKey(player.CSteamID))
-                    {
-                        lastPlaceRequest[player.CSteamID] = asset.id;
-                    }
-                    else
-                    {
-                        lastPlaceRequest.Add(player.CSteamID, asset.id);
-                    }
+                    lastPlaceRequest[player.CSteamID] = asset.id;
+                    return;
                 }
-                else
-                {
-                    lastPlaceRequest.Remove(player.CSteamID);
-                }
+
+                lastPlaceRequest.Add(player.CSteamID, asset.id);
+                return;
             }
+
+            lastPlaceRequest.Remove(player.CSteamID);
         }
         internal static void OnBarricadeDeploy(Barricade barricade, ItemBarricadeAsset asset, Transform hit, ref Vector3 point, ref float angle_x, ref float angle_y, ref float angle_z, ref ulong owner, ref ulong group, ref bool shouldAllow)
         {
             // hit != null barricade is placed on vehicle
-            
-            if (PlacementRestrictionDict.TryGetValue(asset.id, out PlacementRestriction restriction))
+
+            if (!shouldAllow) return;
+
+            if (PlacementRestrictionDict.TryGetValue(asset.id, out PlacementRestriction restriction) && restriction != null)
             {
                 shouldAllow = false;
 
                 Physics.Raycast(new Vector3(point.x, point.y + Conf.Offset, point.z), Vector3.down, out RaycastHit raycastHit, Conf.Offset * 2, RayMasks.BLOCK_COLLISION);
                 if (raycastHit.transform == null) return;
 
+                string target = "unknown";
                 switch(raycastHit.transform.tag)
                 {
                     case "Barricade":
@@ -78,10 +73,7 @@ namespace SpeedMann.Unturnov.Helper
                         if (barricadeDrop?.asset != null && restriction.ValidBarricades.ContainsKey(barricadeDrop.asset.id))
                         {
                             shouldAllow = true;
-                            if (Conf.Debug)
-                            {
-                                Logger.Log($"RestrictedBarricade was placed on {barricadeDrop.asset.name}");
-                            }
+                            target = barricadeDrop.asset.name;
                         }
                         break;
                     case "Large":
@@ -91,21 +83,23 @@ namespace SpeedMann.Unturnov.Helper
                         if (objectAsset != null && restriction.ValidObjects.ContainsKey(objectAsset.id))
                         {
                             shouldAllow = true;
-                            if (Conf.Debug)
-                            {
-                                Logger.Log($"RestrictedBarricade was placed on {objectAsset.name}");
-                            }
+                            target = objectAsset.name;
                         }
                         break;
                 }
-                if(!shouldAllow && tryFindPlacingPlayer(asset.id, out CSteamID playerId))
+                if (shouldAllow && Conf.Debug)
+                {
+                    Logger.Log($"RestrictedBarricade was placed on {target}");
+                }
+
+                if (!shouldAllow && tryFindPlacingPlayer(asset.id, out CSteamID playerId))
                 {
                     EffectControler.spawnUI(Conf.Notification_UI.UI_Id, Conf.Notification_UI.UI_Key, playerId);
                 }
             }
 
         }
-        private static bool tryFindPlacingPlayer(ushort itemId, out CSteamID playerId)
+        internal static bool tryFindPlacingPlayer(ushort itemId, out CSteamID playerId)
         {
             playerId = CSteamID.Nil;
             foreach (KeyValuePair<CSteamID, ushort> entry in lastPlaceRequest)

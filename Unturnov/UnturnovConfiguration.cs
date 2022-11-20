@@ -31,6 +31,7 @@ namespace SpeedMann.Unturnov
         
 
         public PlacementRestrictionConfig PlacementRestrictionConfig;
+        public HideoutConfig HideoutConfig;
         public DeathDropConfig DeathDropConfig;
         public SecureCaseConfig SecureCaseConfig;
         public OpenableItemsConfig OpenableItemsConfig;
@@ -1912,6 +1913,10 @@ namespace SpeedMann.Unturnov
                 SupplyTable = new SpawnTableExtension(),
             };
 
+            HideoutConfig = new HideoutConfig
+            {
+                Notification_UI = new Notification_UI(52310, 5230),
+            };
             PlacementRestrictionConfig = new PlacementRestrictionConfig
             {
                 Debug = true,

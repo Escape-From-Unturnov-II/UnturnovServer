@@ -134,7 +134,9 @@
   <ItemGroup>
     <Compile Include="Controlers\CraftingStationControler.cs" />
     <Compile Include="Controlers\DropControler.cs" />
+    <Compile Include="Controlers\HideoutControler.cs" />
     <Compile Include="Controlers\QuestExtensionControler.cs" />
+    <Compile Include="Controlers\SkinControler.cs" />
     <Compile Include="Helper\DatabaseManager.cs" />
     <Compile Include="Helper\EffectControler.cs" />
     <Compile Include="Helper\InventoryHelper.cs" />
@@ -149,6 +151,7 @@
     <Compile Include="Models\Config\CaseContent.cs" />
     <Compile Include="Models\Config\DeathDropConfig.cs" />
     <Compile Include="Models\Config\FoundationSet.cs" />
+    <Compile Include="Models\Config\HideoutConfig.cs" />
     <Compile Include="Models\Config\ItemWhitelist.cs" />
     <Compile Include="Models\Config\OpenableItemsConfig.cs" />
     <Compile Include="Models\Config\PlacementRestriction.cs" />
@@ -161,6 +164,7 @@
     <Compile Include="Models\GenericOccurrence.cs" />
     <Compile Include="Models\GunAttachments.cs" />
     <Compile Include="Models\Config\DeathDrop.cs" />
+    <Compile Include="Models\Hideout.cs" />
     <Compile Include="Models\InternalMagReloadState.cs" />
     <Compile Include="Models\Config\ItemExtension.cs" />
     <Compile Include="Models\ItemJarWrapper.cs" />
