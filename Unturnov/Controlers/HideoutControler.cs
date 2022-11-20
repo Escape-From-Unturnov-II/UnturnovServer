@@ -123,7 +123,6 @@ namespace SpeedMann.Unturnov.Controlers
                 return;
             }
 
-
             hideoutBarricades[playerId].Add(new BarricadeWrapper(barricade.id, location, rotation));
         }
         internal static void saveBarricades(CSteamID playerId, Hideout hideout)
@@ -161,7 +160,6 @@ namespace SpeedMann.Unturnov.Controlers
 
             foreach (BarricadeWrapper barricade in savedBarricades[playerId])
             {
-                hideoutBarricades[playerId].Add(hideout.convertToAbsolutePosition(barricade));
                 hideout.restoreBarricade(barricade, playerId);
             }
 
