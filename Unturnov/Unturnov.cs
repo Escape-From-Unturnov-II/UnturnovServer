@@ -125,6 +125,7 @@ namespace SpeedMann.Unturnov
 
             UnturnedPatches.OnPreInteractabilityCondition += OnInteractableConditionCheck;
             PlayerEquipment.OnUseableChanged_Global += OnEquipmentChanged;
+
             PlayerEquipment.OnInspectingUseable_Global += OnInspect;
 
             UnturnedPatches.OnPreDisconnectSave += OnPreDisconnectSave;
@@ -242,6 +243,7 @@ namespace SpeedMann.Unturnov
         private void OnEquipmentChanged(PlayerEquipment equipment)
         {
             OpenableItemsControler.OnEquipmentChanged(equipment);
+
         }
         private void OnFlagChanged(PlayerQuests quests, PlayerQuestFlag flag)
         {
