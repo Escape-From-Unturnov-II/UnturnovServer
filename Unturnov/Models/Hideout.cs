@@ -14,18 +14,55 @@ namespace SpeedMann.Unturnov.Models
 {
     internal class Hideout
     {
+        internal CSteamID owner;
         internal Vector3[] bounds;
-        private Vector3 origin;
-        private Vector3 rotation;
-        private List<BarricadeStruct> barricades = new List<BarricadeStruct>();
+        internal Vector3 origin;
+        internal Vector3 rotation;
+        private List<BarricadeWrapper> barricades = new List<BarricadeWrapper>();
 
         internal Hideout(Vector3 origin, float rotation)
         {
+            owner = CSteamID.Nil;
             this.origin = origin;
-            this.rotation = new Vector3(0,rotation);
+            this.rotation = new Vector3(0, rotation, 0);
 
             Vector3[] bounds = calcBounds(origin);
             setBounds(bounds);
+        }
+        internal void claim(CSteamID newOwner)
+        {
+            owner = newOwner;
+            barricades.Clear();
+        }
+        internal void free()
+        {
+            owner = CSteamID.Nil;
+        }
+        internal void addBarricade(CSteamID playerId, ItemBarricadeAsset barricade, Vector3 location, Vector3 rotation)
+        {
+            barricades.Add(new BarricadeWrapper(barricade.id, location, rotation));
+        }
+        internal List<BarricadeWrapper> clearBarricades()
+        {
+            foreach (BarricadeWrapper barricade in barricades)
+            {
+                if (!BarricadeHelper.tryDestroyBarricade(barricade.location, barricade.id))
+                {
+                    Logger.LogWarning($"Barricade {barricade.id} of {owner} at {barricade.location} could not be destroyed");
+                }
+
+                barricade.convertToRelative(origin, rotation);
+            }
+            return barricades;
+        }
+        internal void restoreBarricades(List<BarricadeWrapper> barricades, CSteamID playerId)
+        {
+            foreach (BarricadeWrapper barricade in barricades)
+            {
+                barricade.convertToAbsolute(origin, rotation);
+                BarricadeHelper.tryPlaceBarricade(barricade.id, barricade.location, barricade.rotation, playerId, CSteamID.Nil);
+            };
+            // barricade will be automatically added when succesesfully placed
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -39,23 +76,6 @@ namespace SpeedMann.Unturnov.Models
             }
             return false;
         }
-        internal void restoreBarricade(BarricadeWrapper barricade, CSteamID playerId)
-        { 
-            BarricadeHelper.tryPlaceBarricade(barricade.id, barricade.location, barricade.rotation, playerId, CSteamID.Nil);
-        }
-        internal BarricadeWrapper convertToRelativePosition(BarricadeWrapper barricade)
-        {
-            barricade.location = barricade.location - origin;
-            barricade.rotation = barricade.rotation - rotation;
-            return barricade;
-        }
-        internal BarricadeWrapper convertToAbsolutePosition(BarricadeWrapper barricade)
-        {
-            barricade.location = barricade.location + origin;
-            barricade.rotation = barricade.rotation + rotation;
-            return barricade;
-        }
-
         private Vector3[] calcBounds(Vector3 point)
         {
             float height = 5;
@@ -103,23 +123,6 @@ namespace SpeedMann.Unturnov.Models
                 max = valB;
                 min = valA;
             }
-        }
-
-       
-
-        struct BarricadeStruct
-        {
-            ushort id;
-            Vector3 pos;
-            Vector3 rot;
-
-            internal BarricadeStruct(ushort id, Vector3 pos, Vector3 rot)
-            {
-                this.id = id;
-                this.pos = pos;
-                this.rot = rot;
-            } 
-            
         }
     }
 }

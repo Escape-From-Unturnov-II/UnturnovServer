@@ -30,7 +30,6 @@ namespace SpeedMann.Unturnov.Helper
             {
                 if(drop.asset.id == id)
                 {
-                    Logger.Log($"found drop with id {id} distance {Vector3.Distance(drop.model.transform.position, location)}");
                     if(Vector3.Distance(drop.model.transform.position, location) <= 0.01)
                     {
                         BarricadeManager.destroyBarricade(drop, x, y, ushort.MaxValue);
@@ -70,7 +69,7 @@ namespace SpeedMann.Unturnov.Helper
 
             if(barricadeTransform == null)
             {
-                Logger.LogError($"Could not place barricade [{assetId}]!");
+                Logger.LogError($"Could not place barricade [{assetId}] at {pos}!");
                 return false;
             }
 

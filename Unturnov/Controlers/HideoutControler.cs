@@ -17,7 +17,6 @@ namespace SpeedMann.Unturnov.Controlers
     internal class HideoutControler
     {
         private static HideoutConfig Conf;
-        private static Dictionary<CSteamID, List<BarricadeWrapper>> hideoutBarricades = new Dictionary<CSteamID, List<BarricadeWrapper>>();
         private static Dictionary<CSteamID, List<BarricadeWrapper>> savedBarricades = new Dictionary<CSteamID, List<BarricadeWrapper>>();
         private static Dictionary<CSteamID, Hideout> claimedHideouts = new Dictionary<CSteamID, Hideout>();
         private static List<Hideout> freeHideouts = new List<Hideout>();
@@ -27,12 +26,10 @@ namespace SpeedMann.Unturnov.Controlers
             Conf = hideoutConfig;
             claimedHideouts = new Dictionary<CSteamID, Hideout>();
 
-            Vector3 centerA = new Vector3(868, 8.5f, -350);
-            Vector3 centerB = new Vector3(879, 8.5f, -350);
-
             //TODO fix rotation
-            freeHideouts.Add(new Hideout(centerA, 0));
-            freeHideouts.Add(new Hideout(centerB, 0));
+            freeHideouts.Add(new Hideout(new Vector3(868, 8.5f, -350), 0));
+            //freeHideouts.Add(new Hideout(new Vector3(879, 8.5f, -350), 0));
+            freeHideouts.Add(new Hideout(new Vector3(879, 8.5f, -355), 180));
         }
         internal static Hideout getHideout(CSteamID playerId)
         {
@@ -85,15 +82,9 @@ namespace SpeedMann.Unturnov.Controlers
                 return;
             }
             Hideout claimedHideout = freeHideouts[0];
+            claimedHideout.claim(player.CSteamID);
             claimedHideouts.Add(player.CSteamID, claimedHideout);
             freeHideouts.RemoveAt(0);
-
-            if (hideoutBarricades.ContainsKey(player.CSteamID))
-            {
-                Logger.LogWarning($"{player.CSteamID} already has hideout barricades!");
-                return;
-            }
-            hideoutBarricades.Add(player.CSteamID, new List<BarricadeWrapper>());
 
             restoreBarricades(player.CSteamID, claimedHideout);
         }
@@ -103,47 +94,24 @@ namespace SpeedMann.Unturnov.Controlers
             if (!claimedHideouts.TryGetValue(player.CSteamID, out Hideout hideout) || hideout == null) return;
 
             saveBarricades(player.CSteamID, hideout);
-
+            hideout.free();
             claimedHideouts.Remove(player.CSteamID);
             freeHideouts.Add(hideout);
-
-            hideoutBarricades.Remove(player.CSteamID);
         }
 
         internal static void addBarricade(CSteamID playerId, ItemBarricadeAsset barricade, Vector3 location, Vector3 rotation)
         {
-            if (!claimedHideouts.ContainsKey(playerId))
-            {
-                Logger.LogWarning($"{playerId} has no hideout");
-                return;
-            }
-            if(!hideoutBarricades.ContainsKey(playerId))
+            if (!claimedHideouts.TryGetValue(playerId, out Hideout hideout))
             {
                 Logger.LogWarning($"{playerId} has no hideout");
                 return;
             }
 
-            hideoutBarricades[playerId].Add(new BarricadeWrapper(barricade.id, location, rotation));
+            hideout.addBarricade(playerId, barricade, location, rotation);
         }
         internal static void saveBarricades(CSteamID playerId, Hideout hideout)
         {
-            if (!hideoutBarricades.ContainsKey(playerId))
-            {
-                Logger.Log($"{playerId} has no barricades");
-                return;
-            }
-            if (!savedBarricades.ContainsKey(playerId))
-            {
-                savedBarricades.Add(playerId, new List<BarricadeWrapper>());
-            }
-            savedBarricades[playerId].Clear();
-
-            foreach (BarricadeWrapper barricade in hideoutBarricades[playerId])
-            {
-                BarricadeHelper.tryDestroyBarricade(barricade.location, barricade.id);
-                savedBarricades[playerId].Add(hideout.convertToRelativePosition(barricade));
-            }
-            hideoutBarricades.Clear();
+            savedBarricades[playerId] = hideout.clearBarricades();
         }
         internal static void restoreBarricades(CSteamID playerId, Hideout hideout)
         {
@@ -152,18 +120,9 @@ namespace SpeedMann.Unturnov.Controlers
                 Logger.Log($"{playerId} has no barricades");
                 return;
             }
-            if (!hideoutBarricades.ContainsKey(playerId))
-            {
-                hideoutBarricades.Add(playerId, new List<BarricadeWrapper>());
-            }
-            hideoutBarricades[playerId].Clear();
+            hideout.restoreBarricades(savedBarricades[playerId], playerId);
 
-            foreach (BarricadeWrapper barricade in savedBarricades[playerId])
-            {
-                hideout.restoreBarricade(barricade, playerId);
-            }
-
-            savedBarricades.Clear();
+            savedBarricades.Remove(playerId);
         }
     }
 }
