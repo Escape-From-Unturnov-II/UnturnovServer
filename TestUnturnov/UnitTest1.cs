@@ -10,9 +10,7 @@ namespace SpeedMann.Unturnov
         [TestMethod]
         public void TestMethod1()
         {
-            HideoutControler.freeHideout(player);
-            HideoutControler.claimHideout(player);
-            Hideout hideout = HideoutControler.getHideout(player.CSteamID);
+
         }
     }
 }

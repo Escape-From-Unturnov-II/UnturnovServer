@@ -25,12 +25,12 @@ namespace SpeedMann.Unturnov.Models
 
         public void convertToRelative(Vector3 originLocation, Vector3 originRotation)
         {
-            location = Quaternion.Euler(originLocation - location) * originRotation;
+            location = Quaternion.Euler(originRotation) * (location - originLocation);
             rotation = rotation - originRotation;
         }
         public void convertToAbsolute(Vector3 originLocation, Vector3 originRotation)
         {
-            location = originLocation + Quaternion.Euler(location) * originRotation;
+            location = originLocation + Quaternion.Euler(originRotation) * location;
             rotation = rotation + originRotation;
         }
     }
