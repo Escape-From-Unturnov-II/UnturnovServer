@@ -33,7 +33,6 @@ namespace SpeedMann.Unturnov
 
         private Dictionary<ushort, CombineDescription> AutoCombineDict;
         private Dictionary<ushort, ushort> MagazineDict;
-        private Dictionary<ushort, ItemExtension> MultiUseDict;
         private Dictionary<ushort, ItemExtension> GunModdingDict;
         private Dictionary<ushort, ReloadInner> ReloadExtensionByGun;
         private Dictionary<CSteamID, InternalMagReloadState> ReloadExtensionStates;
@@ -82,7 +81,6 @@ namespace SpeedMann.Unturnov
 
             MagazineDict = createDictionaryFromMagazineExtensions(Conf.UnloadMagBlueprints);
             AutoCombineDict = createDictionaryFromAutoCombine(Conf.AutoCombine);
-            MultiUseDict = createDictionaryFromItemExtensions(Conf.MultiUseItems);
             GunModdingDict = createDictionaryFromItemExtensions(Conf.GunModdingResults);
             ReloadExtensionByGun = createDictionaryFromReloadExtensionsByGun(Conf.ReloadExtensions);
 
@@ -105,6 +103,7 @@ namespace SpeedMann.Unturnov
             PlayerCrafting.onCraftBlueprintRequested += OnCraft;
 
             BarricadeManager.onDeployBarricadeRequested += OnBarricadeDeploy;
+            UnturnedPatches.OnPreDestroyBarricade += OnBarricadeDestroy;
 
             UnturnedPatches.OnPrePlayerDead += OnPlayerDead;
             UnturnedPatches.OnPostPlayerRevive += OnPlayerRevived;
@@ -155,6 +154,7 @@ namespace SpeedMann.Unturnov
             PlayerCrafting.onCraftBlueprintRequested -= OnCraft;
 
             BarricadeManager.onDeployBarricadeRequested -= OnBarricadeDeploy;
+            UnturnedPatches.OnPreDestroyBarricade -= OnBarricadeDestroy;
 
             UnturnedPatches.OnPrePlayerDead -= OnPlayerDead;
             UnturnedPatches.OnPostPlayerRevive -= OnPlayerRevived;
@@ -204,6 +204,7 @@ namespace SpeedMann.Unturnov
         private void OnPreDisconnectSave(CSteamID steamID, ref bool shouldAllow)
         {
             UnturnedPlayer player = UnturnedPlayer.FromCSteamID(steamID);
+
             if (player == null) return;
 
             if (player.Dead)
@@ -256,6 +257,10 @@ namespace SpeedMann.Unturnov
 
             PlacementRestrictionControler.OnBarricadeDeploy(barricade, asset, hit, ref point, ref angle_x, ref angle_y, ref angle_z, ref owner, ref group, ref shouldAllow);
             HideoutControler.OnBarricadeDeploy(barricade, asset, hit, ref point, ref angle_x, ref angle_y, ref angle_z, ref owner, ref group, ref shouldAllow);
+        }
+        private void OnBarricadeDestroy(BarricadeDrop barricade, byte x, byte y, ushort plant)
+        {
+            HideoutControler.OnBarricadeDestroy(barricade, x, y, plant);
         }
         private void OnInteractableConditionCheck(ObjectAsset objectAsset, Player player, ref bool shouldAllow)
         {

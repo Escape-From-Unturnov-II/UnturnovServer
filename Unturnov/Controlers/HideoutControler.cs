@@ -68,6 +68,24 @@ namespace SpeedMann.Unturnov.Controlers
 
             addBarricade(playerId, asset, point, new Vector3(angle_x, angle_y, angle_z));
         }
+        internal static void OnBarricadeDestroy(BarricadeDrop barricade, byte x, byte y, ushort plant)
+        {
+            
+            if (!UnturnedPrivateFields.TryGetServersideData(barricade, out BarricadeData data))
+            {
+                return;
+            }
+            if(data == null || data.owner == 0)
+            {
+                Logger.LogWarning("destroyed barricade without owner");
+                return;
+            }
+
+            CSteamID ownerId = new CSteamID(data.owner);
+            if (ownerId == CSteamID.Nil || !claimedHideouts.TryGetValue(ownerId, out Hideout hideout) || hideout == null) return;
+
+            hideout.removeBarricade(barricade, barricade.model.transform.position);
+        }
 
         internal static void claimHideout(UnturnedPlayer player)
         {

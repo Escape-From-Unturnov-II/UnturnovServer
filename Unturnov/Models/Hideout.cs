@@ -18,6 +18,8 @@ namespace SpeedMann.Unturnov.Models
         internal Vector3[] bounds;
         internal Vector3 origin;
         internal Vector3 rotation;
+
+        private Vector3 hideoutDimensions = new Vector3(11, 5, 8);
         private List<BarricadeWrapper> barricades = new List<BarricadeWrapper>();
 
         internal Hideout(Vector3 origin, float rotation)
@@ -42,18 +44,39 @@ namespace SpeedMann.Unturnov.Models
         {
             barricades.Add(new BarricadeWrapper(barricade.id, location, rotation));
         }
+        internal void removeBarricade(BarricadeDrop barricade, Vector3 location)
+        {
+            BarricadeWrapper toRemove = null;
+            foreach (BarricadeWrapper containingBarricade in barricades)
+            {
+                if(containingBarricade.id == barricade.asset.id && containingBarricade.location == location)
+                {
+                    toRemove = containingBarricade;
+                    break;
+                }
+            }
+            if(toRemove == null)
+            {
+                Logger.LogError($"could not find destroyed barricade in hideout of {owner}");
+                return;
+            }
+            barricades.Remove(toRemove);
+        }
         internal List<BarricadeWrapper> clearBarricades()
         {
-            foreach (BarricadeWrapper barricade in barricades)
+            List<BarricadeWrapper> clearedBarricades = new List<BarricadeWrapper>();
+            while (barricades.Count > 0)
             {
-                if (!BarricadeHelper.tryDestroyBarricade(barricade.location, barricade.id))
+                BarricadeWrapper current = barricades[0];
+                if (!BarricadeHelper.tryDestroyBarricade(barricades[0].location, barricades[0].id))
                 {
-                    Logger.LogWarning($"Barricade {barricade.id} of {owner} at {barricade.location} could not be destroyed");
+                    Logger.LogWarning($"Barricade {barricades[0].id} of {owner} at {barricades[0].location} could not be destroyed");
+                    continue;
                 }
-
-                barricade.convertToRelative(origin, rotation);
+                current.convertToRelative(origin, rotation);
+                clearedBarricades.Add(current);
             }
-            return barricades;
+            return clearedBarricades;
         }
         internal void restoreBarricades(List<BarricadeWrapper> barricades, CSteamID playerId)
         {
@@ -78,15 +101,10 @@ namespace SpeedMann.Unturnov.Models
         }
         private Vector3[] calcBounds(Vector3 point)
         {
-            float height = 5;
-            float length = 8;
-            float width = 10;
-            Vector3 offset = new Vector3(width, height, length);
-
             Vector3[] bounds = new Vector3[2];
 
             bounds[0] = point;
-            bounds[1] = point + Quaternion.Euler(rotation) * offset;
+            bounds[1] = point + Quaternion.Euler(rotation) * hideoutDimensions;
 
             return bounds;
         }

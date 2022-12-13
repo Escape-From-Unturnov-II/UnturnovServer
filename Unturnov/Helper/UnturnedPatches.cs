@@ -67,7 +67,8 @@ namespace SpeedMann.Unturnov.Helper
 
         public delegate void UseBarricade(UseableBarricade useableBarricade, bool post);
         public static event UseBarricade OnUseBarricade;
-        
+        public delegate void PreDestroyBarricade(BarricadeDrop barricade, byte x, byte y, ushort plant);
+        public static event PreDestroyBarricade OnPreDestroyBarricade;
 
         public delegate void PreTryAddItemAuto(PlayerInventory inventory, Item item, ref bool autoEquipWeapon, ref bool autoEquipUseable, ref bool autoEquipClothing);
         public static event PreTryAddItemAuto OnPreTryAddItemAuto;
@@ -128,6 +129,18 @@ namespace SpeedMann.Unturnov.Helper
                 OnUseBarricade?.Invoke(__state, true);
             }
         }
+
+        [HarmonyPatch(typeof(BarricadeManager), nameof(BarricadeManager.destroyBarricade), new Type[] { typeof(BarricadeDrop), typeof(byte), typeof(byte), typeof(ushort) })]
+        class DestroyBarricadePatch
+        {
+            [HarmonyPrefix]
+            internal static bool OnPreDestroyBarricadeInvoker(BarricadeDrop barricade, byte x, byte y, ushort plant)
+            {
+                OnPreDestroyBarricade?.Invoke(barricade, x, y, plant);
+                return true;
+            }
+        }
+
         [HarmonyPatch(typeof(UseableGun), nameof(UseableGun.ReceiveAttachMagazine), new Type[] { typeof(byte), typeof(byte), typeof(byte), typeof(byte[])})]
         class ReceiveAttachMagazinePatch
         {

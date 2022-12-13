@@ -17,33 +17,35 @@ namespace SpeedMann.Unturnov.Helper
     public class UnturnedPrivateFields
     {   
         private static FieldInfo ItemJarItemInfo;
-        private static MethodInfo WriteConnectedMessageInfo;
-        private static MethodInfo BroadcastConnectInfo;
-        private static MethodInfo BroadcastDisconnectInfo;
+        private static MethodInfo ProviderWriteConnectedMessageInfo;
+        private static MethodInfo ProviderBroadcastConnectInfo;
+        private static MethodInfo ProviderBroadcastDisconnectInfo;
         private static FieldInfo WriterInfo;
 
-        private static FieldInfo LastTimeDamagedInfo;
-        private static FieldInfo RecentKillerInfo;
-        private static FieldInfo ConbatCooldownInfo;
+        private static FieldInfo PlayerLifeLastTimeDamagedInfo;
+        private static FieldInfo PlayerLifeRecentKillerInfo;
+        private static FieldInfo PlayerLifeConbatCooldownInfo;
 
-        private static FieldInfo IsUsingInfo;
-        private static FieldInfo StartedUseInfo;
-        private static FieldInfo UseTimeInfo;
+        private static FieldInfo UseableBarricadeIsUsingInfo;
+        private static FieldInfo UseableBarricadeStartedUseInfo;
+        private static FieldInfo UseableBarricadeUseTimeInfo;
+
+        private static FieldInfo BarricadeDropServersideDataInfo;
 
         public static bool TryBroadcastConnect(SteamPlayer player)
         {
-            if (BroadcastConnectInfo != null)
+            if (ProviderBroadcastConnectInfo != null)
             {
-                BroadcastConnectInfo.Invoke(null, new object[] { player });
+                ProviderBroadcastConnectInfo.Invoke(null, new object[] { player });
                 return true;
             }
             return false;
         }
         public static bool TryBroadcastDisconnect(SteamPlayer player)
         {
-            if (BroadcastDisconnectInfo != null)
+            if (ProviderBroadcastDisconnectInfo != null)
             {
-                BroadcastDisconnectInfo.Invoke(null, new object[] { player });
+                ProviderBroadcastDisconnectInfo.Invoke(null, new object[] { player });
                 return true;
             }
             return false;
@@ -60,9 +62,9 @@ namespace SpeedMann.Unturnov.Helper
         }
         public static bool WriteConnectedMessage(NetPakWriter writer, SteamPlayer aboutPlayer, SteamPlayer forPlayer)
         {
-            if (WriteConnectedMessageInfo != null)
+            if (ProviderWriteConnectedMessageInfo != null)
             {
-                WriteConnectedMessageInfo.Invoke(null, new object[] { writer, aboutPlayer, forPlayer });
+                ProviderWriteConnectedMessageInfo.Invoke(null, new object[] { writer, aboutPlayer, forPlayer });
                 return true;
             }
             return false;
@@ -81,11 +83,11 @@ namespace SpeedMann.Unturnov.Helper
         {
             result = -100f;
 
-            if (LastTimeDamagedInfo != null)
+            if (PlayerLifeLastTimeDamagedInfo != null)
             {
                 try
                 {
-                    result = (float)LastTimeDamagedInfo.GetValue(playerLife);
+                    result = (float)PlayerLifeLastTimeDamagedInfo.GetValue(playerLife);
                 }
                 catch (Exception e)
                 {
@@ -100,11 +102,11 @@ namespace SpeedMann.Unturnov.Helper
         {
             result = CSteamID.Nil;
 
-            if (RecentKillerInfo != null)
+            if (PlayerLifeRecentKillerInfo != null)
             {
                 try
                 {
-                    result = (CSteamID)RecentKillerInfo.GetValue(playerLife);
+                    result = (CSteamID)PlayerLifeRecentKillerInfo.GetValue(playerLife);
                 }
                 catch (Exception e)
                 {
@@ -119,11 +121,11 @@ namespace SpeedMann.Unturnov.Helper
         {
             result = 30;
 
-            if (ConbatCooldownInfo != null)
+            if (PlayerLifeConbatCooldownInfo != null)
             {
                 try
                 {
-                    result = (float)ConbatCooldownInfo.GetValue(playerLife);
+                    result = (float)PlayerLifeConbatCooldownInfo.GetValue(playerLife);
                 }
                 catch (Exception e)
                 {
@@ -139,11 +141,11 @@ namespace SpeedMann.Unturnov.Helper
         {
             bool result = false;
 
-            if (IsUsingInfo != null && useableBarricade != null)
+            if (UseableBarricadeIsUsingInfo != null && useableBarricade != null)
             {
                 try
                 {
-                    result = (bool)IsUsingInfo.GetValue(useableBarricade);
+                    result = (bool)UseableBarricadeIsUsingInfo.GetValue(useableBarricade);
                 }
                 catch (Exception e)
                 {
@@ -157,12 +159,12 @@ namespace SpeedMann.Unturnov.Helper
         {
             bool result = false;
 
-            if (StartedUseInfo != null && UseTimeInfo != null && useableBarricade != null)
+            if (UseableBarricadeStartedUseInfo != null && UseableBarricadeUseTimeInfo != null && useableBarricade != null)
             {
                 try
                 {
-                    float startedUse = (float)StartedUseInfo.GetValue(useableBarricade);
-                    float useTime = (float)UseTimeInfo.GetValue(useableBarricade);
+                    float startedUse = (float)UseableBarricadeStartedUseInfo.GetValue(useableBarricade);
+                    float useTime = (float)UseableBarricadeUseTimeInfo.GetValue(useableBarricade);
 
                     result = Time.realtimeSinceStartup - startedUse > useTime;
                     
@@ -176,27 +178,50 @@ namespace SpeedMann.Unturnov.Helper
             return result;
         }
 
+        public static bool TryGetServersideData(BarricadeDrop barricadeDrop, out BarricadeData serversideData)
+        {
+            serversideData = null;
+
+            if (BarricadeDropServersideDataInfo != null && barricadeDrop != null)
+            {
+                try
+                {
+                    serversideData = (BarricadeData)BarricadeDropServersideDataInfo.GetValue(barricadeDrop);
+                    return true;
+                }
+                catch (Exception e)
+                {
+                    Logger.LogException(e, "Exception loading private field ServersideDataInfo");
+                    return false;
+                }
+            }
+            return false;
+        }
+
         public static void Init()
         {
             Type type;
 
             type = typeof(Provider);
-            WriteConnectedMessageInfo = type.GetMethod("WriteConnectedMessage", BindingFlags.Static | BindingFlags.NonPublic);
-            BroadcastConnectInfo = type.GetMethod("broadcastEnemyConnected", BindingFlags.Static | BindingFlags.NonPublic);
-            BroadcastDisconnectInfo = type.GetMethod("broadcastEnemyDisconnected", BindingFlags.Static | BindingFlags.NonPublic);
+            ProviderWriteConnectedMessageInfo = type.GetMethod("WriteConnectedMessage", BindingFlags.Static | BindingFlags.NonPublic);
+            ProviderBroadcastConnectInfo = type.GetMethod("broadcastEnemyConnected", BindingFlags.Static | BindingFlags.NonPublic);
+            ProviderBroadcastDisconnectInfo = type.GetMethod("broadcastEnemyDisconnected", BindingFlags.Static | BindingFlags.NonPublic);
 
             type = typeof(ItemJar);
             ItemJarItemInfo = type.GetField("_item", BindingFlags.NonPublic);
 
             type = typeof(PlayerLife);
-            LastTimeDamagedInfo = type.GetField("lastTimeTookDamage", BindingFlags.NonPublic | BindingFlags.Instance);
-            RecentKillerInfo = type.GetField("recentKiller", BindingFlags.NonPublic | BindingFlags.Instance);
-            ConbatCooldownInfo = type.GetField("COMBAT_COOLDOWN", BindingFlags.NonPublic | BindingFlags.Static);
+            PlayerLifeLastTimeDamagedInfo = type.GetField("lastTimeTookDamage", BindingFlags.NonPublic | BindingFlags.Instance);
+            PlayerLifeRecentKillerInfo = type.GetField("recentKiller", BindingFlags.NonPublic | BindingFlags.Instance);
+            PlayerLifeConbatCooldownInfo = type.GetField("COMBAT_COOLDOWN", BindingFlags.NonPublic | BindingFlags.Static);
 
             type = typeof(UseableBarricade);
-            IsUsingInfo = type.GetField("isUsing", BindingFlags.NonPublic | BindingFlags.Instance);
-            StartedUseInfo = type.GetField("startedUse", BindingFlags.NonPublic | BindingFlags.Instance);
-            UseTimeInfo = type.GetField("useTime", BindingFlags.NonPublic | BindingFlags.Instance); 
+            UseableBarricadeIsUsingInfo = type.GetField("isUsing", BindingFlags.NonPublic | BindingFlags.Instance);
+            UseableBarricadeStartedUseInfo = type.GetField("startedUse", BindingFlags.NonPublic | BindingFlags.Instance);
+            UseableBarricadeUseTimeInfo = type.GetField("useTime", BindingFlags.NonPublic | BindingFlags.Instance);
+
+            type = typeof(BarricadeDrop);
+            BarricadeDropServersideDataInfo = type.GetField("serversideData", BindingFlags.NonPublic | BindingFlags.Instance);
             /*
             type = AccessTools.TypeByName("SDG.Unturned.NetMessages");
             WriterInfo = AccessTools.Field(type, "writer");
