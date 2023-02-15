@@ -20,7 +20,7 @@ namespace SpeedMann.Unturnov.Models
         internal Vector3 rotation;
 
         private Vector3 hideoutDimensions = new Vector3(11, 5, 8);
-        private List<BarricadeWrapper> barricades = new List<BarricadeWrapper>();
+        private List<BarricadeDrop> barricades = new List<BarricadeDrop>();
 
         internal Hideout(Vector3 origin, float rotation)
         {
@@ -40,52 +40,59 @@ namespace SpeedMann.Unturnov.Models
         {
             owner = CSteamID.Nil;
         }
-        internal void addBarricade(CSteamID playerId, ItemBarricadeAsset barricade, Vector3 location, Vector3 rotation)
+        internal int getBarricadeCount()
         {
-            barricades.Add(new BarricadeWrapper(barricade.id, location, rotation));
+            return barricades.Count();
         }
-        internal void removeBarricade(BarricadeDrop barricade, Vector3 location)
+        internal void addBarricade(BarricadeDrop drop)
         {
-            BarricadeWrapper toRemove = null;
-            foreach (BarricadeWrapper containingBarricade in barricades)
+            barricades.Add(drop);
+        }
+        internal void removeBarricade(BarricadeDrop drop)
+        {
+            if(!barricades.Remove(drop))
             {
-                if(containingBarricade.id == barricade.asset.id && containingBarricade.location == location)
-                {
-                    toRemove = containingBarricade;
-                    break;
-                }
-            }
-            if(toRemove == null)
-            {
-                Logger.LogError($"could not find destroyed barricade in hideout of {owner}");
+                Logger.LogError($"could not find destroyed barricade {drop.asset.id} in hideout of {owner}");
                 return;
-            }
-            barricades.Remove(toRemove);
+            };
         }
-        internal List<BarricadeWrapper> clearBarricades()
+        /*
+         * tries to clears all barricades and gives the successfully cleared ones with relative position and rotation to the hideout
+         * returns true if all barricades where succesfully removed
+         */
+        internal bool clearBarricades(out List<BarricadeWrapper> removedBarricades)
         {
-            List<BarricadeWrapper> clearedBarricades = new List<BarricadeWrapper>();
+            removedBarricades = new List<BarricadeWrapper>();
+            bool success = true;
             while (barricades.Count > 0)
             {
-                BarricadeWrapper current = barricades[0];
-                if (!BarricadeHelper.tryDestroyBarricade(barricades[0].location, barricades[0].id))
+                var current = barricades[0];
+
+                if (!UnturnedPrivateFields.TryGetServersideData(current, out BarricadeData data))
                 {
-                    Logger.LogWarning($"Barricade {barricades[0].id} of {owner} at {barricades[0].location} could not be destroyed");
+                    Logger.LogWarning($"Could not get server side data for {current.asset.id} at {current.model.position}, canceled clearing hideout");
+                    return false;
+                }
+                if (!BarricadeHelper.tryDestroyBarricade(current.model.position, barricades[0].asset.id))
+                {
+                    barricades.RemoveAt(0);
+                    Logger.LogWarning($"Barricade {current.asset.id} of {owner} at {current.model.position} could not be destroyed!");
+                    success = false;
                     continue;
                 }
-                current.convertToRelative(origin, rotation);
-                clearedBarricades.Add(current);
+                convertToRelative(data.point, new Vector3(data.angle_x, data.angle_y, data.angle_z), out Vector3 relPosition, out Vector3 relRotation);
+                removedBarricades.Add(new BarricadeWrapper(current.asset.id, relPosition, relRotation));
             }
-            return clearedBarricades;
+            return success;
         }
         internal void restoreBarricades(List<BarricadeWrapper> barricades, CSteamID playerId)
         {
             foreach (BarricadeWrapper barricade in barricades)
             {
-                barricade.convertToAbsolute(origin, rotation);
-                BarricadeHelper.tryPlaceBarricade(barricade.id, barricade.location, barricade.rotation, playerId, CSteamID.Nil);
+                convertToAbsolute(barricade.location, barricade.rotation, out Vector3 absPosition, out Vector3 absRotation);
+                BarricadeHelper.tryPlaceBarricade(barricade.id, absPosition, absRotation, playerId, CSteamID.Nil);
+                // barricade drops will be automatically added when succesesfully placed
             };
-            // barricade will be automatically added when succesesfully placed
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -141,6 +148,18 @@ namespace SpeedMann.Unturnov.Models
                 max = valB;
                 min = valA;
             }
+        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void convertToRelative(Vector3 location, Vector3 rotation, out Vector3 relativePosition, out Vector3 relativeRotation)
+        {
+            relativePosition = Quaternion.Euler(this.rotation) * (location - origin);
+            relativeRotation = rotation - this.rotation;
+        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void convertToAbsolute(Vector3 location, Vector3 rotation, out Vector3 absolutePosition, out Vector3 absoluteRotation)
+        {
+            absolutePosition = origin + Quaternion.Euler(this.rotation) * location;
+            absoluteRotation = rotation + this.rotation;
         }
     }
 }

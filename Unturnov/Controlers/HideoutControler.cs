@@ -25,8 +25,6 @@ namespace SpeedMann.Unturnov.Controlers
         {
             Conf = hideoutConfig;
             claimedHideouts = new Dictionary<CSteamID, Hideout>();
-
-            //TODO fix rotation
             freeHideouts.Add(new Hideout(new Vector3(868, 8.5f, -350), 0));
             //freeHideouts.Add(new Hideout(new Vector3(879, 8.5f, -350), 0));
             freeHideouts.Add(new Hideout(new Vector3(879, 8.5f, -355), 180));
@@ -65,26 +63,15 @@ namespace SpeedMann.Unturnov.Controlers
                 Logger.Log($"placed at {point}, hideout bounds: lower x: {lower.x} y: {lower.y} z: {lower.z} upper x: {upper.x} y: {upper.y} z: {upper.z}");
                 return;
             }
-
-            addBarricade(playerId, asset, point, new Vector3(angle_x, angle_y, angle_z));
         }
-        internal static void OnBarricadeDestroy(BarricadeDrop barricade, byte x, byte y, ushort plant)
+        internal static void OnBarricadeSpawned(BarricadeRegion region, BarricadeDrop drop)
         {
-            
-            if (!UnturnedPrivateFields.TryGetServersideData(barricade, out BarricadeData data))
-            {
-                return;
-            }
-            if(data == null || data.owner == 0)
-            {
-                Logger.LogWarning("destroyed barricade without owner");
-                return;
-            }
-
-            CSteamID ownerId = new CSteamID(data.owner);
-            if (ownerId == CSteamID.Nil || !claimedHideouts.TryGetValue(ownerId, out Hideout hideout) || hideout == null) return;
-
-            hideout.removeBarricade(barricade, barricade.model.transform.position);
+            Logger.Log($"Region: {region.parent.name}");
+            addBarricade(drop);
+        }
+        internal static void OnBarricadeDestroy(BarricadeDrop drop, byte x, byte y, ushort plant)
+        {
+            removeBarricade(drop);
         }
 
         internal static void claimHideout(UnturnedPlayer player)
@@ -117,19 +104,47 @@ namespace SpeedMann.Unturnov.Controlers
             freeHideouts.Add(hideout);
         }
 
-        internal static void addBarricade(CSteamID playerId, ItemBarricadeAsset barricade, Vector3 location, Vector3 rotation)
+        internal static void addBarricade(BarricadeDrop drop)
         {
+            if (!UnturnedPrivateFields.TryGetServersideData(drop, out BarricadeData data))
+            {
+                Logger.LogWarning($"Could not get server side data for {drop.asset.id} at {drop.model.position}");
+                return;
+            }
+            CSteamID playerId = new CSteamID(data.owner);
             if (!claimedHideouts.TryGetValue(playerId, out Hideout hideout))
             {
                 Logger.LogWarning($"{playerId} has no hideout");
                 return;
             }
 
-            hideout.addBarricade(playerId, barricade, location, rotation);
+            hideout.addBarricade(drop);
+        }
+        internal static void removeBarricade(BarricadeDrop drop)
+        {
+            if (!UnturnedPrivateFields.TryGetServersideData(drop, out BarricadeData data))
+            {
+                return;
+            }
+            if (data == null || data.owner == 0)
+            {
+                Logger.LogWarning("destroyed barricade without owner");
+                return;
+            }
+
+            CSteamID ownerId = new CSteamID(data.owner);
+            if (ownerId == CSteamID.Nil || !claimedHideouts.TryGetValue(ownerId, out Hideout hideout) || hideout == null) return;
+
+            hideout.removeBarricade(drop);
         }
         internal static void saveBarricades(CSteamID playerId, Hideout hideout)
         {
-            savedBarricades[playerId] = hideout.clearBarricades();
+            int barricadeCount = hideout.getBarricadeCount();
+            if (!hideout.clearBarricades(out List<BarricadeWrapper> removedBarricades))
+            {
+                Logger.LogError($"Could only clear {removedBarricades.Count}/{barricadeCount} Barricades of {playerId} hideout!");
+                return;
+            }
         }
         internal static void restoreBarricades(CSteamID playerId, Hideout hideout)
         {

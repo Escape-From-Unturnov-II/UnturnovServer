@@ -1,5 +1,4 @@
-﻿using HarmonyLib;
-using Rocket.API.Collections;
+﻿using Rocket.API.Collections;
 using Rocket.Core.Plugins;
 using Rocket.Unturned;
 using Rocket.Unturned.Chat;
@@ -8,16 +7,16 @@ using Rocket.Unturned.Events;
 using Rocket.Unturned.Player;
 using SDG.NetTransport;
 using SDG.Unturned;
-using SpeedMann.Unturnov.Classes;
-using SpeedMann.Unturnov.Controlers;
-using SpeedMann.Unturnov.Helper;
-using SpeedMann.Unturnov.Models;
-using SpeedMann.Unturnov.Models.Config;
 using Steamworks;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using SpeedMann.Unturnov.Classes;
+using SpeedMann.Unturnov.Controlers;
+using SpeedMann.Unturnov.Helper;
+using SpeedMann.Unturnov.Models;
+using SpeedMann.Unturnov.Models.Config;
 using static SpeedMann.Unturnov.Models.GunAttachments;
 using Logger = Rocket.Core.Logging.Logger;
 
@@ -103,6 +102,8 @@ namespace SpeedMann.Unturnov
             PlayerCrafting.onCraftBlueprintRequested += OnCraft;
 
             BarricadeManager.onDeployBarricadeRequested += OnBarricadeDeploy;
+            BarricadeManager.onBarricadeSpawned += OnBarricadeSpawned;
+            StructureManager.onStructureSpawned += OnStructureSpawned;
             UnturnedPatches.OnPreDestroyBarricade += OnBarricadeDestroy;
 
             UnturnedPatches.OnPrePlayerDead += OnPlayerDead;
@@ -135,6 +136,7 @@ namespace SpeedMann.Unturnov
 
             printPluginInfo();
         }
+
         protected override void Unload()
         {
             UnturnedPatches.Cleanup();
@@ -154,6 +156,8 @@ namespace SpeedMann.Unturnov
             PlayerCrafting.onCraftBlueprintRequested -= OnCraft;
 
             BarricadeManager.onDeployBarricadeRequested -= OnBarricadeDeploy;
+            BarricadeManager.onBarricadeSpawned -= OnBarricadeSpawned;
+            StructureManager.onStructureSpawned -= OnStructureSpawned;
             UnturnedPatches.OnPreDestroyBarricade -= OnBarricadeDestroy;
 
             UnturnedPatches.OnPrePlayerDead -= OnPlayerDead;
@@ -258,9 +262,17 @@ namespace SpeedMann.Unturnov
             PlacementRestrictionControler.OnBarricadeDeploy(barricade, asset, hit, ref point, ref angle_x, ref angle_y, ref angle_z, ref owner, ref group, ref shouldAllow);
             HideoutControler.OnBarricadeDeploy(barricade, asset, hit, ref point, ref angle_x, ref angle_y, ref angle_z, ref owner, ref group, ref shouldAllow);
         }
+        private void OnBarricadeSpawned(BarricadeRegion region, BarricadeDrop drop)
+        {
+            HideoutControler.OnBarricadeSpawned(region, drop);
+        }
         private void OnBarricadeDestroy(BarricadeDrop barricade, byte x, byte y, ushort plant)
         {
             HideoutControler.OnBarricadeDestroy(barricade, x, y, plant);
+        }
+        private void OnStructureSpawned(StructureRegion region, StructureDrop drop)
+        {
+            //TODO: add hideout stuff
         }
         private void OnInteractableConditionCheck(ObjectAsset objectAsset, Player player, ref bool shouldAllow)
         {
@@ -412,10 +424,6 @@ namespace SpeedMann.Unturnov
         {
             if (ReplaceBypass.Contains(player.CSteamID))
             {
-                if (Conf.Debug)
-                {
-                    Logger.Log("bypass replace");
-                }
                 ReplaceBypass.Remove(player.CSteamID);
                 return;
             }
