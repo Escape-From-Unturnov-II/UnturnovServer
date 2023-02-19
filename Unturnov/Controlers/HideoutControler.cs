@@ -66,14 +66,15 @@ namespace SpeedMann.Unturnov.Controlers
         }
         internal static void OnBarricadeSpawned(BarricadeRegion region, BarricadeDrop drop)
         {
-            Logger.Log($"Region: {region.parent.name}");
+            if (region is VehicleBarricadeRegion)
+                return;
+
             addBarricade(drop);
         }
         internal static void OnBarricadeDestroy(BarricadeDrop drop, byte x, byte y, ushort plant)
         {
             removeBarricade(drop);
         }
-
         internal static void claimHideout(UnturnedPlayer player)
         {
             if (claimedHideouts.ContainsKey(player.CSteamID))
@@ -93,7 +94,6 @@ namespace SpeedMann.Unturnov.Controlers
 
             restoreBarricades(player.CSteamID, claimedHideout);
         }
-
         internal static void freeHideout(UnturnedPlayer player)
         {
             if (!claimedHideouts.TryGetValue(player.CSteamID, out Hideout hideout) || hideout == null) return;
@@ -103,7 +103,6 @@ namespace SpeedMann.Unturnov.Controlers
             claimedHideouts.Remove(player.CSteamID);
             freeHideouts.Add(hideout);
         }
-
         internal static void addBarricade(BarricadeDrop drop)
         {
             if (!UnturnedPrivateFields.TryGetServersideData(drop, out BarricadeData data))
@@ -143,8 +142,13 @@ namespace SpeedMann.Unturnov.Controlers
             if (!hideout.clearBarricades(out List<BarricadeWrapper> removedBarricades))
             {
                 Logger.LogError($"Could only clear {removedBarricades.Count}/{barricadeCount} Barricades of {playerId} hideout!");
+            }
+            if (savedBarricades.ContainsKey(playerId))
+            {
+                savedBarricades[playerId] = removedBarricades;
                 return;
             }
+            savedBarricades.Add(playerId, removedBarricades);
         }
         internal static void restoreBarricades(CSteamID playerId, Hideout hideout)
         {

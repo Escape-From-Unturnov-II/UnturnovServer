@@ -57,7 +57,7 @@ namespace SpeedMann.Unturnov.Models
             };
         }
         /*
-         * tries to clears all barricades and gives the successfully cleared ones with relative position and rotation to the hideout
+         * tries to clears all barricades and gives the successfully cleared ones with relative position and rotation to the hideout origin
          * returns true if all barricades where succesfully removed
          */
         internal bool clearBarricades(out List<BarricadeWrapper> removedBarricades)
@@ -67,21 +67,22 @@ namespace SpeedMann.Unturnov.Models
             while (barricades.Count > 0)
             {
                 var current = barricades[0];
+                BarricadeHelper.tryGetStoredItems(current, out var storedItems);
+                barricades.RemoveAt(0);
 
                 if (!UnturnedPrivateFields.TryGetServersideData(current, out BarricadeData data))
                 {
                     Logger.LogWarning($"Could not get server side data for {current.asset.id} at {current.model.position}, canceled clearing hideout");
                     return false;
                 }
-                if (!BarricadeHelper.tryDestroyBarricade(current.model.position, barricades[0].asset.id))
+                if (!BarricadeHelper.tryDestroyBarricade(current.model.position, current.asset.id))
                 {
-                    barricades.RemoveAt(0);
                     Logger.LogWarning($"Barricade {current.asset.id} of {owner} at {current.model.position} could not be destroyed!");
                     success = false;
                     continue;
                 }
                 convertToRelative(data.point, new Vector3(data.angle_x, data.angle_y, data.angle_z), out Vector3 relPosition, out Vector3 relRotation);
-                removedBarricades.Add(new BarricadeWrapper(current.asset.id, relPosition, relRotation));
+                removedBarricades.Add(new BarricadeWrapper(current.asset.id, relPosition, relRotation, storedItems));
             }
             return success;
         }

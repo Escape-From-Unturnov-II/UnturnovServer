@@ -1,4 +1,5 @@
 ﻿using SDG.Unturned;
+using SpeedMann.Unturnov.Models;
 using Steamworks;
 using System;
 using System.Collections.Generic;
@@ -54,9 +55,9 @@ namespace SpeedMann.Unturnov.Helper
 
             return true;
         }
-
-        internal static bool tryPlaceBarricade(ushort assetId, Vector3 pos, Vector3 rotation, CSteamID owner, CSteamID group)
+        internal static bool tryPlaceBarricade(ushort assetId, Vector3 pos, Vector3 rotation, CSteamID owner, CSteamID group, out Transform placedBarricade, List<ItemJar> items = null)
         {
+            placedBarricade = null;
             ItemBarricadeAsset asset = (Assets.find(EAssetType.ITEM, assetId) as ItemBarricadeAsset);
             if (asset == null)
             {
@@ -64,13 +65,44 @@ namespace SpeedMann.Unturnov.Helper
                 return false;
             }
 
-            Barricade barricade = new Barricade(asset);
-            Transform barricadeTransform = BarricadeManager.dropBarricade(barricade, null, pos, rotation.x, rotation.y, rotation.z, owner.m_SteamID, group.m_SteamID);
+            placedBarricade = BarricadeManager.dropBarricade(new Barricade(asset), null, pos, rotation.x, rotation.y, rotation.z, owner.m_SteamID, group.m_SteamID);
 
-            if(barricadeTransform == null)
+            if(placedBarricade == null)
             {
                 Logger.LogError($"Could not place barricade [{assetId}] at {pos}!");
                 return false;
+            }
+
+            tryAddItems(placedBarricade, items);
+
+            return true;
+        }
+
+        internal static bool tryGetStoredItems(BarricadeDrop drop, out List<ItemJar> storedItems)
+        {
+            storedItems = new List<ItemJar>();
+            InteractableStorage storage = drop.model.GetComponent<InteractableStorage>();
+            if(storage == null)
+                return false;
+
+            storedItems = storage.items.items;
+            return true;
+        }
+        internal static bool tryAddItems(Transform barricade, List<ItemJar> items)
+        {
+            if(items == null || barricade == null)
+            {
+                return false;
+            }
+            InteractableStorage storage = barricade.GetComponent<InteractableStorage>();
+            if (storage == null)
+            {
+                Logger.LogError($"Tried to add {items.Count} items to non storage barricade");
+                return false;
+            }
+            foreach (var item in items) 
+            {
+                storage.items.items.Add(item);
             }
 
             return true;

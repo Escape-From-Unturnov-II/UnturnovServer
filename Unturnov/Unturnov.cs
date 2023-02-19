@@ -237,6 +237,7 @@ namespace SpeedMann.Unturnov
             if (!PlayerSavedata.fileExists(player.SteamPlayer().playerID, "/Player/Player.dat"))
             {
                 // new player connected
+                // TODO: give spawn gear
             }
             HideoutControler.OnPlayerConnected(player);
             ScavRunControler.OnPlayerConnected(player);
