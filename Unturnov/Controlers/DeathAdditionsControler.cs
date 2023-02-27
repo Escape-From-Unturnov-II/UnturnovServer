@@ -1,6 +1,7 @@
 ﻿using Rocket.Core.Logging;
 using Rocket.Unturned.Player;
 using SDG.Unturned;
+using SpeedMann.Unturnov.Helper;
 using SpeedMann.Unturnov.Models;
 using SpeedMann.Unturnov.Models.Config;
 using Steamworks;
@@ -35,13 +36,17 @@ namespace SpeedMann.Unturnov.Controlers
             kit.food = playerLife.food;
             kit.water = playerLife.water;
             kit.virus = playerLife.virus;
+
         }
         internal static void OnPlayerDeath(UnturnedPlayer player, EDeathCause cause, ELimb limb, CSteamID murderer)
         {
+            //TODO: spawn Death UI
+            if (ScavRunControler.isScavRunActive(player))
+            {
+                return;
+            }
             checkClothingDrops(player);
             checkDeathDrops(player, cause);
-
-            //TODO: spawn Death UI
         }
         internal static void OnPlayerRevived(PlayerLife playerLife)
         {
@@ -174,15 +179,15 @@ namespace SpeedMann.Unturnov.Controlers
         {
             if (Conf.KeepFood)
             {
-                playerLife.ReceiveFood(storedPlayerKit.food);
+                playerLife.serverModifyFood(storedPlayerKit.food);
             }
             if (Conf.KeepWater)
             {
-                playerLife.ReceiveWater(storedPlayerKit.water);
+                playerLife.serverModifyWater(storedPlayerKit.water);
             }
             if (Conf.KeepVirus)
             {
-                playerLife.ReceiveVirus(storedPlayerKit.virus);
+                playerLife.serverModifyVirus(storedPlayerKit.virus);
             }
         }
     }

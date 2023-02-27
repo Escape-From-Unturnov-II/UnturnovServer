@@ -134,7 +134,7 @@
   <ItemGroup>
     <Compile Include="Commands\HideoutCommands.cs" />
     <Compile Include="Controlers\CraftingStationControler.cs" />
-    <Compile Include="Controlers\DropControler.cs" />
+    <Compile Include="Controlers\DeathAdditionsControler.cs" />
     <Compile Include="Controlers\HideoutControler.cs" />
     <Compile Include="Controlers\QuestExtensionControler.cs" />
     <Compile Include="Controlers\SkinControler.cs" />
@@ -152,10 +152,11 @@
     <Compile Include="Helper\UnturnedPrivateFields.cs" />
     <Compile Include="Models\BarricadeWrapper.cs" />
     <Compile Include="Models\Config\CaseContent.cs" />
-    <Compile Include="Models\Config\DeathDropConfig.cs" />
+    <Compile Include="Models\Config\DeathAdditionConfig.cs" />
     <Compile Include="Models\Config\FoundationSet.cs" />
     <Compile Include="Models\Config\HideoutConfig.cs" />
     <Compile Include="Models\Config\ItemWhitelist.cs" />
+    <Compile Include="Models\Config\PlayerKitConfig.cs" />
     <Compile Include="Models\Config\OpenableItemsConfig.cs" />
     <Compile Include="Models\Config\PlacementRestriction.cs" />
     <Compile Include="Models\Config\PlacementRestrictionConfig.cs" />
@@ -175,6 +176,7 @@
     <Compile Include="Models\Config\QuestEquipment.cs" />
     <Compile Include="Models\Config\QuestExtension.cs" />
     <Compile Include="Models\Config\ReloadExtension.cs" />
+    <Compile Include="Models\SavedPlayerKit.cs" />
     <Compile Include="Models\SpawnTables\KitTierEntry.cs" />
     <Compile Include="Models\SpawnTables\KitTierGunEntry.cs" />
     <Compile Include="Models\MainQueue\MainQueueEntry.cs" />

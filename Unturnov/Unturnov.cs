@@ -804,12 +804,12 @@ namespace SpeedMann.Unturnov
 
         internal static void setupNewPlayer(UnturnedPlayer player)
         {
-            player.Player.life.ReceiveHealth(Conf.NewPlayerConfig.Health);
-            player.Player.life.ReceiveFood(Conf.NewPlayerConfig.Food);
-            player.Player.life.ReceiveWater(Conf.NewPlayerConfig.Water);
-            player.Player.life.ReceiveVirus(Conf.NewPlayerConfig.Virus);
+            player.Player.life.ReceiveHealth(Conf.NewPlayerKitConfig.Health);
+            player.Player.life.ReceiveFood(Conf.NewPlayerKitConfig.Food);
+            player.Player.life.ReceiveWater(Conf.NewPlayerKitConfig.Water);
+            player.Player.life.ReceiveVirus(Conf.NewPlayerKitConfig.Virus);
 
-            foreach (var item in Conf.NewPlayerConfig.SpawnGear)
+            foreach (var item in Conf.NewPlayerKitConfig.KitItems)
             {
                 player.GiveItem(item.Id, item.Amount);
             }

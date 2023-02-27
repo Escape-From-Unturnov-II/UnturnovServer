@@ -91,7 +91,7 @@ namespace SpeedMann.Unturnov.Models
             foreach (BarricadeWrapper barricade in barricades)
             {
                 convertToAbsolute(barricade.location, barricade.rotation, out Vector3 absPosition, out Vector3 absRotation);
-                BarricadeHelper.tryPlaceBarricade(barricade.id, absPosition, absRotation, playerId, CSteamID.Nil);
+                BarricadeHelper.tryPlaceBarricade(barricade.id, absPosition, absRotation, playerId, CSteamID.Nil, out Transform transform);
                 // barricade drops will be automatically added when succesesfully placed
             };
         }
