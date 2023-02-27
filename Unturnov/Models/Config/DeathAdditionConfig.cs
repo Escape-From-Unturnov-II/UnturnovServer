@@ -6,9 +6,14 @@ using System.Threading.Tasks;
 
 namespace SpeedMann.Unturnov.Models.Config
 {
-    public class DeathDropConfig
+    public class DeathAdditionConfig
     {
         public bool Debug = false;
+
+        public bool KeepFood = true;
+        public bool KeepWater = true;
+        public bool KeepVirus = true;
+
         public bool DropHat = true;
         public bool DropMask = true;
         public bool DropGlasses = true;

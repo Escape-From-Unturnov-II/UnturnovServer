@@ -12,34 +12,55 @@ using System.Threading.Tasks;
 
 namespace SpeedMann.Unturnov.Controlers
 {
-    internal class DropControler
+    internal class DeathAdditionsControler
     {
-        public static DeathDropConfig Conf;
-        private static Dictionary<CSteamID, List<Item>> storedPlayerClothing = new Dictionary<CSteamID, List<Item>>();
-        internal static void Init(DeathDropConfig conf)
+        public static DeathAdditionConfig Conf;
+        private static Dictionary<CSteamID, SavedPlayerKit> storedPlayerKits = new Dictionary<CSteamID, SavedPlayerKit>();
+        internal static void Init(DeathAdditionConfig conf)
         {
             Conf = conf;
+        }
+        internal static void OnPrePlayerDead(PlayerLife playerLife)
+        {
+            UnturnedPlayer uPlayer = UnturnedPlayer.FromPlayer(playerLife.player);
+
+            if (!storedPlayerKits.ContainsKey(uPlayer.CSteamID)) 
+            { 
+                storedPlayerKits.Add(uPlayer.CSteamID, new SavedPlayerKit());
+            }
+
+            SavedPlayerKit kit = storedPlayerKits[uPlayer.CSteamID];
+
+            kit.health = playerLife.health;
+            kit.food = playerLife.food;
+            kit.water = playerLife.water;
+            kit.virus = playerLife.virus;
         }
         internal static void OnPlayerDeath(UnturnedPlayer player, EDeathCause cause, ELimb limb, CSteamID murderer)
         {
             checkClothingDrops(player);
             checkDeathDrops(player, cause);
+
+            //TODO: spawn Death UI
         }
         internal static void OnPlayerRevived(PlayerLife playerLife)
         {
             UnturnedPlayer player = UnturnedPlayer.FromPlayer(playerLife.player);
-            if (storedPlayerClothing.TryGetValue(player.CSteamID, out List<Item> storedClothing))
+            if (storedPlayerKits.TryGetValue(player.CSteamID, out SavedPlayerKit storedPlayerKit))
             {
-                if (storedClothing == null) return;
-                foreach (Item item in storedClothing)
+                if (storedPlayerKit == null) return;
+
+                checkKeepStats(playerLife, storedPlayerKit);
+
+                foreach (Item item in storedPlayerKit.kitItems)
                 {
                     player.Player.inventory.tryAddItem(item, true, false);
                 }
                 if (Conf.Debug)
                 {
-                    Logger.Log($"Restored {storedClothing.Count} clothing items");
+                    Logger.Log($"Restored {storedPlayerKit.kitItems.Count} items on revive");
                 }
-                storedPlayerClothing.Remove(player.CSteamID);
+                storedPlayerKits.Remove(player.CSteamID);
             }
         }
         private static void checkDeathDrops(UnturnedPlayer player, EDeathCause cause)
@@ -139,13 +160,29 @@ namespace SpeedMann.Unturnov.Controlers
             {
                 Logger.Log($"Stored {storedClothing.Count} clothing items on death");
             }
-            if (storedPlayerClothing.ContainsKey(player.CSteamID))
+            if (storedPlayerKits.ContainsKey(player.CSteamID))
             {
-                storedPlayerClothing[player.CSteamID] = storedClothing;
+                storedPlayerKits[player.CSteamID].kitItems = storedClothing;
             }
             else
             {
-                storedPlayerClothing.Add(player.CSteamID, storedClothing);
+                storedPlayerKits.Add(player.CSteamID, new SavedPlayerKit(storedClothing));
+            }
+        }
+
+        private static void checkKeepStats(PlayerLife playerLife, SavedPlayerKit storedPlayerKit)
+        {
+            if (Conf.KeepFood)
+            {
+                playerLife.ReceiveFood(storedPlayerKit.food);
+            }
+            if (Conf.KeepWater)
+            {
+                playerLife.ReceiveWater(storedPlayerKit.water);
+            }
+            if (Conf.KeepVirus)
+            {
+                playerLife.ReceiveVirus(storedPlayerKit.virus);
             }
         }
     }

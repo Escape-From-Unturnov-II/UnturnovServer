@@ -28,11 +28,11 @@ namespace SpeedMann.Unturnov
         public List<ReloadExtension> ReloadExtensions;
         public List<ScavKitTier> ScavKitTiers;
         public ScavSpawnTableSet ScavSpawnTables;
-        
 
+        public PlayerKitConfig NewPlayerKitConfig;
         public PlacementRestrictionConfig PlacementRestrictionConfig;
         public HideoutConfig HideoutConfig;
-        public DeathDropConfig DeathDropConfig;
+        public DeathAdditionConfig DeathDropConfig;
         public SecureCaseConfig SecureCaseConfig;
         public OpenableItemsConfig OpenableItemsConfig;
 
@@ -45,7 +45,7 @@ namespace SpeedMann.Unturnov
             ScavRunControlFlag = 50303;
 
             BedTimer = 1;
-            DeathDropConfig = new DeathDropConfig()
+            DeathDropConfig = new DeathAdditionConfig()
             {
                 DeathDropFlag = 0,
 
@@ -57,7 +57,8 @@ namespace SpeedMann.Unturnov
                       RequiredFalgValue = 0,
                     },
                 },
-            };           
+            };
+            NewPlayerKitConfig = new PlayerKitConfig();
 
             UnloadMagBlueprints = new List<EmptyMagazineExtension>
             {

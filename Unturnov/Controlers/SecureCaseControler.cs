@@ -32,7 +32,7 @@ namespace SpeedMann.Unturnov.Helper
                 resizeHands(quests.player);
             }
         }
-        public static void OnPlayerDead(PlayerLife playerLife)
+        public static void OnPrePlayerDead(PlayerLife playerLife)
         {
             UnturnedPlayer player = UnturnedPlayer.FromPlayer(playerLife.player);
 

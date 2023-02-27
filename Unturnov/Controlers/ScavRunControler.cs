@@ -160,6 +160,17 @@ namespace SpeedMann.Unturnov.Helper
             }
             stopScavCooldown(player);
         }
+        internal static void OnPlayerRevived(PlayerLife playerLife)
+        {
+            UnturnedPlayer uPlayer = UnturnedPlayer.FromPlayer(playerLife.player);
+            if (isScavRunActive(uPlayer))
+            {
+                if (!tryStopScavRun(uPlayer))
+                {
+                    Logger.LogError($"Could not stop scav run of player {uPlayer.CSteamID} on revive");
+                }
+            }
+        }
         internal static void startScavCooldown(UnturnedPlayer player, ScavKitTier tier)
         {
             ushort flag = Unturnov.Conf.ScavRunControlFlag;

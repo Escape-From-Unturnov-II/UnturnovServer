@@ -72,7 +72,7 @@ namespace SpeedMann.Unturnov
             HideoutControler.Init(Conf.HideoutConfig);
             OpenableItemsControler.Init();
             QuestExtensionControler.Init();
-            DropControler.Init(Conf.DeathDropConfig);
+            DeathAdditionsControler.Init(Conf.DeathDropConfig);
 
             ReplaceBypass = new List<CSteamID>();
             ReloadExtensionStates = new Dictionary<CSteamID, InternalMagReloadState>();
@@ -106,7 +106,7 @@ namespace SpeedMann.Unturnov
             StructureManager.onStructureSpawned += OnStructureSpawned;
             UnturnedPatches.OnPreDestroyBarricade += OnBarricadeDestroy;
 
-            UnturnedPatches.OnPrePlayerDead += OnPlayerDead;
+            UnturnedPatches.OnPrePlayerDead += OnPrePlayerDead;
             UnturnedPatches.OnPostPlayerRevive += OnPlayerRevived;
 
             UnturnedPlayerEvents.OnPlayerDeath += OnPlayerDeath;
@@ -160,7 +160,7 @@ namespace SpeedMann.Unturnov
             StructureManager.onStructureSpawned -= OnStructureSpawned;
             UnturnedPatches.OnPreDestroyBarricade -= OnBarricadeDestroy;
 
-            UnturnedPatches.OnPrePlayerDead -= OnPlayerDead;
+            UnturnedPatches.OnPrePlayerDead -= OnPrePlayerDead;
             UnturnedPatches.OnPostPlayerRevive -= OnPlayerRevived;
 
             UnturnedPlayerEvents.OnPlayerDeath -= OnPlayerDeath;
@@ -234,16 +234,15 @@ namespace SpeedMann.Unturnov
         }
         private void OnPlayerConnected(UnturnedPlayer player)
         {
-            if (!PlayerSavedata.fileExists(player.SteamPlayer().playerID, "/Player/Player.dat"))
-            {
-                // new player connected
-                // TODO: give spawn gear
-            }
             HideoutControler.OnPlayerConnected(player);
             ScavRunControler.OnPlayerConnected(player);
             if (!ScavRunControler.isScavRunActive(player))
             {
                 SecureCaseControler.OnPlayerConnected(player);
+            }
+            if (!PlayerSavedata.fileExists(player.SteamPlayer().playerID, "/Player/Player.dat"))
+            {
+                setupNewPlayer(player);
             }
         }
         private void OnEquipmentChanged(PlayerEquipment equipment)
@@ -279,19 +278,21 @@ namespace SpeedMann.Unturnov
         {
             OpenableItemsControler.OnInteractableConditionCheck(objectAsset, player, ref shouldAllow);
         }
-        private void OnPlayerDead(PlayerLife playerLife)
+        private void OnPrePlayerDead(PlayerLife playerLife)
         {
-            SecureCaseControler.OnPlayerDead(playerLife);
+            DeathAdditionsControler.OnPrePlayerDead(playerLife);
+            SecureCaseControler.OnPrePlayerDead(playerLife);
         }
         private void OnPlayerDeath(UnturnedPlayer player, EDeathCause cause, ELimb limb, CSteamID murderer)
         {
-            DropControler.OnPlayerDeath(player, cause, limb, murderer);
+            DeathAdditionsControler.OnPlayerDeath(player, cause, limb, murderer);
             QuestExtensionControler.OnPlayerDeath(player, cause, limb, murderer);
         }
         private void OnPlayerRevived(PlayerLife playerLife)
         {
             SecureCaseControler.OnPlayerRevived(playerLife);
-            DropControler.OnPlayerRevived(playerLife);
+            DeathAdditionsControler.OnPlayerRevived(playerLife);
+            ScavRunControler.OnPlayerRevived(playerLife);
         }
         private void OnInspect(PlayerEquipment equipment)
         {
@@ -801,6 +802,18 @@ namespace SpeedMann.Unturnov
             return itemExtensionsDict;
         }
 
+        internal static void setupNewPlayer(UnturnedPlayer player)
+        {
+            player.Player.life.ReceiveHealth(Conf.NewPlayerConfig.Health);
+            player.Player.life.ReceiveFood(Conf.NewPlayerConfig.Food);
+            player.Player.life.ReceiveWater(Conf.NewPlayerConfig.Water);
+            player.Player.life.ReceiveVirus(Conf.NewPlayerConfig.Virus);
+
+            foreach (var item in Conf.NewPlayerConfig.SpawnGear)
+            {
+                player.GiveItem(item.Id, item.Amount);
+            }
+        }
         internal static void safeAddItem(UnturnedPlayer player, Item item, byte x, byte y, byte page, byte rot)
         {
             if (!player.Inventory.tryAddItem(item, x, y, page, rot))
