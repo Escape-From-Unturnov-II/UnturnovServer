@@ -142,7 +142,6 @@
     <Compile Include="Helper\DatabaseManager.cs" />
     <Compile Include="Helper\EffectControler.cs" />
     <Compile Include="Helper\InventoryHelper.cs" />
-    <Compile Include="Helper\MessageHandler.cs" />
     <Compile Include="Controlers\OpenableItemsControler.cs" />
     <Compile Include="Controlers\PlacementRestrictionControler.cs" />
     <Compile Include="Helper\PlayerStatManager.cs" />

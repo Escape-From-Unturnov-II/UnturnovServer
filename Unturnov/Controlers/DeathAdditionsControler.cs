@@ -40,7 +40,7 @@ namespace SpeedMann.Unturnov.Controlers
         }
         internal static void OnPlayerDeath(UnturnedPlayer player, EDeathCause cause, ELimb limb, CSteamID murderer)
         {
-            //TODO: spawn Death UI
+            //TODO: spawn Death UI (ID 52313)
             if (ScavRunControler.isScavRunActive(player))
             {
                 return;

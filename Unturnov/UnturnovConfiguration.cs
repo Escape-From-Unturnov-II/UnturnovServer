@@ -22,8 +22,6 @@ namespace SpeedMann.Unturnov
         
         public List<CombineDescription> AutoCombine;
         [XmlArrayItem(ElementName = "Item")]
-        public List<ItemExtension> MultiUseItems;
-        [XmlArrayItem(ElementName = "Item")]
         public List<ItemExtension> GunModdingResults;
         public List<ReloadExtension> ReloadExtensions;
         public List<ScavKitTier> ScavKitTiers;
@@ -1120,49 +1118,6 @@ namespace SpeedMann.Unturnov
                 new CombineDescription(37029, 2, 37030),
                 #endregion
             };
-            MultiUseItems = new List<ItemExtension>
-            {
-                new ItemExtension
-                {
-                    Id = 37185
-                },
-                new ItemExtension
-                {
-                    Id = 37186
-                },
-                new ItemExtension
-                {
-                    Id = 37187
-                },
-                new ItemExtension
-                {
-                    Id = 37188
-                },
-                new ItemExtension
-                {
-                    Id = 37189
-                },
-                new ItemExtension
-                {
-                    Id = 37190
-                },
-                new ItemExtension
-                {
-                    Id = 37191
-                },
-                new ItemExtension
-                {
-                    Id = 37192
-                },
-                new ItemExtension
-                {
-                    Id = 37193
-                },
-                new ItemExtension
-                {
-                    Id = 37194
-                },
-            };
             GunModdingResults = new List<ItemExtension>
             {
                 #region AK-74N
@@ -2094,7 +2049,6 @@ namespace SpeedMann.Unturnov
         public void addNames()
         {
             addNames(DeathDropConfig.DeathDrops);
-            addNames(MultiUseItems);
             addNames(GunModdingResults);
 
             foreach (CombineDescription combDesc in AutoCombine)

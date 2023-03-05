@@ -67,6 +67,7 @@ namespace SpeedMann.Unturnov.Models
             while (barricades.Count > 0)
             {
                 var current = barricades[0];
+                BarricadeHelper.tryGetPlantedOfFarm(current, out uint planted);
                 BarricadeHelper.tryGetStoredItems(current, out var storedItems);
                 barricades.RemoveAt(0);
 

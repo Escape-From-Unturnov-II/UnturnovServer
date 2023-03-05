@@ -20,7 +20,6 @@ namespace SpeedMann.Unturnov.Helper
         private static MethodInfo ProviderWriteConnectedMessageInfo;
         private static MethodInfo ProviderBroadcastConnectInfo;
         private static MethodInfo ProviderBroadcastDisconnectInfo;
-        private static FieldInfo WriterInfo;
 
         private static FieldInfo PlayerLifeLastTimeDamagedInfo;
         private static FieldInfo PlayerLifeRecentKillerInfo;
@@ -31,6 +30,8 @@ namespace SpeedMann.Unturnov.Helper
         private static FieldInfo UseableBarricadeUseTimeInfo;
 
         private static FieldInfo BarricadeDropServersideDataInfo;
+
+        private static FieldInfo UseableGunAmmoInfo;
 
         public static bool TryBroadcastConnect(SteamPlayer player)
         {
@@ -46,16 +47,6 @@ namespace SpeedMann.Unturnov.Helper
             if (ProviderBroadcastDisconnectInfo != null)
             {
                 ProviderBroadcastDisconnectInfo.Invoke(null, new object[] { player });
-                return true;
-            }
-            return false;
-        }
-        public static bool TryGetNetMessagesWriter(out NetPakWriter writer)
-        {
-            writer = null;
-            if (WriterInfo != null)
-            {
-                writer = (NetPakWriter)WriterInfo.GetValue(null);
                 return true;
             }
             return false;
@@ -198,6 +189,26 @@ namespace SpeedMann.Unturnov.Helper
             return false;
         }
 
+        public static bool TryGetAmmo(UseableGun gun, out byte ammo)
+        {
+            ammo = 0;
+
+            if (UseableGunAmmoInfo != null && gun != null)
+            {
+                try
+                {
+                    ammo = (byte)UseableGunAmmoInfo.GetValue(gun);
+                    return true;
+                }
+                catch (Exception e)
+                {
+                    Logger.LogException(e, "Exception loading private field UseableGunAmmoInfo");
+                    return false;
+                }
+            }
+            return false;
+        }
+
         public static void Init()
         {
             Type type;
@@ -222,10 +233,13 @@ namespace SpeedMann.Unturnov.Helper
 
             type = typeof(BarricadeDrop);
             BarricadeDropServersideDataInfo = type.GetField("serversideData", BindingFlags.NonPublic | BindingFlags.Instance);
-            /*
-            type = AccessTools.TypeByName("SDG.Unturned.NetMessages");
-            WriterInfo = AccessTools.Field(type, "writer");
-            */
-        }
+
+            type = typeof(UseableGun);
+            UseableGunAmmoInfo = type.GetField("ammo", BindingFlags.NonPublic | BindingFlags.Instance);
+        /*
+        type = AccessTools.TypeByName("SDG.Unturned.NetMessages");
+        WriterInfo = AccessTools.Field(type, "writer");
+        */
+    }
     }
 }

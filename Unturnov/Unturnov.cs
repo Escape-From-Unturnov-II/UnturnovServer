@@ -19,6 +19,7 @@ using SpeedMann.Unturnov.Models;
 using SpeedMann.Unturnov.Models.Config;
 using static SpeedMann.Unturnov.Models.GunAttachments;
 using Logger = Rocket.Core.Logging.Logger;
+using SDG.Framework.Devkit;
 
 namespace SpeedMann.Unturnov
 {
@@ -333,14 +334,15 @@ namespace SpeedMann.Unturnov
             if (ReloadExtensionStates.ContainsKey(player.CSteamID)){
                 ReloadExtensionStates.Remove(player.CSteamID);
             }
+            ItemGunAsset asset = gun.equippedGunAsset;
+            if (asset == null || !ReloadExtensionByGun.TryGetValue(asset.id, out ReloadInner reloadInfo) || reloadInfo == null)
+                return;
 
             InternalMagReloadState state = new InternalMagReloadState { newMag = new ItemJarWrapper { page = page }, };
             ReloadExtensionStates.Add(player.CSteamID, state);
 
-            ItemJar gunItemJar = InventoryHelper.getItemJarOfEquiped(player.Player.equipment);
-
             //save and remove mag
-            Item mag = InventoryHelper.getMagFromGun(gunItemJar.item);
+            Item mag = InventoryHelper.getMagFromGun(player.Player.equipment);
             if (mag != null && page != 255)
             {
                 state.oldMag = mag;
@@ -354,71 +356,69 @@ namespace SpeedMann.Unturnov
 
             #region ReloadExtension
 
+            UnturnedPlayer player = UnturnedPlayer.FromPlayer(equipment.player);
+            if (!ReloadExtensionStates.TryGetValue(player.CSteamID, out InternalMagReloadState reloadState) || reloadState.newMag == null)
+                return;
+
             if (newItem?.item != null && ReloadExtensionByGun.TryGetValue(gun.equippedGunAsset.id, out ReloadInner reloadInfo) && reloadInfo.AmmoStackId == newItem.item.id)
             {
-                UnturnedPlayer player = UnturnedPlayer.FromPlayer(equipment.player);
-                if (!ReloadExtensionStates.TryGetValue(player.CSteamID, out InternalMagReloadState reloadState) && reloadState.newMag == null)
-                {
-                    Logger.LogError("Error getting saved reload state");
-                    return;
-                }
-
-                
                 // save ammo stack
                 Item AmmoStack = new Item(newItem.item.id, newItem.item.amount, newItem.item.quality);
                 reloadState.newMag.itemJar = new ItemJar(newItem.x, newItem.y, newItem.rot, AmmoStack);
                 reloadState.reloaded = true;
-                
-
                 Logger.Log("reloaded with reloadExtension!");
             }
-
             #endregion
 
         }
         private void OnPostAttachMag(UseableGun gun)
         {
             UnturnedPlayer player = UnturnedPlayer.FromPlayer(gun.player);
-            if (ReloadExtensionByGun.TryGetValue(gun.equippedGunAsset.id, out ReloadInner reloadInfo) && ReloadExtensionStates.TryGetValue(player.CSteamID, out InternalMagReloadState reloadState))
+            if (!ReloadExtensionStates.TryGetValue(player.CSteamID, out InternalMagReloadState reloadState) || reloadState == null)
+                return;
+
+            if (!ReloadExtensionByGun.TryGetValue(gun.equippedGunAsset.id, out ReloadInner reloadInfo) || reloadInfo == null)
+                return;
+
+            if (reloadState?.newMag?.itemJar?.item?.amount > 0 && reloadState.reloaded)
             {
-                if (reloadState?.newMag?.itemJar?.item?.amount > 0 && reloadState.reloaded)
+                ItemJar newMag = reloadState?.newMag.itemJar;
+                byte newMagAmount;
+
+                // add remaining ammo from old mag
+                if (newMag.item.amount < reloadInfo.MagazineSize && reloadState.oldMag?.amount > 0 && reloadState.oldMag.id == newMag.item.id)
                 {
-                    ItemJar newMag = reloadState?.newMag.itemJar;
-                    byte newMagAmount;
-                    
-                    // add remaining ammo from old mag
-                    if (newMag.item.amount < reloadInfo.MagazineSize && reloadState.oldMag?.amount > 0 && reloadState.oldMag.id == newMag.item.id)
-                    {
-                        newMag.item.amount += reloadState.oldMag.amount;
-                        reloadState.oldMag.amount = 0;
-                        Logger.Log("added old ammo to new mag");
-                    }
-                    // change ammo to max mag size
-                    newMagAmount = newMag.item.amount < reloadInfo.MagazineSize ? newMag.item.amount : reloadInfo.MagazineSize;
-                    
-                    player.Player.equipment.state[10] = newMagAmount;
-                    player.Player.equipment.sendUpdateState();
-                    // give remaining ammo
-                    Item remaining = new Item(newMag.item.id, (byte)(newMag.item.amount - newMagAmount), newMag.item.quality);
-                    safeAddItem(player, remaining, newMag.x, newMag.y, reloadState.newMag.page, newMag.rot);
-                    Logger.Log("added remaining ammo to inventory");
+                    newMag.item.amount += reloadState.oldMag.amount;
+                    reloadState.oldMag.amount = 0;
+                    Logger.Log("added old ammo to new mag");
                 }
-                // give old mag
-                if (reloadState.oldMag != null)
+                // change ammo to max mag size
+                newMagAmount = newMag.item.amount < reloadInfo.MagazineSize ? newMag.item.amount : reloadInfo.MagazineSize;
+
+                player.Player.equipment.state[10] = newMagAmount;
+                player.Player.equipment.sendUpdateState();
+                // give remaining ammo
+                Item remaining = new Item(newMag.item.id, (byte)(newMag.item.amount - newMagAmount), newMag.item.quality);
+                safeAddItem(player, remaining, newMag.x, newMag.y, reloadState.newMag.page, newMag.rot);
+                Logger.Log("added remaining ammo to inventory");
+            }
+
+            // give old mag
+            if (reloadState.oldMag != null)
+            {
+                ItemMagazineAsset magAsset = Assets.find(EAssetType.ITEM, reloadState.oldMag.id) as ItemMagazineAsset;
+                if (reloadState.reloaded)
                 {
-                    ItemMagazineAsset magAsset = Assets.find(EAssetType.ITEM, reloadState.oldMag.id) as ItemMagazineAsset;
-                    if(reloadState.reloaded) 
+                    if (reloadState.oldMag.amount > 0 || (!gun.equippedGunAsset.shouldDeleteEmptyMagazines && !magAsset.deleteEmpty))
                     {
-                        if(reloadState.oldMag.amount > 0 || (!gun.equippedGunAsset.shouldDeleteEmptyMagazines && !magAsset.deleteEmpty)){
-                            player.Inventory.forceAddItem(reloadState.oldMag, false);
-                            Logger.Log("added old mag to inventory");
-                        }
+                        player.GiveItem(reloadState.oldMag);
+                        Logger.Log("added old mag to inventory");
                     }
-                    else
-                    {
-                        InventoryHelper.setMagForGun(player.Player.equipment, reloadState.oldMag);
-                        Logger.Log("restored old mag");
-                    }
+                }
+                else
+                {
+                    InventoryHelper.setMagForGun(player.Player.equipment, reloadState.oldMag);
+                    Logger.Log("restored old mag");
                 }
             }
         }
@@ -540,6 +540,7 @@ namespace SpeedMann.Unturnov
                 Item replacement = new Item(emptyMagId, (byte)0, P.item.quality);
 
                 safeAddItem(player, replacement, P.x, P.y, (byte)inventoryGroup, P.rot);
+                Logger.Log($"Replaced mag {P.item.id} with empty varient {emptyMagId}");
                 return;
             }
             #endregion
@@ -704,20 +705,19 @@ namespace SpeedMann.Unturnov
             Dictionary<ushort, ushort> itemExtensionsDict = new Dictionary<ushort, ushort>();
             if (magExtensions != null)
             {
-                foreach (EmptyMagazineExtension extension in magExtensions)
+                foreach (EmptyMagazineExtension emptyMagVarient in magExtensions)
                 {
-                    if (extension.LoadedMagazines != null)
+                    if (emptyMagVarient.LoadedMagazines != null)
                     {
-                        foreach (EmptyMagazineExtension.LoadedMagazineVariant magType in extension.LoadedMagazines)
+                        foreach (EmptyMagazineExtension.LoadedMagazineVariant fullMagVarient in emptyMagVarient.LoadedMagazines)
                         {
-                            if (itemExtensionsDict.ContainsKey(magType.Id))
+                            if (itemExtensionsDict.ContainsKey(fullMagVarient.Id))
                             {
-                                Logger.LogWarning("Item with Id:" + magType + " is a duplicate!");
+                                Logger.LogWarning("Item with Id:" + fullMagVarient + " is a duplicate!");
                             }
                             else
-                            {
-
-                                itemExtensionsDict.Add(magType.Id, extension.Id);
+                            { 
+                                itemExtensionsDict.Add(fullMagVarient.Id, emptyMagVarient.Id);
                             }
                         }
                     }

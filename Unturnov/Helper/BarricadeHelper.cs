@@ -77,7 +77,18 @@ namespace SpeedMann.Unturnov.Helper
 
             return true;
         }
+        internal static bool tryGetPlantedOfFarm(BarricadeDrop drop, out uint planted)
+        {
+            planted = 0;
 
+            InteractableFarm farm = drop.model.GetComponent<InteractableFarm>();
+            if (farm == null)
+                return false;
+
+            Logger.Log($"groth state: {Provider.time - planted} of {farm.growth}");
+            planted = farm.planted;
+            return true;
+        }
         internal static bool tryGetStoredItems(BarricadeDrop drop, out List<ItemJar> storedItems)
         {
             storedItems = new List<ItemJar>();

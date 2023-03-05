@@ -2,12 +2,16 @@
 using Rocket.Core.Logging;
 using Rocket.Unturned.Enumerations;
 using Rocket.Unturned.Player;
+using SDG.Framework.Devkit;
 using SDG.Unturned;
 using SpeedMann.Unturnov.Models;
 using Steamworks;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
+using UnityEngine;
+using static UnityEngine.Random;
 using Logger = Rocket.Core.Logging.Logger;
 
 namespace SpeedMann.Unturnov.Helper
@@ -60,13 +64,9 @@ namespace SpeedMann.Unturnov.Helper
         }
 
         #region Events
-        // teleport
-        //PlayerMovement: EnterTeleporterVolume EnterCollisionTeleporter
         // weight system
         //PlayerMovement: ReceivePluginGravityMultiplier ReceivePluginJumpMultiplier ReceivePluginSpeedMultiplier
 
-        public delegate void UseBarricade(UseableBarricade useableBarricade, bool post);
-        public static event UseBarricade OnUseBarricade;
         public delegate void PreDestroyBarricade(BarricadeDrop barricade, byte x, byte y, ushort plant);
         public static event PreDestroyBarricade OnPreDestroyBarricade;
 
@@ -86,7 +86,7 @@ namespace SpeedMann.Unturnov.Helper
         public static event PreShutdownSave OnPreShutdownSave;
         public delegate void PreDisconnectSave(CSteamID steamID, ref bool shouldAllow);
         public static event PreDisconnectSave OnPreDisconnectSave;
-
+        
         #region SecureCase
         public delegate void PrePlayerDraggedItem(PlayerInventory inventory, byte page_0, byte x_0, byte y_0, byte page_1, byte x_1, byte y_1, byte rot_1, ref bool shouldAllow);
         public static event PrePlayerDraggedItem OnPrePlayerDraggedItem;
@@ -109,26 +109,6 @@ namespace SpeedMann.Unturnov.Helper
         #endregion
 
         #region Patches
-        [HarmonyPatch(typeof(UseableBarricade), nameof(UseableBarricade.simulate))]
-        class PlaceBarricadePatch
-        {
-            [HarmonyPrefix]
-            internal static bool OnPrePlaceBarricadeInvoker(UseableBarricade __instance, out UseableBarricade __state)
-            {
-                __state = null;
-                if (!UnturnedPrivateFields.TryGetIsUsing(__instance) || !UnturnedPrivateFields.TryGetIsUseable(__instance)) return true;
-
-                __state = __instance;
-                OnUseBarricade?.Invoke(__instance, false);
-                return true;
-            }
-            [HarmonyPostfix]
-            internal static void OnPostPlaceBarricadeInvoker(UseableBarricade __state)
-            {
-                if (__state == null) return;
-                OnUseBarricade?.Invoke(__state, true);
-            }
-        }
 
         [HarmonyPatch(typeof(BarricadeManager), nameof(BarricadeManager.destroyBarricade), new Type[] { typeof(BarricadeDrop), typeof(byte), typeof(byte), typeof(ushort) })]
         class DestroyBarricadePatch
@@ -227,6 +207,7 @@ namespace SpeedMann.Unturnov.Helper
                 return shouldAllow;
             }
         }
+
         #region SecureCase
         internal class LiveUpdateInventory
         {

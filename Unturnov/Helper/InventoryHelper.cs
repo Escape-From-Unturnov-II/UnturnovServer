@@ -30,7 +30,7 @@ namespace SpeedMann.Unturnov
 		}
 		public static void setMagForGun(PlayerEquipment gun, Item mag)
 		{
-			if (gun != null && gun.state.Length >= 18)
+			if (gun != null && gun.state.Length >= 18 && gun.useable is UseableGun)
 			{
 				byte[] array = BitConverter.GetBytes(mag.id);
 				gun.state[8] = array[0];
@@ -51,7 +51,20 @@ namespace SpeedMann.Unturnov
 				gun.state[17] = mag.quality;
 			}
 		}
-		public static Item getMagFromGun(Item gun)
+		public static Item getMagFromGun(PlayerEquipment gun)
+		{
+			if (gun != null && gun.state.Length >= 18 && gun.useable is UseableGun)
+			{
+                byte[] mag = new byte[] { gun.state[8], gun.state[9] };
+                ushort itemId = BitConverter.ToUInt16(mag, 0);
+                if (itemId > 0)
+                {
+                    return new Item(itemId, gun.state[10], gun.state[17]);
+                }
+            }
+            return null;
+        }
+        public static Item getMagFromGun(Item gun)
 		{
 			if (gun != null && gun.state.Length >= 18)
 			{
