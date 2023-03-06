@@ -534,7 +534,7 @@ namespace SpeedMann.Unturnov
             }
 
             // change emptied mags to empty variant
-            if ((MagazineDict.TryGetValue(P.item.id, out ushort emptyMagId) && P.item.amount <= 0))
+            if (MagazineDict.TryGetValue(P.item.id, out ushort emptyMagId))
             {
                 player.Inventory.removeItem((byte)inventoryGroup, inventoryIndex);
                 Item replacement = new Item(emptyMagId, (byte)0, P.item.quality);
@@ -804,10 +804,13 @@ namespace SpeedMann.Unturnov
 
         internal static void setupNewPlayer(UnturnedPlayer player)
         {
-            player.Player.life.ReceiveHealth(Conf.NewPlayerKitConfig.Health);
-            player.Player.life.ReceiveFood(Conf.NewPlayerKitConfig.Food);
-            player.Player.life.ReceiveWater(Conf.NewPlayerKitConfig.Water);
-            player.Player.life.ReceiveVirus(Conf.NewPlayerKitConfig.Virus);
+            if (Conf?.NewPlayerKitConfig == null)
+                return;
+
+            player.Player.life.serverModifyHealth(Conf.NewPlayerKitConfig.Health);
+            player.Player.life.serverModifyFood(Conf.NewPlayerKitConfig.Food);
+            player.Player.life.serverModifyWater(Conf.NewPlayerKitConfig.Water);
+            player.Player.life.serverModifyVirus(Conf.NewPlayerKitConfig.Virus);
 
             foreach (var item in Conf.NewPlayerKitConfig.KitItems)
             {
