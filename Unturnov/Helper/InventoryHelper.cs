@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using MySqlX.XDevAPI.Relational;
 using Rocket.API;
 using Rocket.Core.Logging;
 using Rocket.Core.Plugins;
@@ -145,7 +146,24 @@ namespace SpeedMann.Unturnov
 
 		}
 
-		public static bool getInvItems(UnturnedPlayer player, ref List<ItemJarWrapper> foundItems)
+        public static ushort findAmmo(PlayerInventory inventory, ushort itemId, out List<InventorySearch> foundAmmo)
+		{
+            ushort amount = 0;
+            foundAmmo = inventory.search(itemId, false, true);
+            foreach (InventorySearch search in foundAmmo)
+            {
+                amount += search.jar.item.amount;
+            }
+			return amount;
+        }
+        public static void addItem(UnturnedPlayer player, Item item, byte x, byte y, byte page, byte rot)
+		{
+            if (!player.Inventory.tryAddItem(item, x, y, page, rot))
+            {
+                player.Inventory.forceAddItem(item, false);
+            }
+        }
+        public static bool getInvItems(UnturnedPlayer player, ref List<ItemJarWrapper> foundItems)
 		{
 			bool returnv = false;
 			if (foundItems == null) return returnv;
@@ -247,7 +265,6 @@ namespace SpeedMann.Unturnov
 			}
 			return returnv;
 		}
-
 		public static bool clearAll(UnturnedPlayer player)
 		{
 			return clearInv(player) && clearClothes(player);

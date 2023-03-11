@@ -98,7 +98,7 @@ namespace SpeedMann.Unturnov.Models
         {
             public ushort id;
             public List<ushort> calibers;
-            public bool set = false;
+            public bool wasSet = false;
             internal delegate void SetAttachmentInner(ref byte[] state, ushort id);
             private event SetAttachmentInner setAttachmentCaller;
             public void SetAttachment(ref byte[] state)
@@ -106,7 +106,7 @@ namespace SpeedMann.Unturnov.Models
                 if(setAttachmentCaller != null && calibers != null)
                 {
                     setAttachmentCaller.Invoke(ref state, id);
-                    set = true;
+                    wasSet = true;
                 }
             }
 

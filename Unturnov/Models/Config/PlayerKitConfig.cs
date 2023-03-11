@@ -14,12 +14,12 @@ namespace SpeedMann.Unturnov.Models.Config
         public byte Water = 100;
         public byte Virus = 100;
 
-        public List<ItemExtension> KitItems = new List<ItemExtension>();
+        public List<ItemExtensionAmount> KitItems = new List<ItemExtensionAmount>();
 
         public PlayerKitConfig()
         {
         }
-        public PlayerKitConfig(byte health, byte food, byte water, byte virus, List<ItemExtension> kitItems)
+        public PlayerKitConfig(byte health, byte food, byte water, byte virus, List<ItemExtensionAmount> kitItems)
         {
             Health = health;
             Food = food;

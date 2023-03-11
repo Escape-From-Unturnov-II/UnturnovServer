@@ -138,6 +138,8 @@
     <Compile Include="Controlers\HideoutControler.cs" />
     <Compile Include="Controlers\QuestExtensionControler.cs" />
     <Compile Include="Controlers\SkinControler.cs" />
+    <Compile Include="Controlers\UnloadMagControler.cs" />
+    <Compile Include="Controlers\WeaponModdingControler.cs" />
     <Compile Include="Helper\BarricadeHelper.cs" />
     <Compile Include="Helper\DatabaseManager.cs" />
     <Compile Include="Helper\EffectControler.cs" />
@@ -154,6 +156,7 @@
     <Compile Include="Models\Config\DeathAdditionConfig.cs" />
     <Compile Include="Models\Config\FoundationSet.cs" />
     <Compile Include="Models\Config\HideoutConfig.cs" />
+    <Compile Include="Models\Config\ItemExtensionAmount.cs" />
     <Compile Include="Models\Config\ItemWhitelist.cs" />
     <Compile Include="Models\Config\PlayerKitConfig.cs" />
     <Compile Include="Models\Config\OpenableItemsConfig.cs" />

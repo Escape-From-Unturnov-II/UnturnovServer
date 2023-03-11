@@ -6,20 +6,20 @@ using System.Threading.Tasks;
 
 namespace SpeedMann.Unturnov.Models
 {
-    public class ItemExtension
+    public class ItemExtensionAmount : ItemExtension
     {
-        public string Name;
-        public ushort Id;
+        public byte Amount = 1; 
 
-        public ItemExtension()
+        public ItemExtensionAmount()
         {
 
         }
 
-        public ItemExtension( ushort itemId, string name = "")
+        public ItemExtensionAmount(ushort itemId, string name = "", byte amount = 1)
         {
             Id = itemId;
             Name = name;
+            Amount = amount;
         }
     }
 }
