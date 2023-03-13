@@ -8,7 +8,7 @@ using System.Xml.Serialization;
 namespace SpeedMann.Unturnov.Models
 {
     /*
-        Ammo Stack:
+    Ammo Stack:
 
         Type Magazine
 

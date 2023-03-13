@@ -22,7 +22,7 @@ namespace SpeedMann.Unturnov.Controlers
 
         internal static void Init(List<ItemExtension> GunModdingExtensions, bool Debug = false)
         {
-            LogDebug = true;
+            LogDebug = Debug;
             GunModdingDict = Unturnov.createDictionaryFromItemExtensions(GunModdingExtensions);
             ModdedGunAttachments = new Dictionary<CSteamID, GunAttachments>();
         }

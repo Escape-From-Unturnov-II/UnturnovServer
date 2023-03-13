@@ -462,7 +462,7 @@ namespace SpeedMann.Unturnov
 
             WeaponModdingControler.SaveAttachmentsOfCraftedGun(blueprint, crafting);
 
-            UnloadMagControler.ReplaceEmptymagazineBlueprintWithFullVariant(blueprint, crafting, ref itemID, ref blueprintIndex, ref shouldAllow, ref replaced);
+            UnloadMagControler.ReplaceEmptyMagazineBlueprintWithFullVariant(blueprint, crafting, ref itemID, ref blueprintIndex, ref shouldAllow, ref replaced);
             #region Check Disable Autocombine
             foreach (BlueprintOutput outP in blueprint.outputs)
             {
