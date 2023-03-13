@@ -77,7 +77,7 @@ namespace SpeedMann.Unturnov.Controlers
                 return;
 
             byte[] bytes = equipment.state;
-            GunAttachments.setMag(ref bytes, emptyMagId, 0);
+            GunAttachments.setMag(ref bytes, emptyMagId, mag.durability,  0);
             equipment.state = bytes;
             equipment.sendUpdateState();
         }
