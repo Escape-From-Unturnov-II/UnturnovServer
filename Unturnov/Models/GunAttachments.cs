@@ -1,10 +1,13 @@
-﻿using Rocket.Core.Logging;
+﻿using Org.BouncyCastle.Asn1.BC;
+using Rocket.Core.Logging;
 using SDG.Unturned;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
+using UnityEngine;
 
 namespace SpeedMann.Unturnov.Models
 {
@@ -13,6 +16,10 @@ namespace SpeedMann.Unturnov.Models
         public List<GunAttachment> attachments;
         public GunAttachment magAttachment;
         public byte ammo;
+        public GunAttachments(ushort sightId, ushort tacticalId, ushort gripId, ushort barrelId, ushort magId, byte ammo)
+        {
+            setAttachments(sightId, tacticalId, gripId, barrelId, magId, ammo);
+        }
         public GunAttachments(byte [] oldAttachments)
         {
             byte[] sight = new byte[] { oldAttachments[0], oldAttachments[1] };
@@ -21,50 +28,62 @@ namespace SpeedMann.Unturnov.Models
             byte[] barrel = new byte[] { oldAttachments[6], oldAttachments[7] };
             byte[] mag = new byte[] { oldAttachments[8], oldAttachments[9] };
 
-            ammo = oldAttachments[10];
-
-            
-
+            setAttachments(
+                BitConverter.ToUInt16(sight, 0), 
+                BitConverter.ToUInt16(tactical, 0),
+                BitConverter.ToUInt16(grip, 0),
+                BitConverter.ToUInt16(barrel, 0),
+                BitConverter.ToUInt16(mag, 0),
+                oldAttachments[10]);
+        }
+        private void setAttachments(ushort sightId, ushort tacticalId, ushort gripId, ushort barrelId, ushort magId, byte ammo)
+        {
             attachments = new List<GunAttachment>
             {
-                new GunAttachment(BitConverter.ToUInt16(sight, 0), setSight),
-                new GunAttachment(BitConverter.ToUInt16(tactical, 0), setTactical),
-                new GunAttachment(BitConverter.ToUInt16(grip, 0), setGrip),
-                new GunAttachment(BitConverter.ToUInt16(barrel, 0), setBarrel),
+                new GunAttachment(sightId, setSight),
+                new GunAttachment(tacticalId, setTactical),
+                new GunAttachment(gripId, setGrip),
+                new GunAttachment(barrelId, setBarrel),
             };
-            magAttachment = new GunAttachment(BitConverter.ToUInt16(mag, 0), setMag);
+            magAttachment = new GunAttachment(magId, setMag);
+            this.ammo = ammo;
         }
-        public void setSight(ref byte[] state, ushort id)
+        public static void setSight(ref byte[] state, ushort id)
         {
             byte[] array = BitConverter.GetBytes(id);
             state[0] = array[0];
             state[1] = array[1];
         }
-        public void setTactical(ref byte[] state, ushort id)
+        public static void setTactical(ref byte[] state, ushort id)
         {
             byte[] array = BitConverter.GetBytes(id);
             state[2] = array[0];
             state[3] = array[1];
         }
-        public void setGrip(ref byte[] state, ushort id)
+        public static void setGrip(ref byte[] state, ushort id)
         {
             byte[] array = BitConverter.GetBytes(id);
             state[4] = array[0];
             state[5] = array[1];
         }
-        public void setBarrel(ref byte[] state, ushort id)
+        public static void setBarrel(ref byte[] state, ushort id)
         {
             byte[] array = BitConverter.GetBytes(id);
             state[6] = array[0];
             state[7] = array[1];
         }
-        public void setMag(ref byte[] state, ushort id)
+        public static void setMag(ref byte[] state, ushort id, byte ammo)
         {
             byte[] array = BitConverter.GetBytes(id);
             state[8] = array[0];
             state[9] = array[1];
             state[10] = ammo;
         }
+        private void setMag(ref byte[] state, ushort id)
+        {
+            setMag(ref state, id, ammo);
+        }
+
         internal static List<ushort> findCalibers(ushort id)
         {
             List<ushort> calibers = null;

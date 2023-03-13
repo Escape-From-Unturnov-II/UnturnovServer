@@ -76,6 +76,8 @@ namespace SpeedMann.Unturnov.Helper
         public static event PreAttachMagazine OnPreAttachMagazine;
         public delegate void PostAttachMagazine(UseableGun gun);
         public static event PostAttachMagazine OnPostAttachMagazine;
+        public delegate void PreEquipmentUpdateState(PlayerEquipment equipment);
+        public static event PreEquipmentUpdateState OnPreEquipmentUpdateState;
 
         public delegate void PreInteractabilityCondition(ObjectAsset objectAsset, Player player, ref bool shouldAllow);
         public static event PreInteractabilityCondition OnPreInteractabilityCondition;
@@ -109,6 +111,16 @@ namespace SpeedMann.Unturnov.Helper
         #endregion
 
         #region Patches
+        [HarmonyPatch(typeof(PlayerEquipment), nameof(PlayerEquipment.updateState))]
+        class EquipmentUpdateStatePatch
+        {
+            [HarmonyPrefix]
+            internal static bool OnPreEquipmentUpdateStateInvoker(PlayerEquipment __instance)
+            {
+                OnPreEquipmentUpdateState?.Invoke(__instance);
+                return true;
+            }
+        }
 
         [HarmonyPatch(typeof(BarricadeManager), nameof(BarricadeManager.destroyBarricade), new Type[] { typeof(BarricadeDrop), typeof(byte), typeof(byte), typeof(ushort) })]
         class DestroyBarricadePatch

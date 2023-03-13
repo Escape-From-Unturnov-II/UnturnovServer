@@ -98,6 +98,7 @@ namespace SpeedMann.Unturnov
             UnturnedPatches.OnPreAttachMagazine += OnPreAttachMag;
             UnturnedPatches.OnPostAttachMagazine += OnPostAttachMag;
             UseableGun.onChangeMagazineRequested += OnChangeMagazine;
+            UnturnedPatches.OnPreEquipmentUpdateState += OnEquipmentStateUpdate;
             UnturnedPlayerEvents.OnPlayerInventoryAdded += OnInventoryUpdated;
             PlayerCrafting.onCraftBlueprintRequested += OnCraft;
 
@@ -152,6 +153,7 @@ namespace SpeedMann.Unturnov
             UnturnedPatches.OnPreAttachMagazine -= OnPreAttachMag;
             UnturnedPatches.OnPostAttachMagazine -= OnPostAttachMag;
             UseableGun.onChangeMagazineRequested -= OnChangeMagazine;
+            UnturnedPatches.OnPreEquipmentUpdateState -= OnEquipmentStateUpdate;
             UnturnedPlayerEvents.OnPlayerInventoryAdded -= OnInventoryUpdated;
             PlayerCrafting.onCraftBlueprintRequested -= OnCraft;
 
@@ -364,6 +366,10 @@ namespace SpeedMann.Unturnov
             }
             #endregion
 
+        }
+        private void OnEquipmentStateUpdate(PlayerEquipment equipment)
+        {
+            UnloadMagControler.ReplaceEmptyMagInGun(equipment);
         }
         private void OnPostAttachMag(UseableGun gun)
         {

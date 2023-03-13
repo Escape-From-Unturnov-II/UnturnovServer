@@ -11,6 +11,7 @@ using System.Security.Policy;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
+using static UnityEngine.Random;
 using Logger = Rocket.Core.Logging.Logger;
 
 
@@ -63,6 +64,23 @@ namespace SpeedMann.Unturnov.Controlers
             EmptyMageDict = Unturnov.createDictionaryFromItemExtensions(UnloadMagExtensions);
         }
 
+        internal static void ReplaceEmptyMagInGun(PlayerEquipment equipment)
+        {
+            if (equipment?.state == null || equipment.state.Length < 11)
+                return;
+
+            if (equipment.state[10] > 0)
+                return;
+
+            Item mag = InventoryHelper.getMagFromGun(equipment);
+            if (mag == null || !FullToEmptyMagazineDict.TryGetValue(mag.id, out ushort emptyMagId))
+                return;
+
+            byte[] bytes = equipment.state;
+            GunAttachments.setMag(ref bytes, emptyMagId, 0);
+            equipment.state = bytes;
+            equipment.sendUpdateState();
+        }
         /*
          * Redirects the Blueprints to the equivalent blueprint of the loaded alternative (matching is done by supply[0] id)
          */
