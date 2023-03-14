@@ -211,6 +211,9 @@ namespace SpeedMann.Unturnov
         {
             UnturnedPlayer player = UnturnedPlayer.FromCSteamID(steamID);
 
+            // disable plugin crafting
+            player.Player.quests.sendSetFlag(Conf.PluginCraftingFlag, 0);
+
             if (player == null) return;
 
             if (player.Dead)
@@ -236,6 +239,9 @@ namespace SpeedMann.Unturnov
         }
         private void OnPlayerConnected(UnturnedPlayer player)
         {
+            // enable plugin crafting
+            player.Player.quests.sendSetFlag(Conf.PluginCraftingFlag, 1);
+
             HideoutControler.OnPlayerConnected(player);
             ScavRunControler.OnPlayerConnected(player);
             if (!ScavRunControler.isScavRunActive(player))

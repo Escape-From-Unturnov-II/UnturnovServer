@@ -12,6 +12,7 @@ namespace SpeedMann.Unturnov
     {
         public bool Debug;
         public string DatabaseConnectionString;
+        public ushort PluginCraftingFlag = 50100;
         public ushort ScavKitTierFlag;
         public ushort ScavRunControlFlag;
 
