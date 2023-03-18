@@ -12,7 +12,7 @@ namespace SpeedMann.Unturnov
     {
         public bool Debug;
         public string DatabaseConnectionString;
-        public ushort PluginCraftingFlag = 50100;
+        public ushort PluginCraftingFlag = 40404;
         public ushort ScavKitTierFlag;
         public ushort ScavRunControlFlag;
 
@@ -24,7 +24,6 @@ namespace SpeedMann.Unturnov
         public List<CombineDescription> AutoCombine;
         [XmlArrayItem(ElementName = "Item")]
         public List<ItemExtension> GunModdingResults;
-        public List<ReloadExtension> ReloadExtensions;
         public List<ScavKitTier> ScavKitTiers;
         public ScavSpawnTableSet ScavSpawnTables;
 
@@ -1638,24 +1637,6 @@ namespace SpeedMann.Unturnov
                 },
                 #endregion
             };
-            ReloadExtensions = new List<ReloadExtension>
-            {
-                new ReloadExtension
-                {
-                    AmmoStack = new ItemExtension(37998),
-                    Compatibles = new List<ReloadInner>
-                    {
-                        new ReloadInner
-                        {
-                            MagazineSize = 4,
-                            Gun = new List<ItemExtension>
-                            {
-                                new ItemExtension(38021),
-                            }
-                        }
-                    }
-                }
-            };
             TeleportConfigs = new List<TeleportConfig>
             {
                 new TeleportConfig
@@ -2063,21 +2044,6 @@ namespace SpeedMann.Unturnov
                 addName(magazineExtension);
                 addNames(magazineExtension.LoadedMagazines);
             }
-            foreach (ReloadExtension reloadExtension in ReloadExtensions)
-            {
-                if (reloadExtension.AmmoStack != null)
-                {
-                    addName(reloadExtension.AmmoStack);
-                }
-                if (reloadExtension.Compatibles != null)
-                {
-                    foreach (ReloadInner reloadInner in reloadExtension.Compatibles)
-                    {
-                        addNames(reloadInner.Gun);
-                    }
-                }
-            }
-          
             Unturnov.Inst.Configuration.Save();
         }
 

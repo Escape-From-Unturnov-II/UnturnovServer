@@ -31,11 +31,7 @@ namespace SpeedMann.Unturnov
         public static bool ModsLoaded = false;
         
 
-        private Dictionary<ushort, CombineDescription> AutoCombineDict;
-        
-        private Dictionary<ushort, ReloadInner> ReloadExtensionByGun;
-        private Dictionary<CSteamID, InternalMagReloadState> ReloadExtensionStates;
-        
+        private Dictionary<ushort, CombineDescription> AutoCombineDict;     
         
         internal static List<CSteamID> ReplaceBypass;
         public static List<MainQueueEntry> MainThreadQueue = new List<MainQueueEntry>();
@@ -77,11 +73,9 @@ namespace SpeedMann.Unturnov
             UnloadMagControler.Init(Conf.UnloadMagBlueprints);
 
             ReplaceBypass = new List<CSteamID>();
-            ReloadExtensionStates = new Dictionary<CSteamID, InternalMagReloadState>();
             
             AutoCombineDict = createDictionaryFromAutoCombine(Conf.AutoCombine);
-            
-            ReloadExtensionByGun = createDictionaryFromReloadExtensionsByGun(Conf.ReloadExtensions);
+
 
             Conf.updateConfig();
 
@@ -95,9 +89,6 @@ namespace SpeedMann.Unturnov
 
             PlayerQuests.onAnyFlagChanged += OnFlagChanged;
 
-            UnturnedPatches.OnPreAttachMagazine += OnPreAttachMag;
-            UnturnedPatches.OnPostAttachMagazine += OnPostAttachMag;
-            UseableGun.onChangeMagazineRequested += OnChangeMagazine;
             UnturnedPatches.OnPreEquipmentUpdateState += OnEquipmentStateUpdate;
             UnturnedPlayerEvents.OnPlayerInventoryAdded += OnInventoryUpdated;
             PlayerCrafting.onCraftBlueprintRequested += OnCraft;
@@ -150,9 +141,6 @@ namespace SpeedMann.Unturnov
 
             PlayerQuests.onAnyFlagChanged -= OnFlagChanged;
 
-            UnturnedPatches.OnPreAttachMagazine -= OnPreAttachMag;
-            UnturnedPatches.OnPostAttachMagazine -= OnPostAttachMag;
-            UseableGun.onChangeMagazineRequested -= OnChangeMagazine;
             UnturnedPatches.OnPreEquipmentUpdateState -= OnEquipmentStateUpdate;
             UnturnedPlayerEvents.OnPlayerInventoryAdded -= OnInventoryUpdated;
             PlayerCrafting.onCraftBlueprintRequested -= OnCraft;
@@ -330,103 +318,9 @@ namespace SpeedMann.Unturnov
         {
             WeaponModdingControler.PreventAutoEquipOfCraftedGuns(inventory, item, ref autoEquipClothing, ref autoEquipUseable, ref autoEquipClothing);
         }
-        private void OnPreAttachMag(UseableGun gun, byte page, byte x, byte y, byte[] hash)
-        {
-            UnturnedPlayer player = UnturnedPlayer.FromPlayer(gun.player);
-            if (ReloadExtensionStates.ContainsKey(player.CSteamID)){
-                ReloadExtensionStates.Remove(player.CSteamID);
-            }
-            ItemGunAsset asset = gun.equippedGunAsset;
-            if (asset == null || !ReloadExtensionByGun.TryGetValue(asset.id, out ReloadInner reloadInfo) || reloadInfo == null)
-                return;
-
-            InternalMagReloadState state = new InternalMagReloadState { newMag = new ItemJarWrapper { page = page }, };
-            ReloadExtensionStates.Add(player.CSteamID, state);
-
-            //save and remove mag
-            Item mag = InventoryHelper.getMagFromGun(player.Player.equipment);
-            if (mag != null && page != 255)
-            {
-                state.oldMag = mag;
-                InventoryHelper.removeMagFromGun(player.Player.equipment);
-                Logger.Log("Removed mag from gun");
-            }
-        }
-        private void OnChangeMagazine(PlayerEquipment equipment, UseableGun gun, Item oldItem, ItemJar newItem, ref bool shouldAllow)
-        {
-            Logger.Log($"Changed magazine for: {equipment.itemID} old Mag: {(oldItem != null ? oldItem.id.ToString() : "none")} new Mag: {(newItem?.item != null ? newItem.item.id.ToString() : "none")}");
-
-            #region ReloadExtension
-
-            UnturnedPlayer player = UnturnedPlayer.FromPlayer(equipment.player);
-            if (!ReloadExtensionStates.TryGetValue(player.CSteamID, out InternalMagReloadState reloadState) || reloadState.newMag == null)
-                return;
-
-            if (newItem?.item != null && ReloadExtensionByGun.TryGetValue(gun.equippedGunAsset.id, out ReloadInner reloadInfo) && reloadInfo.AmmoStackId == newItem.item.id)
-            {
-                // save ammo stack
-                Item AmmoStack = new Item(newItem.item.id, newItem.item.amount, newItem.item.quality);
-                reloadState.newMag.itemJar = new ItemJar(newItem.x, newItem.y, newItem.rot, AmmoStack);
-                reloadState.reloaded = true;
-                Logger.Log("reloaded with reloadExtension!");
-            }
-            #endregion
-
-        }
         private void OnEquipmentStateUpdate(PlayerEquipment equipment)
         {
             UnloadMagControler.ReplaceEmptyMagInGun(equipment);
-        }
-        private void OnPostAttachMag(UseableGun gun)
-        {
-            UnturnedPlayer player = UnturnedPlayer.FromPlayer(gun.player);
-            if (!ReloadExtensionStates.TryGetValue(player.CSteamID, out InternalMagReloadState reloadState) || reloadState == null)
-                return;
-
-            if (!ReloadExtensionByGun.TryGetValue(gun.equippedGunAsset.id, out ReloadInner reloadInfo) || reloadInfo == null)
-                return;
-
-            if (reloadState?.newMag?.itemJar?.item?.amount > 0 && reloadState.reloaded)
-            {
-                ItemJar newMag = reloadState?.newMag.itemJar;
-                byte newMagAmount;
-
-                // add remaining ammo from old mag
-                if (newMag.item.amount < reloadInfo.MagazineSize && reloadState.oldMag?.amount > 0 && reloadState.oldMag.id == newMag.item.id)
-                {
-                    newMag.item.amount += reloadState.oldMag.amount;
-                    reloadState.oldMag.amount = 0;
-                    Logger.Log("added old ammo to new mag");
-                }
-                // change ammo to max mag size
-                newMagAmount = newMag.item.amount < reloadInfo.MagazineSize ? newMag.item.amount : reloadInfo.MagazineSize;
-
-                player.Player.equipment.state[10] = newMagAmount;
-                player.Player.equipment.sendUpdateState();
-                // give remaining ammo
-                Item remaining = new Item(newMag.item.id, (byte)(newMag.item.amount - newMagAmount), newMag.item.quality);
-                InventoryHelper.addItem(player, remaining, newMag.x, newMag.y, reloadState.newMag.page, newMag.rot);
-                Logger.Log("added remaining ammo to inventory");
-            }
-
-            // give old mag
-            if (reloadState.oldMag != null)
-            {
-                ItemMagazineAsset magAsset = Assets.find(EAssetType.ITEM, reloadState.oldMag.id) as ItemMagazineAsset;
-                if (reloadState.reloaded)
-                {
-                    if (reloadState.oldMag.amount > 0 || (!gun.equippedGunAsset.shouldDeleteEmptyMagazines && !magAsset.deleteEmpty))
-                    {
-                        player.GiveItem(reloadState.oldMag);
-                        Logger.Log("added old mag to inventory");
-                    }
-                }
-                else
-                {
-                    InventoryHelper.setMagForGun(player.Player.equipment, reloadState.oldMag);
-                    Logger.Log("restored old mag");
-                }
-            }
         }
         private void OnInventoryUpdated(UnturnedPlayer player, InventoryGroup inventoryGroup, byte inventoryIndex, ItemJar itemJ)
         {
@@ -558,33 +452,6 @@ namespace SpeedMann.Unturnov
                 }
             }
             return autoCombineDict;
-        }
-        private Dictionary<ushort, ReloadInner> createDictionaryFromReloadExtensionsByGun(List<ReloadExtension> reloadExtensions)
-        {
-            Dictionary<ushort, ReloadInner> ReloadExtensionDict = new Dictionary<ushort, ReloadInner>();
-            if (reloadExtensions != null)
-            {
-                foreach (ReloadExtension reloadExtension in reloadExtensions)
-                {
-                    foreach (ReloadInner reloadInner in reloadExtension.Compatibles)
-                    {
-                        reloadInner.AmmoStackId = reloadExtension.AmmoStack.Id;
-
-                        foreach (ItemExtension itemExtension in reloadInner.Gun)
-                        {
-                            if (ReloadExtensionDict.ContainsKey(itemExtension.Id))
-                            {
-                                Logger.LogWarning("ReloadExtension Gun with Id:" + itemExtension.Id + " is defined twice!");
-                            }
-                            else
-                            {
-                                ReloadExtensionDict.Add(itemExtension.Id, reloadInner);
-                            }
-                        }
-                    }
-                }
-            }
-            return ReloadExtensionDict;
         }
         internal static Dictionary<ushort, T> createDictionaryFromItemExtensions<T>(List<T> itemExtensions) where T : ItemExtension
         {
