@@ -134,6 +134,8 @@ namespace SpeedMann.Unturnov
             UnturnedPatches.Cleanup();
             ScavRunControler.Cleanup();
             QuestExtensionControler.Cleanup();
+            HideoutControler.Cleanup();
+            PlacementRestrictionControler.Cleanup();
 
             Provider.modeConfigData.Gameplay.Timer_Home = oldBedTimer;
 
@@ -260,11 +262,13 @@ namespace SpeedMann.Unturnov
         }
         private void OnBarricadeSpawned(BarricadeRegion region, BarricadeDrop drop)
         {
+            PlacementRestrictionControler.OnBarricadeSpawned(region, drop);
             HideoutControler.OnBarricadeSpawned(region, drop);
         }
         private void OnBarricadeDestroy(BarricadeDrop barricade, byte x, byte y, ushort plant)
         {
             HideoutControler.OnBarricadeDestroy(barricade, x, y, plant);
+            PlacementRestrictionControler.OnBarricadeDestroy(barricade, x, y, plant);
         }
         private void OnStructureSpawned(StructureRegion region, StructureDrop drop)
         {

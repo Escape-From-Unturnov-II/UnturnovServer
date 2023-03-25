@@ -29,7 +29,7 @@ namespace SpeedMann.Unturnov.Helper
         private static FieldInfo UseableBarricadeStartedUseInfo;
         private static FieldInfo UseableBarricadeUseTimeInfo;
 
-        private static FieldInfo BarricadeDropServersideDataInfo;
+        private static FieldInfo BarricadeDropSendSalvageRequestInfo;
 
         private static FieldInfo UseableGunAmmoInfo;
 
@@ -169,24 +169,26 @@ namespace SpeedMann.Unturnov.Helper
             return result;
         }
 
-        public static bool TryGetServersideData(BarricadeDrop barricadeDrop, out BarricadeData serversideData)
+        public static bool TrySendSalvageRequest(BarricadeDrop barricadeDrop)
         {
-            serversideData = null;
+            if (BarricadeDropSendSalvageRequestInfo == null || barricadeDrop == null)
+                return false;
 
-            if (BarricadeDropServersideDataInfo != null && barricadeDrop != null)
+            try
             {
-                try
+                ServerInstanceMethod salvalgeRequest = BarricadeDropSendSalvageRequestInfo.GetValue(barricadeDrop) as ServerInstanceMethod;
+                if (salvalgeRequest == null)
                 {
-                    serversideData = (BarricadeData)BarricadeDropServersideDataInfo.GetValue(barricadeDrop);
-                    return true;
-                }
-                catch (Exception e)
-                {
-                    Logger.LogException(e, "Exception loading private field ServersideDataInfo");
                     return false;
                 }
+                salvalgeRequest.Invoke(barricadeDrop.GetNetId(), ENetReliability.Reliable);
+                return true;
             }
-            return false;
+            catch (Exception e)
+            {
+                Logger.LogException(e, "Exception in private function SendSalvageRequest of BarricadeDrop");
+                return false;
+            }
         }
 
         public static bool TryGetAmmo(UseableGun gun, out byte ammo)
@@ -232,7 +234,7 @@ namespace SpeedMann.Unturnov.Helper
             UseableBarricadeUseTimeInfo = type.GetField("useTime", BindingFlags.NonPublic | BindingFlags.Instance);
 
             type = typeof(BarricadeDrop);
-            BarricadeDropServersideDataInfo = type.GetField("serversideData", BindingFlags.NonPublic | BindingFlags.Instance);
+            BarricadeDropSendSalvageRequestInfo = type.GetField("SendSalvageRequest", BindingFlags.NonPublic | BindingFlags.Static);
 
             type = typeof(UseableGun);
             UseableGunAmmoInfo = type.GetField("ammo", BindingFlags.NonPublic | BindingFlags.Instance);

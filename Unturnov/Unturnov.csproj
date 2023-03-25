@@ -133,9 +133,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Commands\HideoutCommands.cs" />
-    <Compile Include="Controlers\CraftingStationControler.cs" />
+    <Compile Include="Controlers\Hideout\CraftingStationControler.cs" />
     <Compile Include="Controlers\DeathAdditionsControler.cs" />
-    <Compile Include="Controlers\HideoutControler.cs" />
+    <Compile Include="Controlers\Hideout\HideoutControler.cs" />
     <Compile Include="Controlers\QuestExtensionControler.cs" />
     <Compile Include="Controlers\SkinControler.cs" />
     <Compile Include="Controlers\UnloadMagControler.cs" />
@@ -145,7 +145,7 @@
     <Compile Include="Helper\EffectControler.cs" />
     <Compile Include="Helper\InventoryHelper.cs" />
     <Compile Include="Controlers\OpenableItemsControler.cs" />
-    <Compile Include="Controlers\PlacementRestrictionControler.cs" />
+    <Compile Include="Controlers\Hideout\PlacementRestrictionControler.cs" />
     <Compile Include="Helper\PlayerStatManager.cs" />
     <Compile Include="Controlers\ScavRunControler.cs" />
     <Compile Include="Controlers\SecureCaseControler.cs" />
@@ -170,7 +170,7 @@
     <Compile Include="Models\GenericOccurrence.cs" />
     <Compile Include="Models\GunAttachments.cs" />
     <Compile Include="Models\Config\ItemExtensions\DeathDrop.cs" />
-    <Compile Include="Models\Hideout.cs" />
+    <Compile Include="Models\Hideout\Hideout.cs" />
     <Compile Include="Models\InternalMagReloadState.cs" />
     <Compile Include="Models\Config\ItemExtensions\ItemExtension.cs" />
     <Compile Include="Models\ItemJarWrapper.cs" />

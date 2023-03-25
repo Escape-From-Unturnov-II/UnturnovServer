@@ -71,11 +71,7 @@ namespace SpeedMann.Unturnov.Models
                 BarricadeHelper.tryGetStoredItems(current, out var storedItems);
                 barricades.RemoveAt(0);
 
-                if (!UnturnedPrivateFields.TryGetServersideData(current, out BarricadeData data))
-                {
-                    Logger.LogWarning($"Could not get server side data for {current.asset.id} at {current.model.position}, canceled clearing hideout");
-                    return false;
-                }
+                BarricadeData data = current.GetServersideData();
                 if (!BarricadeHelper.tryDestroyBarricade(current.model.position, current.asset.id))
                 {
                     Logger.LogWarning($"Barricade {current.asset.id} of {owner} at {current.model.position} could not be destroyed!");

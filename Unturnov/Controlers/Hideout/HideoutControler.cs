@@ -6,10 +6,12 @@ using SpeedMann.Unturnov.Models.Config;
 using Steamworks;
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
+using static UnityEngine.Random;
 using Logger = Rocket.Core.Logging.Logger;
 
 namespace SpeedMann.Unturnov.Controlers
@@ -28,6 +30,20 @@ namespace SpeedMann.Unturnov.Controlers
             freeHideouts.Add(new Hideout(new Vector3(868, 8.5f, -350), 0));
             //freeHideouts.Add(new Hideout(new Vector3(879, 8.5f, -350), 0));
             freeHideouts.Add(new Hideout(new Vector3(879, 8.5f, -355), 180));
+        }
+        internal static void Cleanup()
+        {
+            foreach (SteamPlayer player in Provider.clients)
+            {
+                UnturnedPlayer uPlayer = UnturnedPlayer.FromSteamPlayer(player);
+                if (player != null)
+                {
+                    freeHideout(uPlayer);
+                }
+            }
+            freeHideouts.Clear();
+            savedBarricades.Clear();
+            claimedHideouts.Clear();
         }
         internal static Hideout getHideout(CSteamID playerId)
         {
@@ -105,11 +121,7 @@ namespace SpeedMann.Unturnov.Controlers
         }
         internal static void addBarricade(BarricadeDrop drop)
         {
-            if (!UnturnedPrivateFields.TryGetServersideData(drop, out BarricadeData data))
-            {
-                Logger.LogWarning($"Could not get server side data for {drop.asset.id} at {drop.model.position}");
-                return;
-            }
+            BarricadeData data = drop.GetServersideData();
             CSteamID playerId = new CSteamID(data.owner);
             if (!claimedHideouts.TryGetValue(playerId, out Hideout hideout))
             {
@@ -121,10 +133,7 @@ namespace SpeedMann.Unturnov.Controlers
         }
         internal static void removeBarricade(BarricadeDrop drop)
         {
-            if (!UnturnedPrivateFields.TryGetServersideData(drop, out BarricadeData data))
-            {
-                return;
-            }
+            BarricadeData data = drop.GetServersideData();
             if (data == null || data.owner == 0)
             {
                 Logger.LogWarning("destroyed barricade without owner");

@@ -20,6 +20,9 @@ namespace SpeedMann.Unturnov.Helper
 
         public static void spawnUI(ushort effectId, short effectKey, CSteamID executorID)
         {
+            if (executorID == CSteamID.Nil)
+                return;
+
             ITransportConnection transportConnection = Provider.findTransportConnection(executorID);
             if (transportConnection == null)
             {
