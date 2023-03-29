@@ -29,8 +29,6 @@ namespace SpeedMann.Unturnov.Helper
         private static FieldInfo UseableBarricadeStartedUseInfo;
         private static FieldInfo UseableBarricadeUseTimeInfo;
 
-        private static FieldInfo BarricadeDropSendSalvageRequestInfo;
-
         private static FieldInfo UseableGunAmmoInfo;
 
         public static bool TryBroadcastConnect(SteamPlayer player)
@@ -169,28 +167,6 @@ namespace SpeedMann.Unturnov.Helper
             return result;
         }
 
-        public static bool TrySendSalvageRequest(BarricadeDrop barricadeDrop)
-        {
-            if (BarricadeDropSendSalvageRequestInfo == null || barricadeDrop == null)
-                return false;
-
-            try
-            {
-                ServerInstanceMethod salvalgeRequest = BarricadeDropSendSalvageRequestInfo.GetValue(barricadeDrop) as ServerInstanceMethod;
-                if (salvalgeRequest == null)
-                {
-                    return false;
-                }
-                salvalgeRequest.Invoke(barricadeDrop.GetNetId(), ENetReliability.Reliable);
-                return true;
-            }
-            catch (Exception e)
-            {
-                Logger.LogException(e, "Exception in private function SendSalvageRequest of BarricadeDrop");
-                return false;
-            }
-        }
-
         public static bool TryGetAmmo(UseableGun gun, out byte ammo)
         {
             ammo = 0;
@@ -232,9 +208,6 @@ namespace SpeedMann.Unturnov.Helper
             UseableBarricadeIsUsingInfo = type.GetField("isUsing", BindingFlags.NonPublic | BindingFlags.Instance);
             UseableBarricadeStartedUseInfo = type.GetField("startedUse", BindingFlags.NonPublic | BindingFlags.Instance);
             UseableBarricadeUseTimeInfo = type.GetField("useTime", BindingFlags.NonPublic | BindingFlags.Instance);
-
-            type = typeof(BarricadeDrop);
-            BarricadeDropSendSalvageRequestInfo = type.GetField("SendSalvageRequest", BindingFlags.NonPublic | BindingFlags.Static);
 
             type = typeof(UseableGun);
             UseableGunAmmoInfo = type.GetField("ammo", BindingFlags.NonPublic | BindingFlags.Instance);

@@ -39,11 +39,10 @@ namespace SpeedMann.Unturnov.Helper
         
         internal static void OnBarricadeDeploy(Barricade barricade, ItemBarricadeAsset asset, Transform hit, ref Vector3 point, ref float angle_x, ref float angle_y, ref float angle_z, ref ulong owner, ref ulong group, ref bool shouldAllow)
         {
-            
-            if (!shouldAllow || !PlacementRestrictionDict.TryGetValue(asset.id, out PlacementRestriction restriction) || restriction != null) 
+            if (!shouldAllow || !PlacementRestrictionDict.TryGetValue(asset.id, out PlacementRestriction restriction) || restriction == null) 
                 return;
 
-            if (!tryGetFoundation(point, restriction, asset, owner, out BarricadeDrop barricadeFoundation, out ObjectAsset objectFoundation))
+            if (!tryGetObjectOrBarricadeBelow(point, restriction, asset, owner, out BarricadeDrop barricadeFoundation, out ObjectAsset objectFoundation))
             {
                 shouldAllow = false;
                 EffectControler.spawnUI(Conf.Notification_UI.UI_Id, Conf.Notification_UI.UI_Key, new CSteamID(owner));
@@ -69,6 +68,8 @@ namespace SpeedMann.Unturnov.Helper
         internal static void OnBarricadeSpawned(BarricadeRegion region, BarricadeDrop drop)
         {
             CSteamID playerId = new CSteamID(drop.GetServersideData().owner);
+            if(Conf.Debug)
+                Logger.Log($"Player {playerId} placed barricade {drop.asset.id}");
 
             if(!PlayerPlacementInfoDict.TryGetValue(playerId, out var placementInfo))
             {
@@ -81,6 +82,23 @@ namespace SpeedMann.Unturnov.Helper
         }
         internal static void OnBarricadeDestroy(BarricadeDrop drop, byte x, byte y, ushort plant)
         {
+            if(Conf.Debug)
+                Logger.Log($"Destoyed barricade {drop.asset.id} at {drop.model.position}");
+            if (!PlacementRestrictionDict.ContainsKey(drop.asset.id))
+            {
+                List<BarricadeDrop> connectedDrops = BarricadeConnections.getConnectedBarricades(drop);
+
+                if (Conf.Debug)
+                    Logger.Log($"Removed foundation {drop.asset.id}, with {connectedDrops.Count} connected barricades");
+
+                while (connectedDrops.Count > 0)
+                {
+                    if (!BarricadeHelper.trySalvageBarricade(connectedDrops[0]))
+                    {
+                        break;
+                    }
+                }
+            }
             BarricadeConnections.removeBarricade(drop);
         }
         #region Helper Functions
@@ -140,7 +158,7 @@ namespace SpeedMann.Unturnov.Helper
 
             return false;
         }
-        private static bool tryGetFoundation(Vector3 origin, PlacementRestriction restriction, ItemBarricadeAsset asset, ulong owner, out BarricadeDrop barricadeFoundation, out ObjectAsset objectFoundation)
+        private static bool tryGetObjectOrBarricadeBelow(Vector3 origin, PlacementRestriction restriction, ItemBarricadeAsset asset, ulong owner, out BarricadeDrop barricadeFoundation, out ObjectAsset objectFoundation)
         {
             objectFoundation = null;
             barricadeFoundation = null;
@@ -197,19 +215,21 @@ namespace SpeedMann.Unturnov.Helper
         }
         internal class BarricadeConnections
         {
-            private static Dictionary<BarricadeDrop, List<BarricadeDrop>> ConnectedBarricades;
-            private static Dictionary<BarricadeDrop, BarricadeDrop> ReverseConnection;
+            private static Dictionary<BarricadeDrop, List<BarricadeDrop>> ConnectedBarricades = new Dictionary<BarricadeDrop, List<BarricadeDrop>>();
+            private static Dictionary<BarricadeDrop, BarricadeDrop> ReverseConnection = new Dictionary<BarricadeDrop, BarricadeDrop>();
             internal static bool tryAddBarricadeConnection(BarricadeDrop foundation, BarricadeDrop addedBarricade)
             {
                 if (foundation == null || addedBarricade == null)
                 {
-                    if (Conf.Debug)
-                        Logger.LogWarning("Could not add barricade connection for null barricade or null foundation");
+                    Logger.LogError("Could not add barricade connection for null barricade or null foundation");
                     return false;
                 }
 
                 if (!tryAddReverseConnection(foundation, addedBarricade))
                     return false;
+
+                if (Conf.Debug)
+                    Logger.Log($"Added connection from barricade {addedBarricade.asset.id}, to foundation {foundation.asset.id}");
 
                 if (ConnectedBarricades.TryGetValue(foundation, out List<BarricadeDrop> connectedDrops))
                 {
@@ -229,7 +249,7 @@ namespace SpeedMann.Unturnov.Helper
                     removeBarricadeFoundation(barricade, connectedBarricades);
                     return;
                 }
-                if (ReverseConnection.TryGetValue(barricade, out BarricadeDrop foundation) || foundation == null)
+                if (ReverseConnection.TryGetValue(barricade, out BarricadeDrop foundation) && foundation != null)
                 {
                     removeRestrictedBarricade(barricade, foundation);
                 }
@@ -239,13 +259,19 @@ namespace SpeedMann.Unturnov.Helper
                 ConnectedBarricades.Clear();
                 ReverseConnection.Clear();
             }
+            internal static List<BarricadeDrop> getConnectedBarricades(BarricadeDrop foundation)
+            {
+                if (ConnectedBarricades.TryGetValue(foundation, out List<BarricadeDrop> connectedDrops))
+                {
+                    return connectedDrops;
+                }
+                return new List<BarricadeDrop>();
+            }
             private static void removeBarricadeFoundation(BarricadeDrop barricade, List<BarricadeDrop> connectedBarricades)
             {
                 foreach (BarricadeDrop connectedBarricade in connectedBarricades)
                 {
                     ReverseConnection.Remove(connectedBarricade);
-                    UnturnedPrivateFields.TrySendSalvageRequest(connectedBarricade);
-                    //TODO check what happens on salvage (do items drop?)
                 }
 
                 ConnectedBarricades.Remove(barricade);

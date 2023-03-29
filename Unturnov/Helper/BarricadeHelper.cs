@@ -1,4 +1,5 @@
-﻿using SDG.Unturned;
+﻿using Rocket.Core.Assets;
+using SDG.Unturned;
 using SpeedMann.Unturnov.Models;
 using Steamworks;
 using System;
@@ -53,6 +54,47 @@ namespace SpeedMann.Unturnov.Helper
             BarricadeDrop barricadeDrop = barricadeRegion.FindBarricadeByRootTransform(transform);
             BarricadeManager.destroyBarricade(barricadeDrop, x, y, plant);
 
+            return true;
+        }
+        internal static bool trySalvageBarricade(BarricadeDrop drop, Player player = null)
+        {
+            if (!BarricadeManager.tryGetRegion(drop.model, out var x, out var y, out var plant, out var region))
+            {
+                Logger.LogError($"Could not find region for Barricade {drop.asset.id} at {drop.model.position}");
+                return false;
+            }
+
+            var serversideData = drop.GetServersideData();
+            if (serversideData.barricade.health >= drop.asset.health)
+            {
+                Item item = new Item(serversideData.barricade.asset.id, EItemOrigin.NATURE);
+                if (player != null)
+                {
+                    player.inventory.forceAddItem(item, auto: true);
+                }
+                else
+                {
+                    ItemManager.dropItem(item, drop.model.position, playEffect: false, isDropped: true, wideSpread: true);
+                }
+            }
+            else if (drop.asset.isSalvageable)
+            {
+                ItemAsset itemAsset = drop.asset.FindSalvageItemAsset();
+                if (itemAsset != null)
+                {
+                    Item item = new Item(itemAsset, EItemOrigin.NATURE);
+                    if (player != null)
+                    {
+                        player.inventory.forceAddItem(item, auto: true);
+                    }
+                    else
+                    {
+                        ItemManager.dropItem(item, drop.model.position, playEffect: false, isDropped: true, wideSpread: true);
+                    }
+                }
+            }
+
+            BarricadeManager.destroyBarricade(drop, x, y, plant);
             return true;
         }
         internal static bool tryPlaceBarricade(ushort assetId, Vector3 pos, Vector3 rotation, CSteamID owner, CSteamID group, out Transform placedBarricade, List<ItemJar> items = null)
