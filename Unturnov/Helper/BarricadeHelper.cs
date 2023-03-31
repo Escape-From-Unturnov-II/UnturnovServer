@@ -106,7 +106,21 @@ namespace SpeedMann.Unturnov.Helper
                 Logger.LogError($"Place barricade: unknown asset [{assetId}]!");
                 return false;
             }
+            /* TODO FIX Rotation gumbe of nelson:
+            Logger.Log($"Request deploy rot {new Vector3(angle_x, angle_y, angle_z)}");
 
+            Quaternion rotation = Quaternion.Euler(0f, angle_y, 0f) * 
+                                  Quaternion.Euler((float)((asset.build != EBuild.DOOR && asset.build != EBuild.GATE && asset.build != EBuild.SHUTTER && asset.build != EBuild.HATCH) ? (-90) : 0) + angle_x, 0f, 0f) * 
+                                  Quaternion.Euler(0f, angle_z, 0f);
+            ^ this fucks rotation for what ever reason
+            
+            Vector3 eulerAngles = rotation.eulerAngles;
+            float angle = Mathf.RoundToInt(eulerAngles.x / 2f) * 2;
+            float angle2 = Mathf.RoundToInt(eulerAngles.y / 2f) * 2;
+            float angle3 = Mathf.RoundToInt(eulerAngles.z / 2f) * 2;
+
+            Logger.Log($"quant rot {rotation} euler {eulerAngles} rounded {new Vector3(angle, angle2, angle3)}");
+            */
             placedBarricade = BarricadeManager.dropBarricade(new Barricade(asset), null, pos, rotation.x, rotation.y, rotation.z, owner.m_SteamID, group.m_SteamID);
 
             if(placedBarricade == null)

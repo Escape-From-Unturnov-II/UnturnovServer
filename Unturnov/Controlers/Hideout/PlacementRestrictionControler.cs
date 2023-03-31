@@ -68,8 +68,9 @@ namespace SpeedMann.Unturnov.Helper
         internal static void OnBarricadeSpawned(BarricadeRegion region, BarricadeDrop drop)
         {
             CSteamID playerId = new CSteamID(drop.GetServersideData().owner);
+            var data = drop.GetServersideData();
             if(Conf.Debug)
-                Logger.Log($"Player {playerId} placed barricade {drop.asset.id}");
+                Logger.Log($"Player {playerId} placed barricade {drop.asset.id} position {data.point} rotation {new Vector3(data.angle_x, data.angle_y, data.angle_z)}");
 
             if(!PlayerPlacementInfoDict.TryGetValue(playerId, out var placementInfo))
             {

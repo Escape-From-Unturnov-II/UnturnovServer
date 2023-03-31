@@ -16,8 +16,9 @@ namespace SpeedMann.Unturnov.Models
     {
         internal CSteamID owner;
         internal Vector3[] bounds;
-        internal Vector3 origin;
-        internal Vector3 rotation;
+        internal Vector3 originPosition;
+        internal Vector3 originRotationEuler;
+        internal Quaternion originRotationQuanternion;
 
         private Vector3 hideoutDimensions = new Vector3(11, 5, 8);
         private List<BarricadeDrop> barricades = new List<BarricadeDrop>();
@@ -25,8 +26,9 @@ namespace SpeedMann.Unturnov.Models
         internal Hideout(Vector3 origin, float rotation)
         {
             owner = CSteamID.Nil;
-            this.origin = origin;
-            this.rotation = new Vector3(0, rotation, 0);
+            this.originPosition = origin;
+            originRotationEuler = new Vector3(0, rotation, 0);
+            originRotationQuanternion = Quaternion.Euler(originRotationEuler);
 
             Vector3[] bounds = calcBounds(origin);
             setBounds(bounds);
@@ -47,6 +49,7 @@ namespace SpeedMann.Unturnov.Models
         internal void addBarricade(BarricadeDrop drop)
         {
             barricades.Add(drop);
+            Logger.Log($"added barricade {drop.asset.id} in hideout of {owner}");
         }
         internal void removeBarricade(BarricadeDrop drop)
         {
@@ -63,25 +66,24 @@ namespace SpeedMann.Unturnov.Models
         internal bool clearBarricades(out List<BarricadeWrapper> removedBarricades)
         {
             removedBarricades = new List<BarricadeWrapper>();
-            bool success = true;
-            while (barricades.Count > 0)
+            int skippCounter = 0;
+            while (barricades.Count > skippCounter)
             {
                 var current = barricades[0];
                 BarricadeHelper.tryGetPlantedOfFarm(current, out uint planted);
                 BarricadeHelper.tryGetStoredItems(current, out var storedItems);
-                barricades.RemoveAt(0);
 
                 BarricadeData data = current.GetServersideData();
                 if (!BarricadeHelper.tryDestroyBarricade(current.model.position, current.asset.id))
                 {
                     Logger.LogWarning($"Barricade {current.asset.id} of {owner} at {current.model.position} could not be destroyed!");
-                    success = false;
+                    skippCounter++;
                     continue;
                 }
                 convertToRelative(data.point, new Vector3(data.angle_x, data.angle_y, data.angle_z), out Vector3 relPosition, out Vector3 relRotation);
                 removedBarricades.Add(new BarricadeWrapper(current.asset.id, relPosition, relRotation, storedItems));
             }
-            return success;
+            return skippCounter == 0;
         }
         internal void restoreBarricades(List<BarricadeWrapper> barricades, CSteamID playerId)
         {
@@ -109,7 +111,7 @@ namespace SpeedMann.Unturnov.Models
             Vector3[] bounds = new Vector3[2];
 
             bounds[0] = point;
-            bounds[1] = point + Quaternion.Euler(rotation) * hideoutDimensions;
+            bounds[1] = point + originRotationQuanternion * hideoutDimensions;
 
             return bounds;
         }
@@ -150,14 +152,16 @@ namespace SpeedMann.Unturnov.Models
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void convertToRelative(Vector3 location, Vector3 rotation, out Vector3 relativePosition, out Vector3 relativeRotation)
         {
-            relativePosition = Quaternion.Euler(this.rotation) * (location - origin);
-            relativeRotation = rotation - this.rotation;
+            relativePosition = originRotationQuanternion * (location - originPosition);
+            relativeRotation = rotation - originRotationEuler;
+            Logger.Log($"convert to rel originRot {originRotationEuler} barricadeRot {rotation} resultRot {relativeRotation} resultPos {relativePosition}");
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void convertToAbsolute(Vector3 location, Vector3 rotation, out Vector3 absolutePosition, out Vector3 absoluteRotation)
         {
-            absolutePosition = origin + Quaternion.Euler(this.rotation) * location;
-            absoluteRotation = rotation + this.rotation;
+            absolutePosition = originPosition + originRotationQuanternion * location;
+            absoluteRotation = rotation + originRotationEuler;
+            Logger.Log($"convert to abs originRot {originRotationEuler} barricadeRot {rotation} resultRot {absoluteRotation} resultPos {absolutePosition}");
         }
     }
 }

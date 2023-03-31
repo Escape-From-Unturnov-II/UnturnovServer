@@ -112,7 +112,8 @@ namespace SpeedMann.Unturnov.Controlers
         }
         internal static void freeHideout(UnturnedPlayer player)
         {
-            if (!claimedHideouts.TryGetValue(player.CSteamID, out Hideout hideout) || hideout == null) return;
+            if (!claimedHideouts.TryGetValue(player.CSteamID, out Hideout hideout) || hideout == null) 
+                return;
 
             saveBarricades(player.CSteamID, hideout);
             hideout.free();
