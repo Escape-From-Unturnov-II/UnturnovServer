@@ -157,6 +157,7 @@
     <Compile Include="Models\Config\DeathAdditionConfig.cs" />
     <Compile Include="Models\Config\FoundationSet.cs" />
     <Compile Include="Models\Config\HideoutConfig.cs" />
+    <Compile Include="Models\Config\ItemExtensions\AirdropSignal.cs" />
     <Compile Include="Models\Config\ItemExtensions\ItemExtensionAmount.cs" />
     <Compile Include="Models\Config\ItemWhitelist.cs" />
     <Compile Include="Models\Config\PlayerKitConfig.cs" />

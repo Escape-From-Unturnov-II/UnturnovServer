@@ -1,5 +1,6 @@
 ﻿using SDG.Framework.Devkit;
 using SDG.Unturned;
+using SpeedMann.Unturnov.Models.Config.ItemExtensions;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -13,7 +14,16 @@ namespace SpeedMann.Unturnov.Helper
 {
     internal class AirdropControler
     {
+        private static Dictionary<ushort, AirdropSignal> airdropSignalDict;
         private static float AirdropDelay = 10;
+        private static ushort DefaultSpawnTableId = 1;
+
+        internal static void Init(List<AirdropSignal> airdropSignals)
+        {
+            airdropSignalDict = Unturnov.createDictionaryFromItemExtensions(airdropSignals);
+            //TODO: add better checks (check if spawn table id is valid and delay < fuse time)
+        }
+
         internal static void OnThrowableSpawned(UseableThrowable useable, GameObject throwable)
         {
             Logger.Log($"useable {useable.equippedThrowableAsset.id} thrown at {throwable.transform.position}");
@@ -23,26 +33,33 @@ namespace SpeedMann.Unturnov.Helper
             dispatcher.SpawnAirdrop += spawnAirdrop;
         }
 
-        public static void spawnAirdrop(GameObject gameObject)
+        internal static void spawnAirdrop(GameObject gameObject)
         {
             spawnAirdrop(gameObject.transform.position);
         }
-        public static void spawnAirdrop(Vector3 position)
+        internal static void spawnAirdrop(Vector3 position)
         {
-            ushort id = 1;
+            // used spawnTable
+            ushort spawnTableId = DefaultSpawnTableId;
             if (UnturnedPrivateFields.TryGetAirdropNodes(out var airdropNodes) && airdropNodes.Count() > 0)
             {
-                id = airdropNodes[UnityEngine.Random.Range(0, airdropNodes.Count)].id;
+                spawnTableId = airdropNodes[UnityEngine.Random.Range(0, airdropNodes.Count)].id;
             }
+            if(spawnTableId == 0)
+            {
+                Logger.LogError("Could not call airdrop! No spawn table selected and no airdrop nodes found");
+                return;
+            }
+
             Logger.Log("Airdrop incomming");
-            LevelManager.airdrop(position, id, Provider.modeConfigData.Events.Airdrop_Speed);
+            LevelManager.airdrop(position, spawnTableId, Provider.modeConfigData.Events.Airdrop_Speed);
         }
 
         
         internal class AirdropDelayDispatcher : MonoBehaviour
         {
-            public event Action<GameObject> SpawnAirdrop;
-            public float delay;
+            internal event Action<GameObject> SpawnAirdrop;
+            internal float delay;
             private bool invoked = false;
             internal void Start()
             {

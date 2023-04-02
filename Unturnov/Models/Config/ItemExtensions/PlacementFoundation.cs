@@ -16,11 +16,9 @@ namespace SpeedMann.Unturnov.Models
         {
 
         }
-        public PlacementFoundation(ushort id, EAssetType type, string name = "")
+        public PlacementFoundation(ushort id, EAssetType type, string name = "") : base(id, name)
         {
-            Id = id;
             this.type = type;
-            Name = name;
         }
     }
 }
