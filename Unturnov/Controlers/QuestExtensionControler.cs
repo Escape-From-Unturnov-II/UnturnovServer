@@ -132,7 +132,7 @@ namespace SpeedMann.Unturnov.Classes
             killer = CSteamID.Nil;
             if (!UnturnedPrivateFields.TryGetLastTimeDamaged(player.life, out float lastTimeDamaged)
                 || !UnturnedPrivateFields.TryGetRecentKiller(player.life, out CSteamID oponent)
-                || !UnturnedPrivateFields.TryGetCombatCooldown(player.life, out float combatCooldown))
+                || !UnturnedPrivateFields.TryGetCombatCooldown(out float combatCooldown))
             {
                 Logger.LogError("Could not load private fields for QuestExtension.wasPvpDeath()");
                 return false;

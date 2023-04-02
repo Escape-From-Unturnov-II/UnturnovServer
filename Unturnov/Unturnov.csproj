@@ -140,6 +140,7 @@
     <Compile Include="Controlers\SkinControler.cs" />
     <Compile Include="Controlers\UnloadMagControler.cs" />
     <Compile Include="Controlers\WeaponModdingControler.cs" />
+    <Compile Include="Controlers\AirdropControler.cs" />
     <Compile Include="Helper\BarricadeHelper.cs" />
     <Compile Include="Helper\DatabaseManager.cs" />
     <Compile Include="Helper\EffectControler.cs" />

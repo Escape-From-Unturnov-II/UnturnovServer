@@ -20,6 +20,8 @@ using SpeedMann.Unturnov.Models.Config;
 using static SpeedMann.Unturnov.Models.GunAttachments;
 using Logger = Rocket.Core.Logging.Logger;
 using SDG.Framework.Devkit;
+using static HarmonyLib.Code;
+using Rocket.API;
 
 namespace SpeedMann.Unturnov
 {
@@ -117,6 +119,7 @@ namespace SpeedMann.Unturnov
 
             UnturnedPatches.OnPreInteractabilityCondition += OnInteractableConditionCheck;
             PlayerEquipment.OnUseableChanged_Global += OnEquipmentChanged;
+            UseableThrowable.onThrowableSpawned += OnThrowableSpawned;
 
             PlayerEquipment.OnInspectingUseable_Global += OnInspect;
 
@@ -172,6 +175,7 @@ namespace SpeedMann.Unturnov
             UnturnedPatches.OnPreInteractabilityCondition -= OnInteractableConditionCheck;
             PlayerEquipment.OnUseableChanged_Global -= OnEquipmentChanged;
             PlayerEquipment.OnInspectingUseable_Global -= OnInspect;
+            UseableThrowable.onThrowableSpawned -= OnThrowableSpawned;
 
             UnturnedPatches.OnPreDisconnectSave -= OnPreDisconnectSave;
             U.Events.OnPlayerDisconnected -= OnPlayerDisconnected;
@@ -297,6 +301,10 @@ namespace SpeedMann.Unturnov
         private void OnInspect(PlayerEquipment equipment)
         {
             OpenableItemsControler.OnInspect(equipment);
+        }
+        private void OnThrowableSpawned(UseableThrowable useable, GameObject throwable)
+        {
+            AirdropControler.OnThrowableSpawned(useable, throwable);
         }
         private void OnItemSwapped(PlayerInventory inventory, byte page_0, byte x_0, byte y_0, byte rot_0, byte page_1, byte x_1, byte y_1, byte rot_1, ref bool shouldAllow)
         {

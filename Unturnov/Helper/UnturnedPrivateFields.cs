@@ -31,6 +31,8 @@ namespace SpeedMann.Unturnov.Helper
 
         private static FieldInfo UseableGunAmmoInfo;
 
+        private static FieldInfo AirdropNodesInfo;
+
         public static bool TryBroadcastConnect(SteamPlayer player)
         {
             if (ProviderBroadcastConnectInfo != null)
@@ -106,7 +108,7 @@ namespace SpeedMann.Unturnov.Helper
             }
             return false;
         }
-        public static bool TryGetCombatCooldown(PlayerLife playerLife, out float result)
+        public static bool TryGetCombatCooldown(out float result)
         {
             result = 30;
 
@@ -114,7 +116,7 @@ namespace SpeedMann.Unturnov.Helper
             {
                 try
                 {
-                    result = (float)PlayerLifeConbatCooldownInfo.GetValue(playerLife);
+                    result = (float)PlayerLifeConbatCooldownInfo.GetValue(null);
                 }
                 catch (Exception e)
                 {
@@ -187,6 +189,26 @@ namespace SpeedMann.Unturnov.Helper
             return false;
         }
 
+        public static bool TryGetAirdropNodes(out List<AirdropDevkitNode> airdropNodes)
+        {
+            airdropNodes = new List<AirdropDevkitNode>();
+
+            if (AirdropNodesInfo != null)
+            {
+                try
+                {
+                    airdropNodes = AirdropNodesInfo.GetValue(null) as List<AirdropDevkitNode>;
+                }
+                catch (Exception e)
+                {
+                    Logger.LogException(e, "Exception loading private field airdropNodes");
+                    return false;
+                }
+                return true;
+            }
+            return false;
+        }
+
         public static void Init()
         {
             Type type;
@@ -211,10 +233,14 @@ namespace SpeedMann.Unturnov.Helper
 
             type = typeof(UseableGun);
             UseableGunAmmoInfo = type.GetField("ammo", BindingFlags.NonPublic | BindingFlags.Instance);
-        /*
-        type = AccessTools.TypeByName("SDG.Unturned.NetMessages");
-        WriterInfo = AccessTools.Field(type, "writer");
-        */
-    }
+
+            type = typeof(LevelManager);
+            AirdropNodesInfo = type.GetField("airdropNodes", BindingFlags.NonPublic | BindingFlags.Static);
+
+            /*
+            type = AccessTools.TypeByName("SDG.Unturned.NetMessages");
+            WriterInfo = AccessTools.Field(type, "writer");
+            */
+        }
     }
 }
