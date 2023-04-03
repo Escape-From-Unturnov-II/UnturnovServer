@@ -73,6 +73,7 @@ namespace SpeedMann.Unturnov
             DeathAdditionsControler.Init(Conf.DeathDropConfig);
             WeaponModdingControler.Init(Conf.GunModdingResults);
             UnloadMagControler.Init(Conf.UnloadMagBlueprints);
+            AirdropControler.Init(Conf.AirdropSignals);
 
             ReplaceBypass = new List<CSteamID>();
             
@@ -139,6 +140,7 @@ namespace SpeedMann.Unturnov
             QuestExtensionControler.Cleanup();
             HideoutControler.Cleanup();
             PlacementRestrictionControler.Cleanup();
+            AirdropControler.Cleaup();
 
             Provider.modeConfigData.Gameplay.Timer_Home = oldBedTimer;
 

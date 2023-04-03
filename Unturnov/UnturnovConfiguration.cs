@@ -2,6 +2,7 @@
 using SDG.Unturned;
 using SpeedMann.Unturnov.Models;
 using SpeedMann.Unturnov.Models.Config;
+using SpeedMann.Unturnov.Models.Config.ItemExtensions;
 using System;
 using System.Collections.Generic;
 using System.Xml.Serialization;
@@ -20,6 +21,7 @@ namespace SpeedMann.Unturnov
 
         public List<TeleportConfig> TeleportConfigs;
         public List<EmptyMagazineExtension> UnloadMagBlueprints;
+        public List<AirdropSignal> AirdropSignals;
         
         public List<CombineDescription> AutoCombine;
         [XmlArrayItem(ElementName = "Item")]
@@ -1054,6 +1056,10 @@ namespace SpeedMann.Unturnov
                     }
                 },
                 #endregion
+            };
+            AirdropSignals = new List<AirdropSignal>
+            {
+                new AirdropSignal(38107, 0, 10),
             };
             AutoCombine = new List<CombineDescription>
             {
