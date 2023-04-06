@@ -14,6 +14,52 @@ using Logger = Rocket.Core.Logging.Logger;
 
 namespace SpeedMann.Unturnov.Controlers
 {
+    /*
+        Type Dialogue
+        ID [DialogueId]
+
+        Messages 1
+        Message_0_Pages 1
+
+        Responses 2
+
+        Response_0_Dialogue [TeleportDialogueId]
+        Response_0_Conditions 1
+        Response_0_Condition_0_Type Flag_Short
+        Response_0_Condition_0_ID [TeleportControlFalgIdOfDestination]
+        Response_0_Condition_0_Value 0
+        Response_0_Condition_0_Logic Equal
+        Response_0_Condition_0_Allow_Unset
+
+        Response_1_Dialogue [DialogueId] //to return to this dialogue when not giving the quest
+        Response_1_Quest [QuestIdOfMap]
+        Response_1_Conditions 1
+        Response_1_Condition_0_Type Flag_Short
+        Response_1_Condition_0_ID [TeleportControlFalgIdOfDestination]
+        Response_1_Condition_0_Value 0
+        Response_1_Condition_0_Logic Greater_Than
+        
+        //alternatively give quest
+        Response_1_Rewards 1
+        Response_1_Reward_0_Type Quest
+        Response_1_Reward_0_ID [QuestIdOfMap]
+
+        Type Quest
+        ID [QuestIdOfMap]
+
+        //one flag for min optional one for sec
+        Conditions 1
+        Condition_0_Type Flag_Short
+        Condition_0_ID [TimerFlagId] 
+        Condition_0_Value 0
+        Condition_0_Logic Equal_To
+        Condition_0_Reset
+
+        Name <color=rare>Map Cooldown</color>
+        Description This map is on cooldown
+
+        Condition_0 Wait {0}min.
+     */
     public class TeleportControler
     {
         private static TeleportConfig Conf;
