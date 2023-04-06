@@ -19,7 +19,7 @@ namespace SpeedMann.Unturnov
 
         public uint BedTimer;
 
-        public List<TeleportConfig> TeleportConfigs;
+        public TeleportConfig TeleportConfig = new TeleportConfig();
         public List<EmptyMagazineExtension> UnloadMagBlueprints;
         public List<AirdropSignal> AirdropSignals;
         
@@ -1643,24 +1643,19 @@ namespace SpeedMann.Unturnov
                 },
                 #endregion
             };
-            TeleportConfigs = new List<TeleportConfig>
-            {
-                new TeleportConfig
-                {
-                    TeleportFlag = 50304,
-                    SquadTeleportFlag = 50305,
-                    TeleportDestinations = new List<TeleportDestination>
-                    {
-                        new TeleportDestination("FA1"),
-                        new TeleportDestination("FA2"),
-                        new TeleportDestination("FA3"),
-                        new TeleportDestination("FA4"),
-                        new TeleportDestination("FA5"),
-                        new TeleportDestination("FA6"),
-                        new TeleportDestination("FA7"),
-                    }
-                }
-            };
+            TeleportConfig = new TeleportConfig(false, 5, 
+                new List<RaidTeleport>{
+                    new RaidTeleport(50304, 
+                        new List<TeleportDestination> {
+                            new TeleportDestination("FA1"),
+                            new TeleportDestination("FA2"),
+                            new TeleportDestination("FA3"),
+                            new TeleportDestination("FA4"),
+                            new TeleportDestination("FA5"),
+                            new TeleportDestination("FA6"),
+                            new TeleportDestination("FA7"),
+                        })
+                    });
             ScavKitTiers = new List<ScavKitTier>
             {
                 new ScavKitTier

@@ -36,7 +36,7 @@ namespace SpeedMann.Unturnov
         private Dictionary<ushort, CombineDescription> AutoCombineDict;     
         
         internal static List<CSteamID> ReplaceBypass;
-        public static List<MainQueueEntry> MainThreadQueue = new List<MainQueueEntry>();
+        internal static List<MainQueueEntry> MainThreadQueue = new List<MainQueueEntry>();
 
         private int updateDelay = 30;
         private int frame = 0;
@@ -65,6 +65,7 @@ namespace SpeedMann.Unturnov
             UnturnedPrivateFields.Init();
             UnturnedPatches.Init();
             ScavRunControler.Init();
+            TeleportControler.Init(Conf.TeleportConfig);
             SecureCaseControler.Init(Conf.SecureCaseConfig);
             PlacementRestrictionControler.Init(Conf.PlacementRestrictionConfig);
             HideoutControler.Init(Conf.HideoutConfig);
@@ -137,6 +138,7 @@ namespace SpeedMann.Unturnov
         {
             UnturnedPatches.Cleanup();
             ScavRunControler.Cleanup();
+            TeleportControler.Cleanup();
             QuestExtensionControler.Cleanup();
             HideoutControler.Cleanup();
             PlacementRestrictionControler.Cleanup();
@@ -240,6 +242,7 @@ namespace SpeedMann.Unturnov
 
             HideoutControler.OnPlayerConnected(player);
             ScavRunControler.OnPlayerConnected(player);
+            
             if (!ScavRunControler.isScavRunActive(player))
             {
                 SecureCaseControler.OnPlayerConnected(player);
@@ -490,7 +493,6 @@ namespace SpeedMann.Unturnov
             }
             return itemExtensionsDict;
         }
-
         internal static void setupNewPlayer(UnturnedPlayer player)
         {
             if (Conf?.NewPlayerKitConfig == null)
@@ -507,10 +509,6 @@ namespace SpeedMann.Unturnov
             }
         }
         
-        internal static void stackOrAddItem()
-        {
-            //TODO: implemet
-        }
         private void printPluginInfo()
         {
 

@@ -8,8 +8,18 @@ namespace SpeedMann.Unturnov.Models.Config
 {
     public class TeleportConfig
     {
-        public ushort TeleportFlag;
-        public ushort SquadTeleportFlag;
-        public List<TeleportDestination> TeleportDestinations;
+        public bool Debug;
+        public float SquadTeleportRadius;
+        public List<RaidTeleport> RaidTeleports;
+        public TeleportConfig()
+        {
+
+        }
+        public TeleportConfig(bool debug, float squadTeleportRdius, List<RaidTeleport> raidTeleports)
+        {
+            Debug = debug;
+            SquadTeleportRadius = squadTeleportRdius;
+            RaidTeleports = raidTeleports;
+        }
     }
 }
