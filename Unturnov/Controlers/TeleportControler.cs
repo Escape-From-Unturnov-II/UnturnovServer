@@ -31,7 +31,7 @@ namespace SpeedMann.Unturnov.Controlers
         Response_0_Condition_0_Logic Equal
         Response_0_Condition_0_Allow_Unset
 
-        Response_1_Dialogue [DialogueId] //to return to this dialogue when not giving the quest
+        Response_1_Dialogue [DialogueId] //to return to this dialogue when giving the quest
         Response_1_Quest [QuestIdOfMap]
         Response_1_Conditions 1
         Response_1_Condition_0_Type Flag_Short
@@ -39,7 +39,7 @@ namespace SpeedMann.Unturnov.Controlers
         Response_1_Condition_0_Value 0
         Response_1_Condition_0_Logic Greater_Than
         
-        //alternatively give quest
+        //give quest
         Response_1_Rewards 1
         Response_1_Reward_0_Type Quest
         Response_1_Reward_0_ID [QuestIdOfMap]
@@ -47,18 +47,25 @@ namespace SpeedMann.Unturnov.Controlers
         Type Quest
         ID [QuestIdOfMap]
 
-        //one flag for min optional one for sec
-        Conditions 1
+        //one flag for min, one for sec
+        Conditions 2
         Condition_0_Type Flag_Short
-        Condition_0_ID [TimerFlagId] 
+        Condition_0_ID [TimerMinutesFlagId] 
         Condition_0_Value 0
         Condition_0_Logic Equal_To
         Condition_0_Reset
 
-        Name <color=rare>Map Cooldown</color>
-        Description This map is on cooldown
+        Condition_1_Type Flag_Short
+        Condition_1_ID [TimerSecondsFlagId]
+        Condition_1_Value 0
+        Condition_1_Logic Equal_To
+        Condition_1_Reset
 
-        Condition_0 Wait {0}min.
+        Name <color=rare>Map Cooldown</color>
+        Description You recently died on [MapName] and need to wait before entering it again!
+
+        Condition_0 Wait {0} minutes
+        Condition_1 and {0} seconds
      */
     public class TeleportControler
     {
