@@ -74,7 +74,7 @@ namespace SpeedMann.Unturnov
             DeathAdditionsControler.Init(Conf.DeathDropConfig);
             WeaponModdingControler.Init(Conf.GunModdingResults);
             UnloadMagControler.Init(Conf.UnloadMagBlueprints);
-            AirdropControler.Init(Conf.AirdropSignals);
+            
 
             ReplaceBypass = new List<CSteamID>();
             
@@ -82,12 +82,6 @@ namespace SpeedMann.Unturnov
 
 
             Conf.updateConfig();
-
-            if (ModsLoaded)
-            {
-                //TODO: claim hideouts on reload
-                Conf.addNames();
-            }
 
             UnturnedPatches.OnPreTryAddItemAuto += OnTryAddItem;
 
@@ -131,6 +125,10 @@ namespace SpeedMann.Unturnov
 
             Level.onPreLevelLoaded += OnPreLevelLoaded;
 
+            if (Level.isLoaded)
+            {
+                OnPreLevelLoaded(0);
+            }
             printPluginInfo();
         }
 
@@ -191,7 +189,7 @@ namespace SpeedMann.Unturnov
         private void OnPreLevelLoaded(int level)
         {
             Conf.addNames();
-            ModsLoaded = true;
+            AirdropControler.Init(Conf.AirdropSignals);
         }
         private void Update()
         {

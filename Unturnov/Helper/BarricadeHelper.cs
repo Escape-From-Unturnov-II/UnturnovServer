@@ -97,13 +97,55 @@ namespace SpeedMann.Unturnov.Helper
             BarricadeManager.destroyBarricade(drop, x, y, plant);
             return true;
         }
-        internal static bool tryPlaceBarricade(ushort assetId, Vector3 pos, Quaternion rotation, CSteamID owner, CSteamID group, out Transform placedBarricade, List<ItemJar> items = null)
+        internal static bool tryPlaceBarricadeWrapper(BarricadeWrapper barricadeWrapper, CSteamID playerId, Vector3 position, Quaternion rotation)
+        {
+            if (!tryPlaceBarricade(barricadeWrapper.id, position, rotation, playerId, CSteamID.Nil, out Transform transform))
+            {
+                return false;
+            }
+            switch (barricadeWrapper.barricadeType)
+            {
+                case EBuild.STORAGE:
+                case EBuild.STORAGE_WALL:
+                    tryAddItems(transform, barricadeWrapper.items);
+                    break;
+                case EBuild.FARM:
+                    tryUpdatePlanted(transform, barricadeWrapper.planted);
+                    break;
+            }
+            return true;
+        }
+        internal static BarricadeWrapper getBarricadeWrapper(BarricadeDrop drop, Vector3 position, Quaternion rotation)
+        {
+            uint planted = 0;
+            List<ItemJar> storedItems = null;
+
+            switch (drop.asset.build)
+            {
+                case EBuild.STORAGE:
+                case EBuild.STORAGE_WALL:
+                    if (!tryGetStoredItems(drop, out storedItems))
+                    {
+                        Logger.LogError($"Could not get storedItems from {drop.asset.id}");
+                    }
+                    break;
+                case EBuild.FARM:
+                    if (!tryGetPlantedOfFarm(drop, out planted))
+                    {
+                        Logger.LogError($"Could not get planted from {drop.asset.id}");
+                    }
+                    break;
+            }
+
+            return new BarricadeWrapper(drop.asset.build, drop.asset.id, position, rotation, storedItems, planted);
+        }
+        internal static bool tryPlaceBarricade(ushort assetId, Vector3 pos, Quaternion rotation, CSteamID owner, CSteamID group, out Transform placedBarricade)
         {
             placedBarricade = null;
             ItemBarricadeAsset asset = (Assets.find(EAssetType.ITEM, assetId) as ItemBarricadeAsset);
             if (asset == null)
             {
-                Logger.LogError($"Place barricade: unknown asset [{assetId}]!");
+                Logger.LogError($"Could not place barricade: unknown asset [{assetId}]!");
                 return false;
             }
 
@@ -114,9 +156,6 @@ namespace SpeedMann.Unturnov.Helper
                 Logger.LogError($"Could not place barricade [{assetId}] at {pos}!");
                 return false;
             }
-
-            tryAddItems(placedBarricade, items);
-
             return true;
         }
         internal static bool tryGetPlantedOfFarm(BarricadeDrop drop, out uint planted)
@@ -127,8 +166,8 @@ namespace SpeedMann.Unturnov.Helper
             if (farm == null)
                 return false;
 
-            Logger.Log($"groth state: {Provider.time - planted} of {farm.growth}");
             planted = farm.planted;
+            Logger.Log($"groth is new {Provider.time > planted} planted {planted} state: {Provider.time - planted} of {farm.growth}");
             return true;
         }
         internal static bool tryGetStoredItems(BarricadeDrop drop, out List<ItemJar> storedItems)
@@ -158,6 +197,23 @@ namespace SpeedMann.Unturnov.Helper
                 storage.items.items.Add(item);
             }
 
+            return true;
+        }
+        internal static bool tryUpdatePlanted(Transform barricade, uint planted)
+        {
+            if (barricade == null)
+            {
+                return false;
+            }
+            InteractableFarm farm = barricade.GetComponent<InteractableFarm>();
+            if (farm == null)
+            {
+                Logger.LogError($"Tried to update planted of non storage barricade");
+                return false;
+            }
+            
+            farm.updatePlanted(planted);
+            BarricadeManager.updateFarm(farm.transform, planted, true);
             return true;
         }
     }

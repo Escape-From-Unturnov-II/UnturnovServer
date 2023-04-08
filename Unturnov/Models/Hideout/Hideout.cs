@@ -49,6 +49,7 @@ namespace SpeedMann.Unturnov.Models
         internal void addBarricade(BarricadeDrop drop)
         {
             barricades.Add(drop);
+            BarricadeHelper.tryGetPlantedOfFarm(drop, out uint planted);
             Logger.Log($"added barricade {drop.asset.id} in hideout of {owner}");
         }
         internal void removeBarricade(BarricadeDrop drop)
@@ -65,10 +66,8 @@ namespace SpeedMann.Unturnov.Models
             foreach (var barricade in barricades)
             {
                 BarricadeData data = barricade.GetServersideData();
-                BarricadeHelper.tryGetPlantedOfFarm(barricade, out uint planted);
-                BarricadeHelper.tryGetStoredItems(barricade, out var storedItems);
                 convertToRelative(data.point, barricade.model.rotation, out Vector3 relPosition, out Quaternion relRotation);
-                barricadesWrappers.Add(new BarricadeWrapper(barricade.asset.id, relPosition, relRotation, storedItems));
+                barricadesWrappers.Add(BarricadeHelper.getBarricadeWrapper(barricade, relPosition, relRotation));
             }
             return barricadesWrappers;
         }
@@ -80,11 +79,10 @@ namespace SpeedMann.Unturnov.Models
         {
             removedBarricades = new List<BarricadeWrapper>();
             int skippCounter = 0;
+            
             while (barricades.Count > skippCounter)
             {
                 var current = barricades[0];
-                BarricadeHelper.tryGetPlantedOfFarm(current, out uint planted);
-                BarricadeHelper.tryGetStoredItems(current, out var storedItems);
 
                 BarricadeData data = current.GetServersideData();
                 if (!BarricadeHelper.tryDestroyBarricade(current.model.position, current.asset.id))
@@ -95,7 +93,7 @@ namespace SpeedMann.Unturnov.Models
                 }
 
                 convertToRelative(data.point, current.model.rotation, out Vector3 relPosition, out Quaternion relRotation);
-                removedBarricades.Add(new BarricadeWrapper(current.asset.id, relPosition, relRotation, storedItems));
+                removedBarricades.Add(BarricadeHelper.getBarricadeWrapper(current, relPosition, relRotation));
             }
             return skippCounter == 0;
         }
@@ -105,7 +103,7 @@ namespace SpeedMann.Unturnov.Models
             foreach (BarricadeWrapper barricade in barricades)
             {
                 convertToAbsolute(barricade.location, barricade.rotation, out Vector3 absPosition, out Quaternion absRotation);
-                BarricadeHelper.tryPlaceBarricade(barricade.id, absPosition, absRotation, playerId, CSteamID.Nil, out Transform transform);
+                BarricadeHelper.tryPlaceBarricadeWrapper(barricade, playerId, absPosition, absRotation);
                 // barricade drops will be automatically added when succesesfully placed
             };
         }
