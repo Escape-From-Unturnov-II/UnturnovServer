@@ -184,6 +184,8 @@ namespace SpeedMann.Unturnov
             U.Events.OnPlayerConnected -= OnPlayerConnected;
 
             Level.onPreLevelLoaded -= OnPreLevelLoaded;
+
+            Inst = null;
         }
         #endregion
         private void OnPreLevelLoaded(int level)

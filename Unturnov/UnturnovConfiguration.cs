@@ -1898,7 +1898,7 @@ namespace SpeedMann.Unturnov
             SecureCaseConfig = new SecureCaseConfig
             {
                 Debug = true,
-                Notification_UI = new Notification_UI(52310, 5230),
+                Notification_UI = new Notification_UI(52170, 5230),
                 CaseUpgradeFlagId = 50302,
                 CaseSizes = new List<CaseSize>()
                 {
@@ -1919,7 +1919,7 @@ namespace SpeedMann.Unturnov
                 Notification_UI = new Notification_UI
                 {
                     Enabled = true,
-                    UI_Id = 52312,
+                    UI_Id = 52172,
                     UI_Key = 5230,
                 },
                 OpenableItems = new List<OpenableItem>
@@ -1928,7 +1928,7 @@ namespace SpeedMann.Unturnov
                     {
                         Name = "KeyTool",
                         TableName = "KeyTool",
-                        Id = 50303,
+                        Id = 52100,
                         Height = 3,
                         Width = 3,
                         UsedWhitelists = new List<string>
@@ -1940,7 +1940,7 @@ namespace SpeedMann.Unturnov
                     {
                         Name = "Wallet",
                         TableName = "Wallet",
-                        Id = 50304,
+                        Id = 52101,
                         Height = 2,
                         Width = 2,
                         UsedWhitelists = new List<string>
