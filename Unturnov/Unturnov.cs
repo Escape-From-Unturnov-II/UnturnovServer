@@ -74,6 +74,7 @@ namespace SpeedMann.Unturnov
             DeathAdditionsControler.Init(Conf.DeathDropConfig);
             WeaponModdingControler.Init(Conf.GunModdingResults);
             UnloadMagControler.Init(Conf.UnloadMagBlueprints);
+            JsonManager.Init(Directory);
             
 
             ReplaceBypass = new List<CSteamID>();
@@ -186,6 +187,7 @@ namespace SpeedMann.Unturnov
             Level.onPreLevelLoaded -= OnPreLevelLoaded;
 
             Inst = null;
+            Conf = null;
         }
         #endregion
         private void OnPreLevelLoaded(int level)
@@ -234,6 +236,7 @@ namespace SpeedMann.Unturnov
             ScavRunControler.OnPlayerDisconnected(player);
             OpenableItemsControler.OnPlayerDisconnected(player);
             QuestExtensionControler.OnPlayerDisconected(player);
+            HideoutControler.OnPlayerDisconnect(player);
         }
         private void OnPlayerConnected(UnturnedPlayer player)
         {

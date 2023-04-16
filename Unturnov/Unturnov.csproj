@@ -147,6 +147,7 @@
     <Compile Include="Helper\InventoryHelper.cs" />
     <Compile Include="Controlers\OpenableItemsControler.cs" />
     <Compile Include="Controlers\Hideout\PlacementRestrictionControler.cs" />
+    <Compile Include="Helper\JsonManager.cs" />
     <Compile Include="Helper\PlayerStatManager.cs" />
     <Compile Include="Controlers\ScavRunControler.cs" />
     <Compile Include="Controlers\SecureCaseControler.cs" />

@@ -1,4 +1,5 @@
-﻿using Rocket.Unturned.Player;
+﻿using Newtonsoft.Json;
+using Rocket.Unturned.Player;
 using SDG.Unturned;
 using SpeedMann.Unturnov.Helper;
 using SpeedMann.Unturnov.Models;
@@ -161,7 +162,7 @@ namespace SpeedMann.Unturnov.Controlers
             {
                 removedBarricades = hideout.getBarricades();
             }
-            
+            JsonManager.saveBarricadeWrappers(PlayerTool.getPlayer(playerId), removedBarricades);
             if (savedBarricades.ContainsKey(playerId))
             {
                 savedBarricades[playerId] = removedBarricades;
@@ -171,6 +172,7 @@ namespace SpeedMann.Unturnov.Controlers
         }
         internal static void restoreBarricades(CSteamID playerId, Hideout hideout)
         {
+            JsonManager.readBarricadeWrappers(PlayerTool.getPlayer(playerId));
             if (!savedBarricades.ContainsKey(playerId))
             {
                 Logger.Log($"{playerId} has no barricades");
