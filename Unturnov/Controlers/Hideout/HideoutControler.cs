@@ -23,6 +23,7 @@ namespace SpeedMann.Unturnov.Controlers
         private static Dictionary<CSteamID, List<BarricadeWrapper>> savedBarricades = new Dictionary<CSteamID, List<BarricadeWrapper>>();
         private static Dictionary<CSteamID, Hideout> claimedHideouts = new Dictionary<CSteamID, Hideout>();
         private static List<Hideout> freeHideouts = new List<Hideout>();
+        private static string SaveFileName = "Hideout";
 
         internal static void Init(HideoutConfig hideoutConfig)
         {
@@ -162,25 +163,12 @@ namespace SpeedMann.Unturnov.Controlers
             {
                 removedBarricades = hideout.getBarricades();
             }
-            JsonManager.saveBarricadeWrappers(PlayerTool.getPlayer(playerId), removedBarricades);
-            if (savedBarricades.ContainsKey(playerId))
-            {
-                savedBarricades[playerId] = removedBarricades;
-                return;
-            }
-            savedBarricades.Add(playerId, removedBarricades);
+            JsonManager.tryWriteToSaves(PlayerTool.getPlayer(playerId), SaveFileName, removedBarricades);
         }
         internal static void restoreBarricades(CSteamID playerId, Hideout hideout)
         {
-            JsonManager.readBarricadeWrappers(PlayerTool.getPlayer(playerId));
-            if (!savedBarricades.ContainsKey(playerId))
-            {
-                Logger.Log($"{playerId} has no barricades");
-                return;
-            }
-            hideout.restoreBarricades(savedBarricades[playerId], playerId);
-
-            savedBarricades.Remove(playerId);
+            JsonManager.tryReadFromSaves(PlayerTool.getPlayer(playerId), SaveFileName, out List<BarricadeWrapper> barricades);
+            hideout.restoreBarricades(barricades, playerId);
         }
     }
 }

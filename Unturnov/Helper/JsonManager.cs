@@ -18,35 +18,49 @@ namespace SpeedMann.Unturnov.Helper
 {
     internal class JsonManager
     {
-        static string storagePath = "";
-        static string savesFolder = "Saves";
-        static string DirectoryPath;
+        static string PluginSavesPath;
+        static string PluginDirectoryPath;
         internal static void Init(string PluginDirectory)
         {
-            string savesPath = Path.Combine(PluginDirectory, savesFolder);
-            if (!Directory.Exists(savesPath))
-            {
-                Directory.CreateDirectory(savesPath);
-            }
-            DirectoryPath = PluginDirectory;
+            PluginSavesPath = $"{PluginDirectory}/Saves";
+            // creates dicts if needed
+            Directory.CreateDirectory(PluginSavesPath);
+            PluginDirectoryPath = PluginDirectory;
+
         }
-        internal static List<BarricadeWrapper> readBarricadeWrappers(Player player)
+        internal static bool tryWriteToSaves(Player player, string fileName, object data)
         {
-            var barricadeWrapper = new List<BarricadeWrapper>();
-            string filePath = Path.Combine(DirectoryPath, savesFolder, "test.json");
-            if (tryReadFromDisc(filePath, out var readData))
+            if (!checkAndReturnSaveFilePath(player, fileName, out string filePath))
             {
-                barricadeWrapper = readData.ToObject<List<BarricadeWrapper>>();
-                return barricadeWrapper;
+                return false;
             }
-            return barricadeWrapper;
+            return tryWriteToDisc(filePath, data);
         }
-        internal static void saveBarricadeWrappers(Player player, List<BarricadeWrapper> wrappers)
+        internal static bool tryReadFromSaves<T>(Player player, string fileName, out T readData)
         {
-            string filePath = Path.Combine(DirectoryPath, savesFolder, "test.json");
-            AsyncTrySaveToDisc(filePath, wrappers);
+            readData = default;
+            if (!checkAndReturnSaveFilePath(player, fileName, out string filePath))
+            {
+                return false;
+            }
+            if (!tryReadFromDisc(filePath, out var jsonData))
+            {
+                return false;
+            }
+
+            try
+            {
+                readData = jsonData.ToObject<T>();
+            }
+            catch (Exception)
+            {
+                Logger.LogError($"Could not parse json data from file {filePath} to {typeof(T)}");
+                return false;
+            }
+            
+            return true;
         }
-        private static bool tryReadFromDisc(string outputPath, out JObject readData)
+        internal static bool tryReadFromDisc(string outputPath, out JObject readData)
         {
             readData = null;
             if (!File.Exists(outputPath))
@@ -74,8 +88,7 @@ namespace SpeedMann.Unturnov.Helper
             
             return true;
         }
-
-        private static Task<bool> AsyncTrySaveToDisc(string outputPath, object data)
+        internal static bool tryWriteToDisc(string outputPath, object data)
         {
             try
             {
@@ -89,9 +102,17 @@ namespace SpeedMann.Unturnov.Helper
             catch (Exception)
             {
                 Logger.LogError($"Could not save json data to file {outputPath}");
-                return Task.FromResult(false);
+                return false;
             }
-            return Task.FromResult(true);
+            return true;
+        }
+        internal static Task<bool> tryReadFromDiscAsync(string outputPath, out JObject readData)
+        {
+            return Task.FromResult(tryReadFromDisc(outputPath, out readData));
+        }
+        internal static Task<bool> tryWriteToDiscAsync(string outputPath, object data)
+        {
+            return Task.FromResult(tryWriteToDisc(outputPath, data));
         }
         #region Converters
         public class Vector3Converter : JsonConverter
@@ -139,5 +160,23 @@ namespace SpeedMann.Unturnov.Helper
             }
         }
         #endregion
+        private static bool checkAndReturnSaveFilePath(Player player, string fileName, out string filePath)
+        {
+            filePath = "";
+            var playerId = player.channel.owner.playerID;
+            // TODO: handle +_{playerId.characterID}
+            string playerSavesPath = $"{PluginSavesPath}/{playerId.steamID}";
+            try
+            {
+                Directory.CreateDirectory(playerSavesPath);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError($"Error creating directories of path {playerSavesPath}:\n {ex}");
+                return false;
+            }
+            filePath = $"{playerSavesPath}/{fileName}.json";
+            return true;
+        }
     }
 }
