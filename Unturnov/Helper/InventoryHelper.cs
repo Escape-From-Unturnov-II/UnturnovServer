@@ -156,12 +156,27 @@ namespace SpeedMann.Unturnov
             }
 			return amount;
         }
-        public static void addItem(UnturnedPlayer player, Item item, byte x, byte y, byte page, byte rot)
+        public static void forceAddItem(UnturnedPlayer player, Item item, byte x, byte y, byte page, byte rot)
 		{
             if (!player.Inventory.tryAddItem(item, x, y, page, rot))
             {
                 player.Inventory.forceAddItem(item, false);
             }
+        }
+        public static bool tryAddItem(UnturnedPlayer player, Item item, byte startPage, byte endPage = 6)
+        {
+			if (endPage > 6)
+				endPage = 6;
+
+            bool addedItem = false;
+            byte page = startPage;
+            while (!addedItem && page <= endPage)
+            {
+                addedItem = player.Inventory.tryAddItem(item, 255, 255, page, 0);
+                page++;
+            }
+
+            return addedItem;
         }
         public static bool getInvItems(UnturnedPlayer player, ref List<ItemJarWrapper> foundItems)
 		{
@@ -383,24 +398,30 @@ namespace SpeedMann.Unturnov
 			}
 			return newItems;
 		}
-		public static void RestorePage(PlayerInventory inventory, Items itemsPage, List<StoredItem> storedItems)
+		public static bool tryRestorePage(PlayerInventory inventory, Items itemsPage, List<StoredItem> storedItems)
 		{
-			if (Unturnov.Conf.Debug)
-			{
-				Logger.Log($"Restored {storedItems.Count} items");
-			}
-			foreach (StoredItem storedItem in storedItems)
+			if (storedItems == null)
+				return false;
+
+			int droppedItems = 0;
+            foreach (StoredItem storedItem in storedItems)
 			{
 				Item item = new Item(storedItem.id, storedItem.amount, storedItem.quality, storedItem.state);
 				if (!inventory.tryAddItem(item, storedItem.x, storedItem.y, itemsPage.page, storedItem.rot))
 				{
-					if (!UnturnedPlayer.FromPlayer(inventory.player).GiveItem(item))
+					if (!inventory.tryAddItem(item, true))
 					{
-						ItemManager.dropItem(item, inventory.player.character.position, true, true, true);
+						droppedItems++;
+                        ItemManager.dropItem(item, inventory.player.character.position, true, true, true);
 					}
 				}
 			}
-		}
+
+            if (Unturnov.Conf.Debug)
+                Logger.Log($"Restored {storedItems.Count - droppedItems} items, dropped {droppedItems}");
+
+			return true;
+        }
 		public enum StorageType
 		{
 			PrimaryWeapon = 0,

@@ -262,7 +262,7 @@ namespace SpeedMann.Unturnov.Helper
                 }
                 foreach (ItemJarWrapper itemJarWrap in storedInv.items)
                 {
-                    InventoryHelper.addItem(player, itemJarWrap.itemJar.item, itemJarWrap.itemJar.x, itemJarWrap.itemJar.y, itemJarWrap.page, itemJarWrap.itemJar.rot);
+                    InventoryHelper.forceAddItem(player, itemJarWrap.itemJar.item, itemJarWrap.itemJar.x, itemJarWrap.itemJar.y, itemJarWrap.page, itemJarWrap.itemJar.rot);
                 }
 
                 Logger.Log($"{player.DisplayName} stopped his ScavRun");

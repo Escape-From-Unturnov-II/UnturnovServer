@@ -122,7 +122,7 @@ namespace SpeedMann.Unturnov.Controlers
             player.Inventory.removeItem((byte)inventoryGroup, inventoryIndex);
             Item replacement = new Item(emptyMagId, (byte)0, itemJ.item.quality);
 
-            InventoryHelper.addItem(player, replacement, itemJ.x, itemJ.y, (byte)inventoryGroup, itemJ.rot);
+            InventoryHelper.forceAddItem(player, replacement, itemJ.x, itemJ.y, (byte)inventoryGroup, itemJ.rot);
             Logger.Log($"Replaced mag {itemJ.item.id} with empty variant {emptyMagId}");
         }
 
@@ -158,7 +158,7 @@ namespace SpeedMann.Unturnov.Controlers
                     Unturnov.ReplaceBypass.Add(player.CSteamID);
                 }
 
-                InventoryHelper.addItem(player, replacement, magazineList[0].jar.x, magazineList[0].jar.y, magazineList[0].page, magazineList[0].jar.rot);
+                InventoryHelper.forceAddItem(player, replacement, magazineList[0].jar.x, magazineList[0].jar.y, magazineList[0].page, magazineList[0].jar.rot);
                 
                 
             }

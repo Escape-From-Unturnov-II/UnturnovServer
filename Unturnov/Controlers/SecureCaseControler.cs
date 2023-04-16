@@ -8,6 +8,7 @@ using SpeedMann.Unturnov.Models.Config;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -60,26 +61,13 @@ namespace SpeedMann.Unturnov.Helper
             if (storedPlayerItems.TryGetValue(player.CSteamID.m_SteamID, out CaseContent content))
             {
                 resizeHands(player.Player);
-                InventoryHelper.RestorePage(player.Inventory, player.Inventory.items[2], content.Items);
+                InventoryHelper.tryRestorePage(player.Inventory, player.Inventory.items[2], content.Items);
                 storedPlayerItems.Remove(player.CSteamID.m_SteamID);
             }
         }
         public static void OnPlayerConnected(UnturnedPlayer player)
         {
-            List<StoredItem> storedItems;
-            if (storedPlayerItems.TryGetValue(player.CSteamID.m_SteamID, out CaseContent content))
-            {
-                storedItems = content.Items;
-                storedPlayerItems.Remove(player.CSteamID.m_SteamID);
-            }
-            else
-            {
-                storedItems = InventoryHelper.StorePage(player.Inventory.items[2]);
-            }
-
-            InventoryHelper.clearInventoryPage(player, 2);
-            resizeHands(player.Player);
-            InventoryHelper.RestorePage(player.Inventory, player.Inventory.items[2], storedItems);
+            resizeCheck(player);
         }
         public static void OnItemSwapped(PlayerInventory inventory, byte page_0, byte x_0, byte y_0, byte rot_0, byte page_1, byte x_1, byte y_1, byte rot_1, ref bool shouldAllow)
         {
@@ -141,7 +129,7 @@ namespace SpeedMann.Unturnov.Helper
             if (isBlacklisted(itemJar.item.id))
             {
                 ItemJar itemJ = inventory.getItem(page_0, index);
-                if (page_0 == (byte)InventoryGroup.Storage && tryAddItem(player, itemJ.item))
+                if (page_0 == (byte)InventoryGroup.Storage && InventoryHelper.tryAddItem(player, itemJ.item, 3))
                 {
                     inventory.removeItem(page_0, index);
                 }
@@ -177,27 +165,32 @@ namespace SpeedMann.Unturnov.Helper
         }
 
         #region Helper Functions
-        public static bool tryAddItem(UnturnedPlayer player, Item item)
+        public static void resizeCheck(UnturnedPlayer player)
         {
-            bool addedItem = false;
-            byte page = 3;
-            while (!addedItem && page < 7)
+            CaseSize caseSize = getCaseSize(player.Player);
+            if (caseSize == null)
+                return;
+            Items page = player.Inventory.items[2];
+            if (page.width == caseSize.Width && page.height == caseSize.Height)
+                return;
+
+            List<StoredItem> storedItems = null;
+            if (page.items.Count > 0)
             {
-                addedItem = player.Inventory.tryAddItem(item, 255, 255, page, 0);
-                page++;
+                storedItems = InventoryHelper.StorePage(player.Inventory.items[2]);
+                InventoryHelper.clearInventoryPage(player, 2);
             }
-            if (addedItem && Conf.Debug)
-            {
-                Logger.Log("Item " + item + " was added to page: " + page);
-            }
-            return addedItem;
+            
+            resizeHands(player.Player);
+            InventoryHelper.tryRestorePage(player.Inventory, player.Inventory.items[2], storedItems);
         }
-        public static void resizeHands(Player player)
+        
+        public static CaseSize getCaseSize(Player player)
         {
             if (Conf.CaseSizes.Count < 1)
             {
                 Logger.LogError("No CaseSizes Defined!");
-                return;
+                return null;
             }
             short caseLvl;
             if (!player.quests.getFlag(Conf.CaseUpgradeFlagId, out caseLvl) || caseLvl < 0)
@@ -208,8 +201,18 @@ namespace SpeedMann.Unturnov.Helper
             {
                 caseLvl = (short)(Conf.CaseSizes.Count - 1);
             }
-
-            player.inventory.items[2].resize(Conf.CaseSizes[caseLvl].Width, Conf.CaseSizes[caseLvl].Height);
+            return Conf.CaseSizes[caseLvl];
+        }
+        public static void resizeHands(Player player)
+        {
+            CaseSize caseSize = getCaseSize(player);
+            if (caseSize == null)
+                return;
+            resizeHands(player, caseSize);
+        }
+        public static void resizeHands(Player player, CaseSize caseSize)
+        {
+            player.inventory.items[2].resize(caseSize.Width, caseSize.Height);
         }
         public static bool isBlacklisted(ushort itemId)
         {
@@ -229,7 +232,7 @@ namespace SpeedMann.Unturnov.Helper
 
         public static void RestoreHands(UnturnedPlayer player, CaseContent content)
         {
-            InventoryHelper.RestorePage(player.Inventory, player.Inventory.items[2], content.Items);
+            InventoryHelper.tryRestorePage(player.Inventory, player.Inventory.items[2], content.Items);
         }
         #endregion
     }
