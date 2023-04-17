@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using Rocket.Core.Logging;
 using Rocket.Unturned.Player;
 using SDG.Unturned;
 using SpeedMann.Unturnov.Helper;
@@ -11,7 +12,10 @@ using System.Configuration;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using UnityEngine;
+using UnityEngine.SceneManagement;
+using static SpeedMann.Unturnov.Controlers.HideoutControler;
 using static UnityEngine.Random;
 using Logger = Rocket.Core.Logging.Logger;
 
@@ -19,19 +23,21 @@ namespace SpeedMann.Unturnov.Controlers
 {
     internal class HideoutControler
     {
+        public delegate void HideoutClearUpdate(CSteamID ownerId, bool clearing);
+        public static event HideoutClearUpdate OnHideoutClearUpdate;
+
         private static HideoutConfig Conf;
-        private static Dictionary<CSteamID, List<BarricadeWrapper>> savedBarricades = new Dictionary<CSteamID, List<BarricadeWrapper>>();
-        private static Dictionary<CSteamID, Hideout> claimedHideouts = new Dictionary<CSteamID, Hideout>();
-        private static List<Hideout> freeHideouts = new List<Hideout>();
+        private static Dictionary<CSteamID, GameObject> claimedHideouts = new Dictionary<CSteamID, GameObject>();
+        private static List<GameObject> freeHideouts = new List<GameObject>();
         private static string SaveFileName = "Hideout";
 
         internal static void Init(HideoutConfig hideoutConfig)
         {
             Conf = hideoutConfig;
-            claimedHideouts = new Dictionary<CSteamID, Hideout>();
-            freeHideouts.Add(new Hideout(new Vector3(868, 8.5f, -350), 0));
-            //freeHideouts.Add(new Hideout(new Vector3(879, 8.5f, -350), 0));
-            freeHideouts.Add(new Hideout(new Vector3(879, 8.5f, -355), 180));
+            claimedHideouts = new Dictionary<CSteamID, GameObject>();
+            createHideout(new Vector3(868, 8.5f, -350), 0);
+            createHideout(new Vector3(879, 8.5f, -350), 0);
+            createHideout(new Vector3(879, 8.5f, -355), 180);
         }
         internal static void Cleanup()
         {
@@ -44,15 +50,25 @@ namespace SpeedMann.Unturnov.Controlers
                 }
             }
             freeHideouts.Clear();
-            savedBarricades.Clear();
             claimedHideouts.Clear();
+        }
+        internal static void createHideout(Vector3 origin, float rotation)
+        {
+            GameObject hideoutObject = new GameObject();
+            Hideout hideout = hideoutObject.AddComponent<Hideout>();
+            hideout.Initialize(origin, rotation);
+
+            // Add the hideoutObject to the active scene
+            SceneManager.MoveGameObjectToScene(hideoutObject, SceneManager.GetActiveScene());
+
+            freeHideouts.Add(hideoutObject);
         }
         internal static Hideout getHideout(CSteamID playerId)
         {
-            Hideout hideout = null;
-            claimedHideouts.TryGetValue(playerId, out hideout);
+            if (!claimedHideouts.TryGetValue(playerId, out var hideoutObject))
+                return null;
 
-            return hideout;
+            return hideoutObject.GetComponent<Hideout>();
         }
         internal static void OnPlayerConnected(UnturnedPlayer player)
         {
@@ -65,12 +81,24 @@ namespace SpeedMann.Unturnov.Controlers
         internal static void OnBarricadeDeploy(Barricade barricade, ItemBarricadeAsset asset, Transform hit, ref Vector3 point, ref float angle_x, ref float angle_y, ref float angle_z, ref ulong owner, ref ulong group, ref bool shouldAllow)
         {
             // hit != null barricade is placed on vehicle
-            if (hit != null || !shouldAllow) return;
+            if (hit != null || !shouldAllow) 
+                return;
 
             CSteamID playerId = new CSteamID(owner);
            
-            if (playerId == CSteamID.Nil || !claimedHideouts.TryGetValue(playerId, out Hideout hideout) || hideout == null) return;
+            if (playerId == CSteamID.Nil || !claimedHideouts.TryGetValue(playerId, out GameObject hideoutObject)) 
+                return;
 
+            var hideout = hideoutObject.GetComponent<Hideout>();
+            if (hideout == null)
+                return;
+
+            if (!hideout.ready)
+            {
+                shouldAllow = false;
+                Logger.Log($"Hideout of {playerId} not ready!");
+                return;
+            }
             if (!hideout.isInBounds(point))
             {
                 EffectControler.spawnUI(Conf.Notification_UI.UI_Id, Conf.Notification_UI.UI_Key, playerId);
@@ -105,32 +133,49 @@ namespace SpeedMann.Unturnov.Controlers
                 Logger.LogWarning("No more Hideouts available!");
                 return;
             }
-            Hideout claimedHideout = freeHideouts[0];
-            claimedHideout.claim(player.CSteamID);
-            claimedHideouts.Add(player.CSteamID, claimedHideout);
+
+            GameObject claimedHideoutObject = freeHideouts[0];
+            Hideout hideout = claimedHideoutObject.GetComponent<Hideout>();
+            if (hideout == null)
+            {
+                Logger.LogError("cant claim GameObject it has no hideout component");
+                return;
+            }
+            hideout.claim(player.CSteamID);
+            claimedHideouts.Add(player.CSteamID, claimedHideoutObject);
             freeHideouts.RemoveAt(0);
 
-            restoreBarricades(player.CSteamID, claimedHideout);
+            restoreBarricades(player.CSteamID, hideout);
         }
         internal static void freeHideout(UnturnedPlayer player)
         {
-            if (!claimedHideouts.TryGetValue(player.CSteamID, out Hideout hideout) || hideout == null) 
+            if (!claimedHideouts.TryGetValue(player.CSteamID, out var claimedHideoutObject)) 
                 return;
 
-            saveBarricades(player.CSteamID, hideout, true);
+            Hideout hideout = claimedHideoutObject.GetComponent<Hideout>();
+            if (hideout == null)
+                return;
+
+            OnHideoutClearUpdate?.Invoke(player.CSteamID, true);
+            saveAndClearBarricades(player.CSteamID, hideout, true);
             hideout.free();
             claimedHideouts.Remove(player.CSteamID);
-            freeHideouts.Add(hideout);
+            freeHideouts.Add(claimedHideoutObject);
+            OnHideoutClearUpdate?.Invoke(player.CSteamID, false);
         }
         internal static void addBarricade(BarricadeDrop drop)
         {
             BarricadeData data = drop.GetServersideData();
             CSteamID playerId = new CSteamID(data.owner);
-            if (!claimedHideouts.TryGetValue(playerId, out Hideout hideout))
+            if (!claimedHideouts.TryGetValue(playerId, out var hideoutObject))
             {
                 Logger.LogWarning($"{playerId} has no hideout");
                 return;
             }
+
+            Hideout hideout = hideoutObject.GetComponent<Hideout>();
+            if (hideout == null)
+                return;
 
             hideout.addBarricade(drop);
         }
@@ -144,11 +189,16 @@ namespace SpeedMann.Unturnov.Controlers
             }
 
             CSteamID ownerId = new CSteamID(data.owner);
-            if (ownerId == CSteamID.Nil || !claimedHideouts.TryGetValue(ownerId, out Hideout hideout) || hideout == null) return;
+            if (ownerId == CSteamID.Nil || !claimedHideouts.TryGetValue(ownerId, out var hideoutObject)) 
+                return;
+
+            Hideout hideout = hideoutObject.GetComponent<Hideout>();
+            if (hideout == null)
+                return;
 
             hideout.removeBarricade(drop);
         }
-        internal static void saveBarricades(CSteamID playerId, Hideout hideout, bool clearHideout = false)
+        internal static void saveAndClearBarricades(CSteamID playerId, Hideout hideout, bool clearHideout = false)
         {
             List<BarricadeWrapper> removedBarricades;
             if (clearHideout)

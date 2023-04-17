@@ -3,6 +3,7 @@ using Rocket.Core.Assets;
 using Rocket.Unturned.Player;
 using SDG.Framework.Utilities;
 using SDG.Unturned;
+using SpeedMann.Unturnov.Controlers;
 using SpeedMann.Unturnov.Models;
 using SpeedMann.Unturnov.Models.Config;
 using Steamworks;
@@ -21,6 +22,7 @@ namespace SpeedMann.Unturnov.Helper
         private static PlacementRestrictionConfig Conf;
         private static Dictionary<ushort, PlacementRestriction> PlacementRestrictionDict;
         private static Dictionary<CSteamID, BarricadePlacementInfo> PlayerPlacementInfoDict;
+        private static List<ulong> BypassBarricadeConnectionList;
         
         public static void Init(PlacementRestrictionConfig config)
         {
@@ -28,8 +30,20 @@ namespace SpeedMann.Unturnov.Helper
             createDictionaryForPlacementRestrictions(Conf.Restrictions, Conf.FoundationSets);
             PlacementRestrictionDict = Unturnov.createDictionaryFromItemExtensions(Conf.Restrictions);
             PlayerPlacementInfoDict = new Dictionary<CSteamID, BarricadePlacementInfo>();
+            BypassBarricadeConnectionList = new List<ulong>();
+            HideoutControler.OnHideoutClearUpdate += UpdateBarricadeConnectionBypassList;
         }
 
+        public static void UpdateBarricadeConnectionBypassList(CSteamID playerId, bool bypass)
+        {
+            if (bypass && !BypassBarricadeConnectionList.Contains(playerId.m_SteamID))
+            {
+                BypassBarricadeConnectionList.Add(playerId.m_SteamID);
+                return;
+            }
+
+            BypassBarricadeConnectionList.Remove(playerId.m_SteamID);
+        }
         public static void Cleanup()
         {
             PlacementRestrictionDict.Clear();
@@ -74,7 +88,17 @@ namespace SpeedMann.Unturnov.Helper
 
             if(!PlayerPlacementInfoDict.TryGetValue(playerId, out var placementInfo))
             {
-                return;
+                Logger.Log("Placed barricade with no PlacementInfo");
+                // try find foundation below spawned barricades
+                if (PlacementRestrictionDict.TryGetValue(drop.asset.id, out PlacementRestriction restriction) && tryGetObjectOrBarricadeBelow(data.point, restriction, drop.asset, playerId.m_SteamID, out BarricadeDrop barricadeFoundation, out ObjectAsset objectFoundation) && barricadeFoundation != null)
+                {
+                    Logger.Log("added new PlacementInfo");
+                    placementInfo = new BarricadePlacementInfo(barricadeFoundation, drop.asset);
+                }
+                else
+                {
+                    return;
+                }
             }
 
             BarricadeConnections.tryAddBarricadeConnection(placementInfo.foundation, drop);
@@ -85,7 +109,7 @@ namespace SpeedMann.Unturnov.Helper
         {
             if(Conf.Debug)
                 Logger.Log($"Destoyed barricade {drop.asset.id} at {drop.model.position}");
-            if (!PlacementRestrictionDict.ContainsKey(drop.asset.id))
+            if (!PlacementRestrictionDict.ContainsKey(drop.asset.id) && !BypassBarricadeConnectionList.Contains(drop.GetServersideData().owner))
             {
                 List<BarricadeDrop> connectedDrops = BarricadeConnections.getConnectedBarricades(drop);
 
@@ -163,14 +187,16 @@ namespace SpeedMann.Unturnov.Helper
         {
             objectFoundation = null;
             barricadeFoundation = null;
-            Physics.Raycast(new Vector3(origin.x, origin.y + Conf.Offset, origin.z), Vector3.down, out RaycastHit raycastHit, Conf.Offset * 2, RayMasks.BLOCK_COLLISION);
+            Logger.Log($"spawned Raycast at {origin}");
+            Physics.Raycast(new Vector3(origin.x, origin.y + Conf.Offset, origin.z), Vector3.down, out RaycastHit raycastHit, Conf.Distance, RayMasks.BLOCK_COLLISION);
             if (raycastHit.transform == null) 
                 return false;
-
+            Logger.Log($"foundation check found {raycastHit.transform.tag}");
             switch (raycastHit.transform.tag)
             {
                 case "Barricade":
                     BarricadeDrop barricadeDrop = BarricadeManager.FindBarricadeByRootTransform(raycastHit.transform);
+                    Logger.Log($"BarricadeDrop {barricadeDrop?.asset.id}");
                     if (barricadeDrop?.asset != null && restriction.ValidBarricades.ContainsKey(barricadeDrop.asset.id))
                     {
                         barricadeFoundation = barricadeDrop;

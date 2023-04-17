@@ -2,31 +2,39 @@
 using SpeedMann.Unturnov.Helper;
 using Steamworks;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
+using static SpeedMann.Unturnov.Models.Hideout;
 using Logger = Rocket.Core.Logging.Logger;
 
 namespace SpeedMann.Unturnov.Models
 {
-    internal class Hideout
+    internal class Hideout : MonoBehaviour
     {
         internal CSteamID owner;
         internal Vector3[] bounds;
+
         internal Vector3 originPosition;
         internal Vector3 originRotationEuler;
         internal Quaternion originRotationQuanternion;
 
+        internal bool ready = false;
         private Vector3 hideoutDimensions = new Vector3(11, 5, 8);
         private List<BarricadeDrop> barricades = new List<BarricadeDrop>();
 
-        internal Hideout(Vector3 origin, float rotation)
+        internal Hideout()
+        {
+            
+        }
+        internal void Initialize(Vector3 origin, float rotation)
         {
             owner = CSteamID.Nil;
-            this.originPosition = origin;
+            originPosition = origin;
             originRotationEuler = new Vector3(0, rotation, 0);
             originRotationQuanternion = Quaternion.Euler(originRotationEuler);
 
@@ -40,6 +48,7 @@ namespace SpeedMann.Unturnov.Models
         }
         internal void free()
         {
+            ready = false;
             owner = CSteamID.Nil;
         }
         internal int getBarricadeCount()
@@ -100,12 +109,7 @@ namespace SpeedMann.Unturnov.Models
         
         internal void restoreBarricades(List<BarricadeWrapper> barricades, CSteamID playerId)
         {
-            foreach (BarricadeWrapper barricade in barricades)
-            {
-                convertToAbsolute(barricade.position, barricade.rotation, out Vector3 absPosition, out Quaternion absRotation);
-                BarricadeHelper.tryPlaceBarricadeWrapper(barricade, playerId, absPosition, absRotation);
-                // barricade drops will be automatically added when succesesfully placed
-            };
+            StartCoroutine("restoreBarricadesInner", new RestoreWrapper(barricades, playerId));
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -173,5 +177,29 @@ namespace SpeedMann.Unturnov.Models
             absolutePosition = originPosition + originRotationQuanternion * location;
             absoluteRotation = Quaternion.Euler(originRotationEuler) * rotation;
         }
+
+        private IEnumerator restoreBarricadesInner(RestoreWrapper restoreWrapper)
+        {
+            foreach (BarricadeWrapper barricade in restoreWrapper.barricades)
+            {
+                convertToAbsolute(barricade.position, barricade.rotation, out Vector3 absPosition, out Quaternion absRotation);
+                BarricadeHelper.tryPlaceBarricadeWrapper(barricade, restoreWrapper.playerId, absPosition, absRotation);
+                // barricade drops will be automatically added when succesesfully placed
+                yield return null;
+            };
+            ready = true;
+        }
+        internal struct RestoreWrapper
+        {
+            internal List<BarricadeWrapper> barricades;
+            internal CSteamID playerId;
+
+            internal RestoreWrapper(List<BarricadeWrapper> barricades, CSteamID playerId)
+            {
+                this.barricades = barricades;
+                this.playerId = playerId;
+            }
+        }
+
     }
 }

@@ -167,7 +167,6 @@ namespace SpeedMann.Unturnov.Helper
                 return false;
 
             planted = farm.planted;
-            Logger.Log($"groth is new {Provider.time > planted} planted {planted} state: {Provider.time - planted} of {farm.growth}");
             return true;
         }
         internal static bool tryGetStoredItems(BarricadeDrop drop, out List<ItemJar> storedItems)

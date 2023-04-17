@@ -68,7 +68,6 @@ namespace SpeedMann.Unturnov
             TeleportControler.Init(Conf.TeleportConfig);
             SecureCaseControler.Init(Conf.SecureCaseConfig);
             PlacementRestrictionControler.Init(Conf.PlacementRestrictionConfig);
-            HideoutControler.Init(Conf.HideoutConfig);
             OpenableItemsControler.Init();
             QuestExtensionControler.Init();
             DeathAdditionsControler.Init(Conf.DeathDropConfig);
@@ -193,6 +192,7 @@ namespace SpeedMann.Unturnov
         private void OnPreLevelLoaded(int level)
         {
             Conf.addNames();
+            HideoutControler.Init(Conf.HideoutConfig);
             AirdropControler.Init(Conf.AirdropSignals);
         }
         private void Update()
