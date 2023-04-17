@@ -22,7 +22,7 @@ namespace SpeedMann.Unturnov.Helper
         static string PluginDirectoryPath;
         internal static void Init(string PluginDirectory)
         {
-            PluginSavesPath = $"{PluginDirectory}/Saves";
+            PluginSavesPath = $"{PluginDirectory}\\Saves";
             // creates dicts if needed
             Directory.CreateDirectory(PluginSavesPath);
             PluginDirectoryPath = PluginDirectory;
@@ -60,29 +60,26 @@ namespace SpeedMann.Unturnov.Helper
             
             return true;
         }
-        internal static bool tryReadFromDisc(string outputPath, out JObject readData)
+        internal static bool tryReadFromDisc(string outputPath, out JToken readData)
         {
             readData = null;
             if (!File.Exists(outputPath))
             {
-                File.Create(outputPath);
-                Logger.Log($"Created json file {outputPath}");
                 return false;
             }
-            JsonTextReader reader = null;
             try
             {
-                StreamReader file = File.OpenText(outputPath);
-                reader = new JsonTextReader(file);
-                
-                readData = (JObject)JToken.ReadFrom(reader);
-                reader.Close();
+                // using handles closing streams automatically
+                using (StreamReader file = File.OpenText(outputPath))
+                using (JsonTextReader reader = new JsonTextReader(file))
+                {
+                    readData = JToken.ReadFrom(reader);
+                }
                 Logger.Log($"Loaded json data from {outputPath}");
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                reader?.Close();
-                Logger.LogError($"Could not load json data from file {outputPath}");
+                Logger.LogError($"Could not load json data from file {outputPath}\n {ex}");
                 return false;
             }
             
@@ -92,21 +89,22 @@ namespace SpeedMann.Unturnov.Helper
         {
             try
             {
-                using (StreamWriter file = File.CreateText(outputPath))
+                using (FileStream stream = new FileStream(outputPath, FileMode.Create, FileAccess.Write, FileShare.Read))
+                using (StreamWriter writer = new StreamWriter(stream))
                 {
                     JsonSerializer serializer = new JsonSerializer();
-                    serializer.Serialize(file, data);
+                    serializer.Serialize(writer, data);
                     Logger.Log($"Saved json data to {outputPath}");
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                Logger.LogError($"Could not save json data to file {outputPath}");
+                Logger.LogError($"Could not save json data to file {outputPath}\n {ex}");
                 return false;
             }
             return true;
         }
-        internal static Task<bool> tryReadFromDiscAsync(string outputPath, out JObject readData)
+        internal static Task<bool> tryReadFromDiscAsync(string outputPath, out JToken readData)
         {
             return Task.FromResult(tryReadFromDisc(outputPath, out readData));
         }
@@ -165,7 +163,7 @@ namespace SpeedMann.Unturnov.Helper
             filePath = "";
             var playerId = player.channel.owner.playerID;
             // TODO: handle +_{playerId.characterID}
-            string playerSavesPath = $"{PluginSavesPath}/{playerId.steamID}";
+            string playerSavesPath = $"{PluginSavesPath}\\{playerId.steamID}";
             try
             {
                 Directory.CreateDirectory(playerSavesPath);
@@ -175,7 +173,7 @@ namespace SpeedMann.Unturnov.Helper
                 Logger.LogError($"Error creating directories of path {playerSavesPath}:\n {ex}");
                 return false;
             }
-            filePath = $"{playerSavesPath}/{fileName}.json";
+            filePath = $"{playerSavesPath}\\{fileName}.json";
             return true;
         }
     }

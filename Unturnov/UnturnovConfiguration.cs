@@ -58,7 +58,11 @@ namespace SpeedMann.Unturnov
                     },
                 },
             };
-            NewPlayerKitConfig = new PlayerKitConfig();
+            NewPlayerKitConfig = new PlayerKitConfig(new List<ItemExtensionAmount> 
+            { 
+                new ItemExtensionAmount(37500),
+                new ItemExtensionAmount(37501),
+            });
 
             UnloadMagBlueprints = new List<EmptyMagazineExtension>
             {

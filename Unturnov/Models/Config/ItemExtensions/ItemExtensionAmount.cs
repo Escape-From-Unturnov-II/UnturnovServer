@@ -15,7 +15,7 @@ namespace SpeedMann.Unturnov.Models
 
         }
 
-        public ItemExtensionAmount(ushort itemId, string name = "", byte amount = 1)
+        public ItemExtensionAmount(ushort itemId, byte amount = 1, string name = "")
         {
             Id = itemId;
             Name = name;

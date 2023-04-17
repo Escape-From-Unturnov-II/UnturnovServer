@@ -15,7 +15,7 @@ namespace SpeedMann.Unturnov.Helper
 {
     public class EffectControler
     {
-        private static ushort EventBorder_ID = 53091;
+        private static ushort EventBorder_ID = 52200;
         private static float defaultBorderSize = 1;
 
         public static void spawnUI(ushort effectId, short effectKey, CSteamID executorID)

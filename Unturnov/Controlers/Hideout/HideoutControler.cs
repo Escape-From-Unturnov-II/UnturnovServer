@@ -163,12 +163,13 @@ namespace SpeedMann.Unturnov.Controlers
             {
                 removedBarricades = hideout.getBarricades();
             }
+            
             JsonManager.tryWriteToSaves(PlayerTool.getPlayer(playerId), SaveFileName, removedBarricades);
         }
         internal static void restoreBarricades(CSteamID playerId, Hideout hideout)
         {
-            JsonManager.tryReadFromSaves(PlayerTool.getPlayer(playerId), SaveFileName, out List<BarricadeWrapper> barricades);
-            hideout.restoreBarricades(barricades, playerId);
+            if(JsonManager.tryReadFromSaves(PlayerTool.getPlayer(playerId), SaveFileName, out List<BarricadeWrapper> barricades))
+                hideout.restoreBarricades(barricades, playerId);
         }
     }
 }
