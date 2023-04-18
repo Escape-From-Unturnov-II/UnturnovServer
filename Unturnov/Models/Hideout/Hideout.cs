@@ -9,10 +9,9 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
-using static SpeedMann.Unturnov.Models.Hideout;
 using Logger = Rocket.Core.Logging.Logger;
 
-namespace SpeedMann.Unturnov.Models
+namespace SpeedMann.Unturnov.Models.Hideout
 {
     internal class Hideout : MonoBehaviour
     {

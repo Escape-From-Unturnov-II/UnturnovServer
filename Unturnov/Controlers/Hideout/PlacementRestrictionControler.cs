@@ -187,16 +187,14 @@ namespace SpeedMann.Unturnov.Helper
         {
             objectFoundation = null;
             barricadeFoundation = null;
-            Logger.Log($"spawned Raycast at {origin}");
+
             Physics.Raycast(new Vector3(origin.x, origin.y + Conf.Offset, origin.z), Vector3.down, out RaycastHit raycastHit, Conf.Distance, RayMasks.BLOCK_COLLISION);
             if (raycastHit.transform == null) 
                 return false;
-            Logger.Log($"foundation check found {raycastHit.transform.tag}");
             switch (raycastHit.transform.tag)
             {
                 case "Barricade":
                     BarricadeDrop barricadeDrop = BarricadeManager.FindBarricadeByRootTransform(raycastHit.transform);
-                    Logger.Log($"BarricadeDrop {barricadeDrop?.asset.id}");
                     if (barricadeDrop?.asset != null && restriction.ValidBarricades.ContainsKey(barricadeDrop.asset.id))
                     {
                         barricadeFoundation = barricadeDrop;

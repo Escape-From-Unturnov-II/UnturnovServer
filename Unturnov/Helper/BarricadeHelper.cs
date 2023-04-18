@@ -1,6 +1,7 @@
 ﻿using Rocket.Core.Assets;
 using SDG.Unturned;
 using SpeedMann.Unturnov.Models;
+using SpeedMann.Unturnov.Models.Hideout;
 using Steamworks;
 using System;
 using System.Collections.Generic;
@@ -117,27 +118,26 @@ namespace SpeedMann.Unturnov.Helper
         }
         internal static BarricadeWrapper getBarricadeWrapper(BarricadeDrop drop, Vector3 position, Quaternion rotation)
         {
-            uint planted = 0;
-            List<ItemJar> storedItems = null;
-
+            BarricadeWrapper barricadeWrapper = new BarricadeWrapper(drop.asset.build, drop.asset.id, position, rotation);
             switch (drop.asset.build)
             {
                 case EBuild.STORAGE:
                 case EBuild.STORAGE_WALL:
-                    if (!tryGetStoredItems(drop, out storedItems))
+                    if (!tryGetStoredItems(drop, out List<ItemJar> storedItems))
                     {
                         Logger.LogError($"Could not get storedItems from {drop.asset.id}");
                     }
+                    barricadeWrapper.items = storedItems;
                     break;
                 case EBuild.FARM:
-                    if (!tryGetPlantedOfFarm(drop, out planted))
+                    if (!tryGetPlantedOfFarm(drop, out uint planted))
                     {
                         Logger.LogError($"Could not get planted from {drop.asset.id}");
                     }
+                    barricadeWrapper.planted = planted;
                     break;
             }
-
-            return new BarricadeWrapper(drop.asset.build, drop.asset.id, position, rotation, storedItems, planted);
+            return barricadeWrapper;
         }
         internal static bool tryPlaceBarricade(ushort assetId, Vector3 pos, Quaternion rotation, CSteamID owner, CSteamID group, out Transform placedBarricade)
         {

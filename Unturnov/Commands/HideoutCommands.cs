@@ -6,6 +6,7 @@ using SDG.Unturned;
 using SpeedMann.Unturnov.Controlers;
 using SpeedMann.Unturnov.Helper;
 using SpeedMann.Unturnov.Models;
+using SpeedMann.Unturnov.Models.Hideout;
 using System;
 using System.Collections.Generic;
 using System.Linq;

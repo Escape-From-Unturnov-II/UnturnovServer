@@ -13,6 +13,8 @@ using SDG.Unturned;
 using Rocket.Core.Logging;
 using UnityEngine;
 using Logger = Rocket.Core.Logging.Logger;
+using SpeedMann.Unturnov.Models.Hideout;
+using Org.BouncyCastle.Crypto;
 
 namespace SpeedMann.Unturnov.Helper
 {
@@ -113,11 +115,32 @@ namespace SpeedMann.Unturnov.Helper
             return Task.FromResult(tryWriteToDisc(outputPath, data));
         }
         #region Converters
+        public class EBuildConverter : JsonConverter
+        {
+            public override bool CanConvert(Type objectType)
+            {
+                return objectType == typeof(EBuild);
+            }
+
+            public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+            {
+                string value = (string)reader.Value;
+                return Enum.Parse(typeof(EBuild), value);
+            }
+
+            public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+            {
+                if (value is EBuild)
+                {
+                    writer.WriteValue(value.ToString());
+                }
+            }
+        }
         public class Vector3Converter : JsonConverter
         {
             public override bool CanConvert(Type objectType)
             {
-                throw new NotImplementedException();
+                return objectType == typeof(Vector3);
             }
 
             public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
@@ -139,7 +162,7 @@ namespace SpeedMann.Unturnov.Helper
         {
             public override bool CanConvert(Type objectType)
             {
-                throw new NotImplementedException();
+                return objectType == typeof(Quaternion);
             }
 
             public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)

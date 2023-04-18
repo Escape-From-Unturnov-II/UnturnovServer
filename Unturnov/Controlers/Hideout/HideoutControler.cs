@@ -5,6 +5,7 @@ using SDG.Unturned;
 using SpeedMann.Unturnov.Helper;
 using SpeedMann.Unturnov.Models;
 using SpeedMann.Unturnov.Models.Config;
+using SpeedMann.Unturnov.Models.Hideout;
 using Steamworks;
 using System;
 using System.Collections.Generic;
@@ -38,6 +39,8 @@ namespace SpeedMann.Unturnov.Controlers
             createHideout(new Vector3(868, 8.5f, -350), 0);
             createHideout(new Vector3(879, 8.5f, -350), 0);
             createHideout(new Vector3(879, 8.5f, -355), 180);
+
+            //TODO: add checks for any barricade interactions and prevent them if hideout is not ready
         }
         internal static void Cleanup()
         {
@@ -219,7 +222,14 @@ namespace SpeedMann.Unturnov.Controlers
         internal static void restoreBarricades(CSteamID playerId, Hideout hideout)
         {
             if(JsonManager.tryReadFromSaves(PlayerTool.getPlayer(playerId), SaveFileName, out List<BarricadeWrapper> barricades))
+            {
                 hideout.restoreBarricades(barricades, playerId);
+            }
+            else
+            {
+                hideout.ready = true;
+            }
+                
         }
     }
 }
