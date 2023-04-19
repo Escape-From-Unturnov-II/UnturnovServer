@@ -12,8 +12,8 @@ namespace SpeedMann.Unturnov.Models
 {
     public class ItemJarWrapper
     {
-        #region privateValues
-        public ItemJar _itemJar = null;
+        #region Private Values
+        private ItemJar _itemJar = null;
         private ushort _id = 0;
         private byte _x = 0;
         private byte _y = 0;
@@ -22,7 +22,23 @@ namespace SpeedMann.Unturnov.Models
         private byte _quality = 0;
         private byte[] _state = new byte[0];
         #endregion
-        #region JsonGetters
+        #region Getters
+        [JsonIgnore]
+        public ItemJar itemJar
+        {
+            get
+            {
+                if (_itemJar == null)
+                {
+                    tryCreateItemJar();
+                }
+                return _itemJar;
+            }
+            set
+            {
+                _itemJar = value;
+            }
+        }
         public ushort id
         {
             get
@@ -86,7 +102,7 @@ namespace SpeedMann.Unturnov.Models
         {
             get
             {
-                return itemJar?.item != null ? itemJar.item.amount : _quality;
+                return itemJar?.item != null ? itemJar.item.quality : _quality;
             }
             set
             {
@@ -106,23 +122,6 @@ namespace SpeedMann.Unturnov.Models
             }
         }
         #endregion
-
-        [JsonIgnore]
-        public ItemJar itemJar
-        {
-            get 
-            {
-                if(_itemJar == null)
-                {
-                    tryCreateItemJar();
-                }
-                return _itemJar;
-            }
-            set
-            {
-                _itemJar = value;
-            }
-        }
         [JsonIgnore]
         public byte index;
         

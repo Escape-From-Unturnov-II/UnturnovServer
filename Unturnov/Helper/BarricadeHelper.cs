@@ -1,10 +1,13 @@
 ﻿using Rocket.Core.Assets;
+using Rocket.Core.Steam;
+using Rocket.Unturned.Player;
 using SDG.Unturned;
 using SpeedMann.Unturnov.Models;
 using SpeedMann.Unturnov.Models.Hideout;
 using Steamworks;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -57,6 +60,18 @@ namespace SpeedMann.Unturnov.Helper
 
             return true;
         }
+        internal static bool tryGetBarricadeDrop(Transform barricade, out BarricadeDrop barricadeDrop)
+        {
+            barricadeDrop = null;
+            if (!BarricadeManager.tryGetRegion(barricade, out _, out _, out _, out var barricadeRegion))
+                return false;
+
+            barricadeDrop = barricadeRegion.FindBarricadeByRootTransform(barricade);
+            if(barricadeDrop == null)
+                return false;
+
+            return true;
+        } 
         internal static bool trySalvageBarricade(BarricadeDrop drop, Player player = null)
         {
             if (!BarricadeManager.tryGetRegion(drop.model, out var x, out var y, out var plant, out var region))
@@ -100,7 +115,7 @@ namespace SpeedMann.Unturnov.Helper
         }
         internal static bool tryPlaceBarricadeWrapper(BarricadeWrapper barricadeWrapper, CSteamID playerId, Vector3 position, Quaternion rotation)
         {
-            if (!tryPlaceBarricade(barricadeWrapper.id, position, rotation, playerId, CSteamID.Nil, out Transform transform))
+            if (!tryPlaceBarricade(barricadeWrapper.id, position, rotation, playerId, CSteamID.Nil, barricadeWrapper.state, out Transform transform))
             {
                 return false;
             }
@@ -108,26 +123,21 @@ namespace SpeedMann.Unturnov.Helper
             {
                 case EBuild.STORAGE:
                 case EBuild.STORAGE_WALL:
-                    if (tryAddItems(transform, barricadeWrapper.items) && Debug)
-                        Logger.Log($"updated items of {barricadeWrapper.id} ({barricadeWrapper.barricadeType})");
                     break;
                 case EBuild.FARM:
-                    if (tryUpdatePlanted(transform, barricadeWrapper.planted) && Debug)
-                        Logger.Log($"updated planted of {barricadeWrapper.id}");
+                    // handle offline groth
                     break;
                 case EBuild.GENERATOR:
                 case EBuild.OIL:
-                case EBuild.BARREL_RAIN:
-                case EBuild.TANK:
-                    if (tryUpdateStoredLiquid(transform, barricadeWrapper.barricadeType, barricadeWrapper.storedLiquid) && Debug)
-                        Logger.Log($"updated stored liquid of {barricadeWrapper.id} ({barricadeWrapper.barricadeType})");
+                    // handle offline burn / generation           
                     break;
             }
             return true;
         }
         internal static BarricadeWrapper getBarricadeWrapper(BarricadeDrop drop, Vector3 position, Quaternion rotation)
         {
-            BarricadeWrapper barricadeWrapper = new BarricadeWrapper(drop.asset.build, drop.asset.id, position, rotation);
+            var data = drop.GetServersideData(); 
+            BarricadeWrapper barricadeWrapper = new BarricadeWrapper(drop.asset.build, drop.asset.id, position, rotation, data?.barricade?.state);
             switch (drop.asset.build)
             {
                 case EBuild.STORAGE:
@@ -161,7 +171,7 @@ namespace SpeedMann.Unturnov.Helper
             }
             return barricadeWrapper;
         }
-        internal static bool tryPlaceBarricade(ushort assetId, Vector3 pos, Quaternion rotation, CSteamID owner, CSteamID group, out Transform placedBarricade)
+        internal static bool tryPlaceBarricade(ushort assetId, Vector3 pos, Quaternion rotation, CSteamID owner, CSteamID group, byte[] state, out Transform placedBarricade)
         {
             placedBarricade = null;
             ItemBarricadeAsset asset = (Assets.find(EAssetType.ITEM, assetId) as ItemBarricadeAsset);
@@ -171,7 +181,17 @@ namespace SpeedMann.Unturnov.Helper
                 return false;
             }
 
-            placedBarricade = BarricadeManager.dropNonPlantedBarricade(new Barricade(asset), pos, rotation, owner.m_SteamID, group.m_SteamID);
+            Barricade barricade = new Barricade(asset);
+            if(state == null || state.Length <= 0)
+            {
+                setInitialState(barricade, asset, owner, group);
+            }
+            else
+            {
+                barricade.state = state;
+            }
+            
+            placedBarricade = BarricadeManager.dropNonPlantedBarricade(barricade, pos, rotation, owner.m_SteamID, group.m_SteamID);
 
             if(placedBarricade == null)
             {
@@ -265,7 +285,6 @@ namespace SpeedMann.Unturnov.Helper
             {
                 storage.items.items.Add(item.itemJar);
             }
-
             return true;
         }
         internal static bool tryUpdatePlanted(Transform barricade, uint planted)
@@ -314,6 +333,48 @@ namespace SpeedMann.Unturnov.Helper
 
             }
             return true;
+        }
+        internal static void setInitialState(Barricade barricade, ItemBarricadeAsset itemBarricadeAsset, CSteamID owner, CSteamID group)
+        {
+            switch (itemBarricadeAsset.build)
+            {
+                case EBuild.DOOR:
+                case EBuild.GATE:
+                case EBuild.SHUTTER:
+                case EBuild.SIGN:
+                case EBuild.SIGN_WALL:
+                case EBuild.NOTE:
+                case EBuild.HATCH:
+                case EBuild.STORAGE:
+                case EBuild.STORAGE_WALL:
+                case EBuild.MANNEQUIN:
+                case EBuild.SENTRY:
+                case EBuild.SENTRY_FREEFORM:
+                case EBuild.LIBRARY:
+                    BitConverter.GetBytes(owner.m_SteamID).CopyTo(barricade.state, 0);
+                    BitConverter.GetBytes(group.m_SteamID).CopyTo(barricade.state, 8);
+                    break;
+                case EBuild.BED:
+                    BitConverter.GetBytes(CSteamID.Nil.m_SteamID).CopyTo(barricade.state, 0);
+                    break;
+                case EBuild.FARM:
+                    // set planted is curretnly ignored as it will be set later anyways
+                    //BitConverter.GetBytes(Provider.time - (uint)((float)((ItemFarmAsset)base.player.equipment.asset).growth * (base.player.skills.mastery(2, 5) * 0.25f))).CopyTo(barricade.state, 0);
+                    break;
+                case EBuild.TORCH:
+                case EBuild.CAMPFIRE:
+                case EBuild.OVEN:
+                case EBuild.SPOT:
+                case EBuild.SAFEZONE:
+                case EBuild.OXYGENATOR:
+                case EBuild.CAGE:
+                case EBuild.GENERATOR:
+                    barricade.state[0] = 1;
+                    break;
+                case EBuild.STEREO:
+                    barricade.state[16] = 100;
+                    break;
+            }
         }
     }
 }

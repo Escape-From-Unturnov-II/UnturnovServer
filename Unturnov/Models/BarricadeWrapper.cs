@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
+using static UnityEngine.Random;
 
 namespace SpeedMann.Unturnov.Models
 {
@@ -20,40 +21,20 @@ namespace SpeedMann.Unturnov.Models
         public Vector3 position;
         [JsonConverter(typeof(JsonManager.QuaternionConverter))]
         public Quaternion rotation;
-
-        //optional fields, only for specific barricade types
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
-        public List<ItemJarWrapper> items = null;
-        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
-        public uint planted = 0;
-        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
-        public ushort storedLiquid = 0;
+        public byte[] state = null;
 
         public BarricadeWrapper()
         {
 
         }
-        public BarricadeWrapper(EBuild barricadeType, ushort id, Vector3 location, Quaternion rotation) 
+        public BarricadeWrapper(EBuild barricadeType, ushort id, Vector3 location, Quaternion rotation, byte[] state) 
         {
             this.barricadeType = barricadeType;
             this.id = id;
             this.position = location;
             this.rotation = rotation;
-        }
-        public BarricadeWrapper(EBuild barricadeType, ushort id, Vector3 location, Quaternion rotation, List<ItemJarWrapper> items) 
-            : this(barricadeType, id, location, rotation)
-        {
-            this.items = items;
-        }
-        public BarricadeWrapper(EBuild barricadeType, ushort id, Vector3 location, Quaternion rotation, uint planted)
-            : this(barricadeType, id, location, rotation)
-        {
-            this.planted = planted;
-        }
-        public BarricadeWrapper(EBuild barricadeType, ushort id, Vector3 location, Quaternion rotation, ushort storedLiquid)
-            : this(barricadeType, id, location, rotation)
-        {
-            this.storedLiquid = storedLiquid;
+            this.state = state;
         }
     }
 }
