@@ -35,30 +35,25 @@ namespace SpeedMann.Unturnov.Models
         }
         public BarricadeWrapper(EBuild barricadeType, ushort id, Vector3 location, Quaternion rotation) 
         {
-            initBase(barricadeType, id, location, rotation);
-        }
-        public BarricadeWrapper(EBuild barricadeType, ushort id, Vector3 location, Quaternion rotation, List<ItemJar> items)
-        {
-            initBase(barricadeType, id, location, rotation);
-            this.items = items;
-        }
-        public BarricadeWrapper(EBuild barricadeType, ushort id, Vector3 location, Quaternion rotation, uint planted)
-        {
-            initBase(barricadeType, id, location, rotation);
-            this.planted = planted;
-        }
-        public BarricadeWrapper(EBuild barricadeType, ushort id, Vector3 location, Quaternion rotation, ushort storedLiquid)
-        {
-            initBase(barricadeType, id, location, rotation);
-            this.storedLiquid = storedLiquid;
-        }
-        private void initBase(EBuild barricadeType, ushort id, Vector3 location, Quaternion rotation)
-        {
             this.barricadeType = barricadeType;
             this.id = id;
             this.position = location;
             this.rotation = rotation;
         }
-
+        public BarricadeWrapper(EBuild barricadeType, ushort id, Vector3 location, Quaternion rotation, List<ItemJar> items) 
+            : this(barricadeType, id, location, rotation)
+        {
+            this.items = items;
+        }
+        public BarricadeWrapper(EBuild barricadeType, ushort id, Vector3 location, Quaternion rotation, uint planted)
+            : this(barricadeType, id, location, rotation)
+        {
+            this.planted = planted;
+        }
+        public BarricadeWrapper(EBuild barricadeType, ushort id, Vector3 location, Quaternion rotation, ushort storedLiquid)
+            : this(barricadeType, id, location, rotation)
+        {
+            this.storedLiquid = storedLiquid;
+        }
     }
 }

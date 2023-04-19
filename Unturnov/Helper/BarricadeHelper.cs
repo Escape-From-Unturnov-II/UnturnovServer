@@ -14,6 +14,7 @@ namespace SpeedMann.Unturnov.Helper
 {
     internal class BarricadeHelper
     {
+        static bool Debug = true;
         internal static bool tryDestroyBarricade(Vector3 location , ushort id)
         {
             if(!Regions.tryGetCoordinate(location, out byte x, out byte y))
@@ -107,16 +108,19 @@ namespace SpeedMann.Unturnov.Helper
             {
                 case EBuild.STORAGE:
                 case EBuild.STORAGE_WALL:
-                    tryAddItems(transform, barricadeWrapper.items);
+                    if (tryAddItems(transform, barricadeWrapper.items) && Debug)
+                        Logger.Log($"updated items of {barricadeWrapper.id} ({barricadeWrapper.barricadeType})");
                     break;
                 case EBuild.FARM:
-                    tryUpdatePlanted(transform, barricadeWrapper.planted);
+                    if (tryUpdatePlanted(transform, barricadeWrapper.planted) && Debug)
+                        Logger.Log($"updated planted of {barricadeWrapper.id}");
                     break;
                 case EBuild.GENERATOR:
                 case EBuild.OIL:
                 case EBuild.BARREL_RAIN:
                 case EBuild.TANK:
-                    tryUpdateStoredLiquid(transform, barricadeWrapper.barricadeType, barricadeWrapper.storedLiquid);
+                    if (tryUpdateStoredLiquid(transform, barricadeWrapper.barricadeType, barricadeWrapper.storedLiquid) && Debug)
+                        Logger.Log($"updated stored liquid of {barricadeWrapper.id} ({barricadeWrapper.barricadeType})");
                     break;
             }
             return true;
@@ -131,6 +135,7 @@ namespace SpeedMann.Unturnov.Helper
                     if (!tryGetStoredItems(drop, out List<ItemJar> storedItems))
                     {
                         Logger.LogError($"Could not get storedItems from {drop.asset.id}");
+                        break;
                     }
                     barricadeWrapper.items = storedItems;
                     break;
@@ -138,6 +143,7 @@ namespace SpeedMann.Unturnov.Helper
                     if (!tryGetPlantedOfFarm(drop, out uint planted))
                     {
                         Logger.LogError($"Could not get planted from {drop.asset.id}");
+                        break;
                     }
                     barricadeWrapper.planted = planted;
                     break;
@@ -148,6 +154,7 @@ namespace SpeedMann.Unturnov.Helper
                     if (!tryGetStoredLiquid(drop, out ushort amount))
                     {
                         Logger.LogError($"Could not get stored liquid from {drop.asset.id}");
+                        break;
                     }
                     barricadeWrapper.storedLiquid = amount;
                     break;
@@ -221,6 +228,8 @@ namespace SpeedMann.Unturnov.Helper
         internal static bool tryGetStoredItems(BarricadeDrop drop, out List<ItemJar> storedItems)
         {
             storedItems = new List<ItemJar>();
+            if (drop == null)
+                return false;
             InteractableStorage storage = drop.model.GetComponent<InteractableStorage>();
             if(storage == null)
                 return false;

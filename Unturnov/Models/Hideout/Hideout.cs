@@ -93,15 +93,15 @@ namespace SpeedMann.Unturnov.Models.Hideout
                 var current = barricades[0];
 
                 BarricadeData data = current.GetServersideData();
-                if (!BarricadeHelper.tryDestroyBarricade(current.model.position, current.asset.id))
+                convertToRelative(data.point, current.model.rotation, out Vector3 relPosition, out Quaternion relRotation);
+                var currentWrapper = BarricadeHelper.getBarricadeWrapper(current, relPosition, relRotation);
+                if (!BarricadeHelper.tryDestroyBarricade(current.model))
                 {
                     Logger.LogWarning($"Barricade {current.asset.id} of {owner} at {current.model.position} could not be destroyed!");
                     skippCounter++;
                     continue;
                 }
-
-                convertToRelative(data.point, current.model.rotation, out Vector3 relPosition, out Quaternion relRotation);
-                removedBarricades.Add(BarricadeHelper.getBarricadeWrapper(current, relPosition, relRotation));
+                removedBarricades.Add(currentWrapper);
             }
             return skippCounter == 0;
         }
