@@ -123,6 +123,10 @@ namespace SpeedMann.Unturnov.Helper
             {
                 case EBuild.STORAGE:
                 case EBuild.STORAGE_WALL:
+                    if (!tryUpdateDisplay(transform))
+                    {
+                        Logger.LogError($"Could not update display from {barricadeWrapper.id}");
+                    }
                     break;
                 case EBuild.FARM:
                     // handle offline groth
@@ -136,37 +140,24 @@ namespace SpeedMann.Unturnov.Helper
         }
         internal static BarricadeWrapper getBarricadeWrapper(BarricadeDrop drop, Vector3 position, Quaternion rotation)
         {
-            var data = drop.GetServersideData(); 
-            BarricadeWrapper barricadeWrapper = new BarricadeWrapper(drop.asset.build, drop.asset.id, position, rotation, data?.barricade?.state);
+            var data = drop.GetServersideData();
+            byte[] state = new byte[0];
+            if (data?.barricade?.state != null)
+            {
+                state = new byte[data.barricade.state.Length];
+                data.barricade.state.CopyTo(state, 0);
+            }
+             
+            BarricadeWrapper barricadeWrapper = new BarricadeWrapper(drop.asset.build, drop.asset.id, position, rotation, state);
             switch (drop.asset.build)
             {
                 case EBuild.STORAGE:
                 case EBuild.STORAGE_WALL:
-                    if (!tryGetStoredItems(drop, out List<ItemJarWrapper> storedItems, true))
+                    if (!tryGetStoredItems(drop, out _, true))
                     {
-                        Logger.LogError($"Could not get storedItems from {drop.asset.id}");
+                        Logger.LogError($"Could not remove stored items from {drop.asset.id}");
                         break;
                     }
-                    barricadeWrapper.items = storedItems;
-                    break;
-                case EBuild.FARM:
-                    if (!tryGetPlantedOfFarm(drop, out uint planted))
-                    {
-                        Logger.LogError($"Could not get planted from {drop.asset.id}");
-                        break;
-                    }
-                    barricadeWrapper.planted = planted;
-                    break;
-                case EBuild.GENERATOR:
-                case EBuild.OIL:
-                case EBuild.BARREL_RAIN:
-                case EBuild.TANK:
-                    if (!tryGetStoredLiquid(drop, out ushort amount))
-                    {
-                        Logger.LogError($"Could not get stored liquid from {drop.asset.id}");
-                        break;
-                    }
-                    barricadeWrapper.storedLiquid = amount;
                     break;
             }
             return barricadeWrapper;
@@ -334,6 +325,22 @@ namespace SpeedMann.Unturnov.Helper
             }
             return true;
         }
+        internal static bool tryUpdateDisplay(Transform barricade)
+        {
+            if (barricade == null)
+                return false;
+
+            InteractableStorage storage = barricade.GetComponent<InteractableStorage>();
+            if (storage == null)
+                return false;
+
+            if(storage.isDisplay && storage.displayItem != null)
+            {
+                BarricadeManager.sendStorageDisplay(barricade, storage.displayItem, storage.displaySkin, storage.displayMythic, storage.displayTags, storage.displayDynamicProps);
+            }
+            
+            return true;
+        }
         internal static void setInitialState(Barricade barricade, ItemBarricadeAsset itemBarricadeAsset, CSteamID owner, CSteamID group)
         {
             switch (itemBarricadeAsset.build)
@@ -376,5 +383,6 @@ namespace SpeedMann.Unturnov.Helper
                     break;
             }
         }
+        
     }
 }
