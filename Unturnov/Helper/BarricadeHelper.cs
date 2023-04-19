@@ -132,7 +132,7 @@ namespace SpeedMann.Unturnov.Helper
             {
                 case EBuild.STORAGE:
                 case EBuild.STORAGE_WALL:
-                    if (!tryGetStoredItems(drop, out List<ItemJar> storedItems))
+                    if (!tryGetStoredItems(drop, out List<ItemJarWrapper> storedItems, true))
                     {
                         Logger.LogError($"Could not get storedItems from {drop.asset.id}");
                         break;
@@ -225,19 +225,31 @@ namespace SpeedMann.Unturnov.Helper
             planted = farm.planted;
             return true;
         }
-        internal static bool tryGetStoredItems(BarricadeDrop drop, out List<ItemJar> storedItems)
+        internal static bool tryGetStoredItems(BarricadeDrop drop, out List<ItemJarWrapper> storedItems, bool remove = false)
         {
-            storedItems = new List<ItemJar>();
+            storedItems = new List<ItemJarWrapper>();
             if (drop == null)
                 return false;
             InteractableStorage storage = drop.model.GetComponent<InteractableStorage>();
             if(storage == null)
                 return false;
 
-            storedItems = storage.items.items;
+            int i = 0;
+            while (storage.items.items.Count > i)
+            {
+                storedItems.Add(new ItemJarWrapper(storage.items.items[i]));
+                if (remove)
+                {
+                    storage.items.removeItem(0);
+                }
+                else
+                {
+                    i++;
+                }
+            }
             return true;
         }
-        internal static bool tryAddItems(Transform barricade, List<ItemJar> items)
+        internal static bool tryAddItems(Transform barricade, List<ItemJarWrapper> items)
         {
             if(items == null || barricade == null)
             {
@@ -251,7 +263,7 @@ namespace SpeedMann.Unturnov.Helper
             }
             foreach (var item in items) 
             {
-                storage.items.items.Add(item);
+                storage.items.items.Add(item.itemJar);
             }
 
             return true;

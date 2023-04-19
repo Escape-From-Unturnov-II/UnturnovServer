@@ -23,7 +23,7 @@ namespace SpeedMann.Unturnov.Models
 
         //optional fields, only for specific barricade types
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
-        public List<ItemJar> items = null;
+        public List<ItemJarWrapper> items = null;
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public uint planted = 0;
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
@@ -40,7 +40,7 @@ namespace SpeedMann.Unturnov.Models
             this.position = location;
             this.rotation = rotation;
         }
-        public BarricadeWrapper(EBuild barricadeType, ushort id, Vector3 location, Quaternion rotation, List<ItemJar> items) 
+        public BarricadeWrapper(EBuild barricadeType, ushort id, Vector3 location, Quaternion rotation, List<ItemJarWrapper> items) 
             : this(barricadeType, id, location, rotation)
         {
             this.items = items;

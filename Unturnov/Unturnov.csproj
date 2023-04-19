@@ -153,7 +153,7 @@
     <Compile Include="Controlers\SecureCaseControler.cs" />
     <Compile Include="Controlers\TeleportControler.cs" />
     <Compile Include="Helper\UnturnedPrivateFields.cs" />
-    <Compile Include="Models\Hideout\BarricadeWrapper.cs" />
+    <Compile Include="Models\BarricadeWrapper.cs" />
     <Compile Include="Models\Config\CaseContent.cs" />
     <Compile Include="Models\Config\DeathAdditionConfig.cs" />
     <Compile Include="Models\Config\FoundationSet.cs" />
