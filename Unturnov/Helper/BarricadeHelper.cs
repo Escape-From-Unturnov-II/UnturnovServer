@@ -5,7 +5,6 @@ using SpeedMann.Unturnov.Models.Hideout;
 using Steamworks;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -113,6 +112,12 @@ namespace SpeedMann.Unturnov.Helper
                 case EBuild.FARM:
                     tryUpdatePlanted(transform, barricadeWrapper.planted);
                     break;
+                case EBuild.GENERATOR:
+                case EBuild.OIL:
+                case EBuild.BARREL_RAIN:
+                case EBuild.TANK:
+                    tryUpdateStoredLiquid(transform, barricadeWrapper.barricadeType, barricadeWrapper.storedLiquid);
+                    break;
             }
             return true;
         }
@@ -136,6 +141,16 @@ namespace SpeedMann.Unturnov.Helper
                     }
                     barricadeWrapper.planted = planted;
                     break;
+                case EBuild.GENERATOR:
+                case EBuild.OIL:
+                case EBuild.BARREL_RAIN:
+                case EBuild.TANK:
+                    if (!tryGetStoredLiquid(drop, out ushort amount))
+                    {
+                        Logger.LogError($"Could not get stored liquid from {drop.asset.id}");
+                    }
+                    barricadeWrapper.storedLiquid = amount;
+                    break;
             }
             return barricadeWrapper;
         }
@@ -157,6 +172,40 @@ namespace SpeedMann.Unturnov.Helper
                 return false;
             }
             return true;
+        }
+        internal static bool tryGetStoredLiquid(BarricadeDrop drop, out ushort amount)
+        {
+            amount = 0;
+            switch (drop.asset.build)
+            {
+                case EBuild.GENERATOR:
+                    var gen = drop.model.GetComponent<InteractableGenerator>();
+                    if (gen == null)
+                        break;
+                    amount = gen.fuel;
+                    return true;
+                case EBuild.OIL:
+                    var oil = drop.model.GetComponent<InteractableOil>();
+                    if (oil == null)
+                        break;
+                    amount = oil.fuel;
+                    return true;
+                case EBuild.BARREL_RAIN:
+                    var barrel = drop.model.GetComponent<InteractableRainBarrel>();
+                    if (barrel == null)
+                        break;
+                    amount = (ushort)(barrel.isFull ? 1 : 0);
+                    return true;
+                case EBuild.TANK:
+                    var tank = drop.model.GetComponent<InteractableTank>();
+                    if (tank == null)
+                        break;
+                    amount = tank.amount;
+                    return true;
+            }
+
+            Logger.LogError($"Tried to get stored liquid of invalid barricade");
+            return false;
         }
         internal static bool tryGetPlantedOfFarm(BarricadeDrop drop, out uint planted)
         {
@@ -213,6 +262,36 @@ namespace SpeedMann.Unturnov.Helper
             
             farm.updatePlanted(planted);
             BarricadeManager.updateFarm(farm.transform, planted, true);
+            return true;
+        }
+        internal static bool tryUpdateStoredLiquid(Transform barricade, EBuild barricadeType, ushort amount)
+        {
+            if (barricade == null)
+            {
+                return false;
+            }
+            switch (barricadeType)
+            {
+                case EBuild.GENERATOR:
+                    BarricadeManager.sendFuel(barricade, amount);
+                    return true;
+                case EBuild.OIL:
+                    BarricadeManager.sendOil(barricade, amount);
+                    break;
+                case EBuild.BARREL_RAIN:
+                    BarricadeManager.updateRainBarrel(barricade, amount > 0, true);
+                    break;
+                case EBuild.TANK:
+                    var tank = barricade.GetComponent<InteractableTank>();
+                    if (tank == null)
+                        goto default;
+                    tank.ServerSetAmount(amount);
+                    break;
+                default:
+                    Logger.LogError($"Tried to update stored liquid of invalid barricade");
+                    return false;
+
+            }
             return true;
         }
     }

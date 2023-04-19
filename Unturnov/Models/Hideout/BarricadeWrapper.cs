@@ -26,6 +26,8 @@ namespace SpeedMann.Unturnov.Models
         public List<ItemJar> items = null;
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public uint planted = 0;
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
+        public ushort storedLiquid = 0;
 
         public BarricadeWrapper()
         {
@@ -44,6 +46,11 @@ namespace SpeedMann.Unturnov.Models
         {
             initBase(barricadeType, id, location, rotation);
             this.planted = planted;
+        }
+        public BarricadeWrapper(EBuild barricadeType, ushort id, Vector3 location, Quaternion rotation, ushort storedLiquid)
+        {
+            initBase(barricadeType, id, location, rotation);
+            this.storedLiquid = storedLiquid;
         }
         private void initBase(EBuild barricadeType, ushort id, Vector3 location, Quaternion rotation)
         {
