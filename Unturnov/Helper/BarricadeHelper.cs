@@ -140,24 +140,25 @@ namespace SpeedMann.Unturnov.Helper
         }
         internal static BarricadeWrapper getBarricadeWrapper(BarricadeDrop drop, Vector3 position, Quaternion rotation)
         {
-            var data = drop.GetServersideData();
             byte[] state = new byte[0];
-            if (data?.barricade?.state != null)
-            {
-                state = new byte[data.barricade.state.Length];
-                data.barricade.state.CopyTo(state, 0);
-            }
-             
             BarricadeWrapper barricadeWrapper = new BarricadeWrapper(drop.asset.build, drop.asset.id, position, rotation, state);
             switch (drop.asset.build)
             {
                 case EBuild.STORAGE:
                 case EBuild.STORAGE_WALL:
-                    if (!tryGetStoredItems(drop, out _, true))
+                    InteractableStorage storage = drop.model.GetComponent<InteractableStorage>();
+
+                    tryCloseStorage(storage);
+                    tryGetBarricadeState(drop, out barricadeWrapper.state);
+
+                    if (!tryGetStoredItems(storage, out _, true))
                     {
                         Logger.LogError($"Could not remove stored items from {drop.asset.id}");
                         break;
                     }
+                    break;
+                default:
+                    tryGetBarricadeState(drop, out barricadeWrapper.state);
                     break;
             }
             return barricadeWrapper;
@@ -242,7 +243,15 @@ namespace SpeedMann.Unturnov.Helper
             if (drop == null)
                 return false;
             InteractableStorage storage = drop.model.GetComponent<InteractableStorage>();
-            if(storage == null)
+
+            tryCloseStorage(storage);
+
+            return tryGetStoredItems(storage, out storedItems, remove);
+        }
+        internal static bool tryGetStoredItems(InteractableStorage storage, out List<ItemJarWrapper> storedItems, bool remove = false)
+        {
+            storedItems = new List<ItemJarWrapper>();
+            if (storage == null)
                 return false;
 
             int i = 0;
@@ -258,6 +267,40 @@ namespace SpeedMann.Unturnov.Helper
                     i++;
                 }
             }
+            return true;
+        }
+        internal static bool tryCloseStorage(InteractableStorage storage)
+        { 
+            if (storage != null && storage.isOpen)
+            {
+                if (storage.opener != null)
+                {
+                    if (storage.opener.inventory.isStoring)
+                    {
+                        storage.opener.inventory.closeStorageAndNotifyClient();
+                    }
+
+                    storage.opener = null;
+                }
+
+                storage.isOpen = false;
+                return true;
+            }
+            return false;
+        }
+        internal static bool tryGetBarricadeState(BarricadeDrop drop, out byte[] state)
+        {
+            state = new byte[0];
+            var data = drop.GetServersideData();
+            if(data == null)
+                return false;
+           
+            if (data?.barricade?.state == null)
+                return false;
+
+            state = new byte[data.barricade.state.Length];
+            data.barricade.state.CopyTo(state, 0);
+
             return true;
         }
         internal static bool tryAddItems(Transform barricade, List<ItemJarWrapper> items)

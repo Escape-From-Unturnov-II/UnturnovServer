@@ -477,23 +477,21 @@ namespace SpeedMann.Unturnov
         internal static Dictionary<ushort, T> createDictionaryFromItemExtensions<T>(List<T> itemExtensions) where T : ItemExtension
         {
             Dictionary<ushort, T> itemExtensionsDict = new Dictionary<ushort, T>();
-            if (itemExtensions != null)
+            if (itemExtensions == null)
+                return itemExtensionsDict;
+
+            foreach (T itemExtension in itemExtensions)
             {
-                foreach (T itemExtension in itemExtensions)
+                if (itemExtension.Id == 0)
+                    continue;
+
+                if (itemExtensionsDict.ContainsKey(itemExtension.Id))
                 {
-                    if (itemExtension.Id == 0)
-                        continue;
-
-                    if (itemExtensionsDict.ContainsKey(itemExtension.Id))
-                    {
-                        Logger.LogWarning("Item with Id:" + itemExtension.Id + " is a duplicate!");
-                    }
-                    else
-                    {
-                        itemExtensionsDict.Add(itemExtension.Id, itemExtension);
-                    }
-
+                    Logger.LogWarning("Item with Id:" + itemExtension.Id + " is a duplicate!");
+                    continue;
                 }
+
+                itemExtensionsDict.Add(itemExtension.Id, itemExtension);
             }
             return itemExtensionsDict;
         }

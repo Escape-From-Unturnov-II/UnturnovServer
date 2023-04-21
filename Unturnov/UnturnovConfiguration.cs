@@ -5,6 +5,7 @@ using SpeedMann.Unturnov.Models.Config;
 using SpeedMann.Unturnov.Models.Config.ItemExtensions;
 using System;
 using System.Collections.Generic;
+using System.Xml.Linq;
 using System.Xml.Serialization;
 
 namespace SpeedMann.Unturnov
@@ -1869,8 +1870,10 @@ namespace SpeedMann.Unturnov
                 {
                     new PlacementRestriction
                     {
-                        Id = 330, 
-                        Name = "carrot seed",
+                        RestrictedItems = new List<ItemExtension>
+                        {
+                           new ItemExtension(330, "carrot seed"),
+                        },
                         ValidFoundationSetNames = new List<string>
                         {
                             "planter"
