@@ -23,6 +23,7 @@ namespace SpeedMann.Unturnov.Models.Hideout
         internal Quaternion originRotationQuanternion;
 
         internal bool ready = false;
+        private bool debug = true;
         private Vector3 hideoutDimensions = new Vector3(11, 5, 8);
         private List<BarricadeDrop> barricades = new List<BarricadeDrop>();
 
@@ -58,7 +59,6 @@ namespace SpeedMann.Unturnov.Models.Hideout
         {
             barricades.Add(drop);
             BarricadeHelper.tryGetPlantedOfFarm(drop, out uint planted);
-            Logger.Log($"added barricade {drop.asset.id} in hideout of {owner}");
         }
         internal void removeBarricade(BarricadeDrop drop)
         {
@@ -108,6 +108,9 @@ namespace SpeedMann.Unturnov.Models.Hideout
         
         internal void restoreBarricades(List<BarricadeWrapper> barricades, CSteamID playerId)
         {
+            if (debug)
+                Logger.Log($"Started restorring barricades {Provider.time}");
+
             StartCoroutine("restoreBarricadesInner", new RestoreWrapper(barricades, playerId));
         }
 
@@ -187,6 +190,8 @@ namespace SpeedMann.Unturnov.Models.Hideout
                 yield return null;
             };
             ready = true;
+            if(debug)
+                Logger.Log($"Finished restorring barricades {Provider.time}");
         }
         internal struct RestoreWrapper
         {

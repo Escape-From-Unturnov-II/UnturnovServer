@@ -20,10 +20,12 @@ namespace SpeedMann.Unturnov.Helper
 {
     internal class JsonManager
     {
+        private static bool Debug = true;
         static string PluginSavesPath;
         static string PluginDirectoryPath;
-        internal static void Init(string PluginDirectory)
+        internal static void Init(string PluginDirectory, bool debug = true)
         {
+            Debug = debug;
             PluginSavesPath = $"{PluginDirectory}\\Saves";
             // creates dicts if needed
             Directory.CreateDirectory(PluginSavesPath);
@@ -77,14 +79,14 @@ namespace SpeedMann.Unturnov.Helper
                 {
                     readData = JToken.ReadFrom(reader);
                 }
-                Logger.Log($"Loaded json data from {outputPath}");
+                if(Debug)
+                    Logger.Log($"Loaded json data from {outputPath}");
             }
             catch (Exception ex)
             {
                 Logger.LogError($"Could not load json data from file {outputPath}\n {ex}");
                 return false;
             }
-            
             return true;
         }
         internal static bool tryWriteToDisc(string outputPath, object data)
@@ -96,7 +98,8 @@ namespace SpeedMann.Unturnov.Helper
                 {
                     JsonSerializer serializer = new JsonSerializer();
                     serializer.Serialize(writer, data);
-                    Logger.Log($"Saved json data to {outputPath}");
+                    if (Debug)
+                        Logger.Log($"Saved json data to {outputPath}");
                 }
             }
             catch (Exception ex)
