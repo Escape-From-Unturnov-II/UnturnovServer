@@ -71,7 +71,7 @@ namespace SpeedMann.Unturnov.Helper
                 return false;
 
             return true;
-        } 
+        }
         internal static bool trySalvageBarricade(BarricadeDrop drop, Player player = null)
         {
             if (!BarricadeManager.tryGetRegion(drop.model, out var x, out var y, out var plant, out var region))

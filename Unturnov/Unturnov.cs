@@ -16,13 +16,8 @@ using SpeedMann.Unturnov.Classes;
 using SpeedMann.Unturnov.Controlers;
 using SpeedMann.Unturnov.Helper;
 using SpeedMann.Unturnov.Models;
-using SpeedMann.Unturnov.Models.Config;
-using static SpeedMann.Unturnov.Models.GunAttachments;
 using Logger = Rocket.Core.Logging.Logger;
-using SDG.Framework.Devkit;
-using static HarmonyLib.Code;
-using Rocket.API;
-using System.Collections;
+
 
 namespace SpeedMann.Unturnov
 {
@@ -94,8 +89,13 @@ namespace SpeedMann.Unturnov
 
             BarricadeManager.onDeployBarricadeRequested += OnBarricadeDeploy;
             BarricadeManager.onBarricadeSpawned += OnBarricadeSpawned;
-            StructureManager.onStructureSpawned += OnStructureSpawned;
+            BarricadeDrop.OnSalvageRequested_Global += OnBarricadeSalvageRequest;
             UnturnedPatches.OnPreDestroyBarricade += OnBarricadeDestroy;
+
+            UnturnedPatches.OnPreBarricadeStorageRequest += OnBarricadeStorageRequest;
+            UnturnedPatches.OnPostGetInput += OnGetInput;
+
+            StructureManager.onStructureSpawned += OnStructureSpawned;
 
             UnturnedPatches.OnPrePlayerDead += OnPrePlayerDead;
             UnturnedPatches.OnPostPlayerRevive += OnPlayerRevived;
@@ -155,8 +155,12 @@ namespace SpeedMann.Unturnov
 
             BarricadeManager.onDeployBarricadeRequested -= OnBarricadeDeploy;
             BarricadeManager.onBarricadeSpawned -= OnBarricadeSpawned;
-            StructureManager.onStructureSpawned -= OnStructureSpawned;
+            BarricadeDrop.OnSalvageRequested_Global -= OnBarricadeSalvageRequest;
             UnturnedPatches.OnPreDestroyBarricade -= OnBarricadeDestroy;
+
+            UnturnedPatches.OnPostGetInput -= OnGetInput;
+            UnturnedPatches.OnPreBarricadeStorageRequest -= OnBarricadeStorageRequest;
+            StructureManager.onStructureSpawned -= OnStructureSpawned;
 
             UnturnedPatches.OnPrePlayerDead -= OnPrePlayerDead;
             UnturnedPatches.OnPostPlayerRevive -= OnPlayerRevived;
@@ -256,6 +260,20 @@ namespace SpeedMann.Unturnov
                 setupNewPlayer(player);
             }
         }
+        private void OnGetInput(InputInfo inputInfo, ERaycastInfoUsage usage, ref bool shouldAllow)
+        {
+            switch (usage)
+            {
+                case ERaycastInfoUsage.Fuel:
+                case ERaycastInfoUsage.Refill:
+                    HideoutControler.OnGetInput(inputInfo, usage, ref shouldAllow);
+                    break;
+            }
+        }
+        private void OnBarricadeStorageRequest(InteractableStorage storage, ServerInvocationContext context, ref bool shouldAllow)
+        {
+            HideoutControler.OnBarricadeStorageRequest();
+        }
         private void OnEquipmentChanged(PlayerEquipment equipment)
         {
             OpenableItemsControler.OnEquipmentChanged(equipment);
@@ -272,6 +290,10 @@ namespace SpeedMann.Unturnov
 
             PlacementRestrictionControler.OnBarricadeDeploy(barricade, asset, hit, ref point, ref angle_x, ref angle_y, ref angle_z, ref owner, ref group, ref shouldAllow);
             HideoutControler.OnBarricadeDeploy(barricade, asset, hit, ref point, ref angle_x, ref angle_y, ref angle_z, ref owner, ref group, ref shouldAllow);
+        }
+        private void OnBarricadeSalvageRequest(BarricadeDrop barricade, SteamPlayer instigatorClient, ref bool shouldAllow)
+        {
+            HideoutControler.OnBarricadeSalvageRequest(barricade, instigatorClient, ref shouldAllow);
         }
         private void OnBarricadeSpawned(BarricadeRegion region, BarricadeDrop drop)
         {
@@ -464,12 +486,9 @@ namespace SpeedMann.Unturnov
                     if (autoCombineDict.ContainsKey(craftDesc.Id))
                     {
                         Logger.LogWarning("Resource Item with Id:" + craftDesc.Id + " is a duplicate!");
+                        continue;
                     }
-                    else
-                    {
-                        autoCombineDict.Add(craftDesc.Id, craftDesc);
-                    }
-
+                    autoCombineDict.Add(craftDesc.Id, craftDesc);
                 }
             }
             return autoCombineDict;

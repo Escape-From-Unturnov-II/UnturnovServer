@@ -69,6 +69,11 @@ namespace SpeedMann.Unturnov.Helper
 
         public delegate void PreDestroyBarricade(BarricadeDrop barricade, byte x, byte y, ushort plant);
         public static event PreDestroyBarricade OnPreDestroyBarricade;
+        public delegate void PostGetInput(InputInfo inputInfo, ERaycastInfoUsage usage, ref bool shouldAllow);
+        public static event PostGetInput OnPostGetInput;
+        public delegate void PreBarricadeStorageRequest(InteractableStorage storage, ServerInvocationContext context, ref bool shouldAllow);
+        public static event PreBarricadeStorageRequest OnPreBarricadeStorageRequest;
+        
 
         public delegate void PreTryAddItemAuto(PlayerInventory inventory, Item item, ref bool autoEquipWeapon, ref bool autoEquipUseable, ref bool autoEquipClothing);
         public static event PreTryAddItemAuto OnPreTryAddItemAuto;
@@ -111,6 +116,22 @@ namespace SpeedMann.Unturnov.Helper
         #endregion
 
         #region Patches
+        [HarmonyPatch(typeof(PlayerInput), nameof(PlayerInput.getInput), new Type[] { typeof(bool), typeof(ERaycastInfoUsage) })]
+        class PlayerInputPatch
+        {
+            [HarmonyPostfix]
+            internal static void OnPostGetInputInvoker(ref InputInfo __result, ERaycastInfoUsage usage)
+            {
+                if (__result == null)
+                    return;
+
+                bool shouldAllow = true;
+                OnPostGetInput?.Invoke(__result, usage, ref shouldAllow);
+
+                if (!shouldAllow)
+                    __result = null;
+            }
+        }
         [HarmonyPatch(typeof(PlayerEquipment), nameof(PlayerEquipment.updateState))]
         class EquipmentUpdateStatePatch
         {
@@ -130,6 +151,18 @@ namespace SpeedMann.Unturnov.Helper
             {
                 OnPreDestroyBarricade?.Invoke(barricade, x, y, plant);
                 return true;
+            }
+        }
+        
+        [HarmonyPatch(typeof(InteractableStorage), nameof(InteractableStorage.ReceiveInteractRequest))]
+        class BarricadeStorageRequest
+        {
+            [HarmonyPrefix]
+            internal static bool OnPreBarricadeStorageRequestInvoker(InteractableStorage __instance, ServerInvocationContext context, bool quickGrab)
+            {
+                bool shouldAllow = true;
+                OnPreBarricadeStorageRequest?.Invoke(__instance, context, quickGrab, ref shouldAllow);
+                return shouldAllow;
             }
         }
 

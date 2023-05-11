@@ -22,7 +22,7 @@ namespace SpeedMann.Unturnov.Models.Hideout
         internal Vector3 originRotationEuler;
         internal Quaternion originRotationQuanternion;
 
-        internal bool ready = false;
+        private bool ready = false;
         private bool debug = true;
         private Vector3 hideoutDimensions = new Vector3(11, 5, 8);
         private List<BarricadeDrop> barricades = new List<BarricadeDrop>();
@@ -41,15 +41,28 @@ namespace SpeedMann.Unturnov.Models.Hideout
             Vector3[] bounds = calcBounds(origin);
             setBounds(bounds);
         }
-        internal void claim(CSteamID newOwner)
+        internal void claim(CSteamID newOwner, List<BarricadeWrapper> barricades = null)
         {
+            ready = false;
             owner = newOwner;
             barricades.Clear();
+
+            if (barricades == null || barricades.Count <= 0)
+            {
+                ready = true;
+                return;
+            }
+            StartCoroutine("restoreBarricadesInner", barricades);
         }
         internal void free()
         {
+            StopCoroutine("restoreBarricadesInner");
             ready = false;
             owner = CSteamID.Nil;
+        }
+        internal bool isReady()
+        {
+            return ready;
         }
         internal int getBarricadeCount()
         {
@@ -106,14 +119,6 @@ namespace SpeedMann.Unturnov.Models.Hideout
             return skippCounter == 0;
         }
         
-        internal void restoreBarricades(List<BarricadeWrapper> barricades, CSteamID playerId)
-        {
-            if (debug)
-                Logger.Log($"Started restorring barricades {Provider.time}");
-
-            StartCoroutine("restoreBarricadesInner", new RestoreWrapper(barricades, playerId));
-        }
-
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal bool isInBounds(Vector3 point)
         {
@@ -180,30 +185,16 @@ namespace SpeedMann.Unturnov.Models.Hideout
             absoluteRotation = Quaternion.Euler(originRotationEuler) * rotation;
         }
 
-        private IEnumerator restoreBarricadesInner(RestoreWrapper restoreWrapper)
+        private IEnumerator restoreBarricadesInner(List<BarricadeWrapper> barricades)
         {
-            foreach (BarricadeWrapper barricade in restoreWrapper.barricades)
+            foreach (BarricadeWrapper barricade in barricades)
             {
                 convertToAbsolute(barricade.position, barricade.rotation, out Vector3 absPosition, out Quaternion absRotation);
-                BarricadeHelper.tryPlaceBarricadeWrapper(barricade, restoreWrapper.playerId, absPosition, absRotation);
+                BarricadeHelper.tryPlaceBarricadeWrapper(barricade, owner, absPosition, absRotation);
                 // barricade drops will be automatically added when succesesfully placed
                 yield return null;
             };
             ready = true;
-            if(debug)
-                Logger.Log($"Finished restorring barricades {Provider.time}");
         }
-        internal struct RestoreWrapper
-        {
-            internal List<BarricadeWrapper> barricades;
-            internal CSteamID playerId;
-
-            internal RestoreWrapper(List<BarricadeWrapper> barricades, CSteamID playerId)
-            {
-                this.barricades = barricades;
-                this.playerId = playerId;
-            }
-        }
-
     }
 }

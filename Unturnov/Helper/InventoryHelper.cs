@@ -212,17 +212,18 @@ namespace SpeedMann.Unturnov
 
 			try
 			{
-				List<ItemClothingAsset> clothing = new List<ItemClothingAsset>();
+                List<ItemClothingAsset> clothing = new List<ItemClothingAsset>
+                {
+                    player.Player.clothing.hatAsset,
+                    player.Player.clothing.maskAsset,
+                    player.Player.clothing.glassesAsset,
+                    player.Player.clothing.backpackAsset,
+                    player.Player.clothing.vestAsset,
+                    player.Player.clothing.shirtAsset,
+                    player.Player.clothing.pantsAsset
+                };
 
-				clothing.Add(player.Player.clothing.hatAsset);
-				clothing.Add(player.Player.clothing.maskAsset);
-				clothing.Add(player.Player.clothing.glassesAsset);
-				clothing.Add(player.Player.clothing.backpackAsset);
-				clothing.Add(player.Player.clothing.vestAsset);
-				clothing.Add(player.Player.clothing.shirtAsset);
-				clothing.Add(player.Player.clothing.pantsAsset);
-
-				foreach (ItemClothingAsset item in clothing)
+                foreach (ItemClothingAsset item in clothing)
 				{
 					if (item != null)
 					{
