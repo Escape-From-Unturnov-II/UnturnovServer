@@ -8,6 +8,8 @@ namespace SpeedMann.Unturnov.Models.Config
 {
     public class HideoutConfig
     {
-       public Notification_UI Notification_UI;
+        public bool Debug;
+        public uint SpawnedBarricadesPerFrame;
+        public Notification_UI Notification_UI;
     }
 }

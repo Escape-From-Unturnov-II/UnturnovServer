@@ -71,7 +71,7 @@ namespace SpeedMann.Unturnov.Helper
         public static event PreDestroyBarricade OnPreDestroyBarricade;
         public delegate void PostGetInput(InputInfo inputInfo, ERaycastInfoUsage usage, ref bool shouldAllow);
         public static event PostGetInput OnPostGetInput;
-        public delegate void PreBarricadeStorageRequest(InteractableStorage storage, ServerInvocationContext context, ref bool shouldAllow);
+        public delegate void PreBarricadeStorageRequest(InteractableStorage storage, ServerInvocationContext context, bool quickGrab, ref bool shouldAllow);
         public static event PreBarricadeStorageRequest OnPreBarricadeStorageRequest;
         
 

@@ -270,9 +270,9 @@ namespace SpeedMann.Unturnov
                     break;
             }
         }
-        private void OnBarricadeStorageRequest(InteractableStorage storage, ServerInvocationContext context, ref bool shouldAllow)
+        private void OnBarricadeStorageRequest(InteractableStorage storage, ServerInvocationContext context, bool quickGrab, ref bool shouldAllow)
         {
-            HideoutControler.OnBarricadeStorageRequest();
+            HideoutControler.OnBarricadeStorageRequest(storage, context, quickGrab, ref shouldAllow);
         }
         private void OnEquipmentChanged(PlayerEquipment equipment)
         {

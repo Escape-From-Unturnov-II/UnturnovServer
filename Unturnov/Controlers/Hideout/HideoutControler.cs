@@ -24,6 +24,10 @@ namespace SpeedMann.Unturnov.Controlers
 {
     internal class HideoutControler
     {
+        // TODO: move restore barricade coroutine from hideout to hideout controler
+        // handle a list of hideout barricade lists to better define barricades placed per frame 
+        // let hideout remove its own barricade list on free
+        // keep an index of the placed ones to save partialy created hideouts
         public delegate void HideoutClearUpdate(CSteamID ownerId, bool clearing);
         public static event HideoutClearUpdate OnHideoutClearUpdate;
 
@@ -134,7 +138,7 @@ namespace SpeedMann.Unturnov.Controlers
                 shouldAllow = false;
 
         }
-        internal static void OnBarricadeStorageRequest(InteractableStorage storage, ServerInvocationContext context, ref bool shouldAllow)
+        internal static void OnBarricadeStorageRequest(InteractableStorage storage, ServerInvocationContext context, bool quickGrab, ref bool shouldAllow)
         {
             if (!shouldAllow)
                 return;

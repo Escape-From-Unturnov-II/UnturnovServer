@@ -59,6 +59,7 @@ namespace SpeedMann.Unturnov.Models.Hideout
             StopCoroutine("restoreBarricadesInner");
             ready = false;
             owner = CSteamID.Nil;
+            barricades.Clear();
         }
         internal bool isReady()
         {
@@ -99,9 +100,9 @@ namespace SpeedMann.Unturnov.Models.Hideout
         internal bool clearBarricades(out List<BarricadeWrapper> removedBarricades)
         {
             removedBarricades = new List<BarricadeWrapper>();
-            int skippCounter = 0;
+            int skipCounter = 0;
             
-            while (barricades.Count > skippCounter)
+            while (barricades.Count > skipCounter)
             {
                 var current = barricades[0];
 
@@ -111,12 +112,12 @@ namespace SpeedMann.Unturnov.Models.Hideout
                 if (!BarricadeHelper.tryDestroyBarricade(current.model))
                 {
                     Logger.LogWarning($"Barricade {current.asset.id} of {owner} at {current.model.position} could not be destroyed!");
-                    skippCounter++;
+                    skipCounter++;
                     continue;
                 }
                 removedBarricades.Add(currentWrapper);
             }
-            return skippCounter == 0;
+            return skipCounter == 0;
         }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
