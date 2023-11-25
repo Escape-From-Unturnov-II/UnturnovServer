@@ -11,5 +11,6 @@ namespace SpeedMann.Unturnov.Models.Config
         public bool Debug;
         public uint SpawnedBarricadesPerFrame;
         public Notification_UI Notification_UI;
+        public List<Position> HideoutPositions = new List<Position>();
     }
 }

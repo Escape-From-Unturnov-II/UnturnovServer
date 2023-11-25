@@ -89,7 +89,9 @@ namespace SpeedMann.Unturnov.Helper
             if(!PlayerPlacementInfoDict.TryGetValue(playerId, out var placementInfo))
             {
                 // try find foundation below spawned barricades
-                if (PlacementRestrictedDict.TryGetValue(drop.asset.id, out PlacementRestriction restriction) && tryGetObjectOrBarricadeBelow(data.point, restriction, drop.asset, playerId.m_SteamID, out BarricadeDrop barricadeFoundation, out ObjectAsset objectFoundation) && barricadeFoundation != null)
+                if (PlacementRestrictedDict.TryGetValue(drop.asset.id, out PlacementRestriction restriction) 
+                    && tryGetObjectOrBarricadeBelow(data.point, restriction, drop.asset, playerId.m_SteamID, out BarricadeDrop barricadeFoundation, out ObjectAsset objectFoundation) 
+                    && barricadeFoundation != null)
                 {
                     if (Conf.Debug)
                         Logger.Log("added new PlacementInfo");

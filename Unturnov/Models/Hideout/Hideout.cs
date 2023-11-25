@@ -9,6 +9,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
+using Action = System.Action;
 using Logger = Rocket.Core.Logging.Logger;
 
 namespace SpeedMann.Unturnov.Models.Hideout
@@ -23,6 +24,8 @@ namespace SpeedMann.Unturnov.Models.Hideout
         internal Quaternion originRotationQuanternion;
 
         private bool ready = false;
+        private bool needsClearing = false;
+        private Action<Hideout> onCanFreeCallback;
         private bool debug = true;
         private Vector3 hideoutDimensions = new Vector3(11, 5, 8);
         private List<BarricadeDrop> barricades = new List<BarricadeDrop>();
@@ -41,25 +44,33 @@ namespace SpeedMann.Unturnov.Models.Hideout
             Vector3[] bounds = calcBounds(origin);
             setBounds(bounds);
         }
-        internal void claim(CSteamID newOwner, List<BarricadeWrapper> barricades = null)
+        internal void claim(CSteamID newOwner, List<BarricadeWrapper> barricadesToRestore = null)
         {
             ready = false;
             owner = newOwner;
             barricades.Clear();
 
-            if (barricades == null || barricades.Count <= 0)
+            if (barricadesToRestore == null || barricadesToRestore.Count <= 0)
             {
                 ready = true;
                 return;
             }
-            StartCoroutine("restoreBarricadesInner", barricades);
+            StartCoroutine("restoreBarricadesInner", barricadesToRestore);
         }
-        internal void free()
+        internal void freeWhenReady(Action<Hideout> onReadyCallback)
         {
-            StopCoroutine("restoreBarricadesInner");
-            ready = false;
-            owner = CSteamID.Nil;
-            barricades.Clear();
+            if (needsClearing)
+            {
+                Logger.LogError($"Tried freeing hideout for {owner} again!");
+                return;
+            }
+            if (!ready)
+            {
+                onCanFreeCallback = onReadyCallback;
+                needsClearing = true;
+                return;
+            }
+            freeInner(onReadyCallback);
         }
         internal bool isReady()
         {
@@ -131,6 +142,7 @@ namespace SpeedMann.Unturnov.Models.Hideout
             }
             return false;
         }
+
         private Vector3[] calcBounds(Vector3 point)
         {
             Vector3[] bounds = new Vector3[2];
@@ -139,6 +151,15 @@ namespace SpeedMann.Unturnov.Models.Hideout
             bounds[1] = point + originRotationQuanternion * hideoutDimensions;
 
             return bounds;
+        }
+        private void freeInner(Action<Hideout> onReadyCallback)
+        {
+            onReadyCallback.Invoke(this);
+
+            StopCoroutine("restoreBarricadesInner");
+            ready = false;
+            owner = CSteamID.Nil;
+            barricades.Clear();
         }
         private void setBounds(Vector3[] bounds)
         {
@@ -185,7 +206,6 @@ namespace SpeedMann.Unturnov.Models.Hideout
             absolutePosition = originPosition + originRotationQuanternion * location;
             absoluteRotation = Quaternion.Euler(originRotationEuler) * rotation;
         }
-
         private IEnumerator restoreBarricadesInner(List<BarricadeWrapper> barricades)
         {
             foreach (BarricadeWrapper barricade in barricades)
@@ -196,6 +216,10 @@ namespace SpeedMann.Unturnov.Models.Hideout
                 yield return null;
             };
             ready = true;
+            if (needsClearing)
+            {
+                freeInner(onCanFreeCallback);
+            }
         }
     }
 }
