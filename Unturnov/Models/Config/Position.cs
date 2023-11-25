@@ -22,6 +22,13 @@ namespace SpeedMann.Unturnov.Models.Config
         {
 
         }
+        public Position(float x, float y, float z, float rot)
+        {
+            this.x = x;
+            this.y = y;
+            this.z = z;
+            this.rot = rot;
+        }
         public Vector3 GetVector3()
         {
             return new Vector3(x, y, z);

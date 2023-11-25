@@ -124,10 +124,6 @@ namespace SpeedMann.Unturnov.Helper
         }
         internal static void OnPlayerConnected(UnturnedPlayer player)
         {
-            if (!tryGetTier(player.Player.quests, out ScavKitTier tier))
-            {
-                Logger.LogError($"Error loading tier for player {player.DisplayName}");
-            }
             if (isScavRunActive(player))
             {
                 if(StoredStats.TryGetValue(player.CSteamID.m_SteamID, out PlayerStats stats))
@@ -143,11 +139,15 @@ namespace SpeedMann.Unturnov.Helper
                 StoredStats.Add(player.CSteamID.m_SteamID, Unturnov.Database.GetPlayerStats(PlayerStatsTableName, player.CSteamID.m_SteamID));
                 StoredInventories.Add(player.CSteamID.m_SteamID, inventory);
                 Unturnov.Database.RemoveInventory(InventoryTableName, player.CSteamID.m_SteamID);
+                return;
             }
-            else
+
+            if (!tryGetTier(player.Player.quests, out ScavKitTier tier))
             {
-                startScavCooldown(player, tier);
+                Logger.LogError($"Error loading tier for player {player.DisplayName}");
+                return;
             }
+            startScavCooldown(player, tier);
         }
         internal static void OnPlayerDisconnected(UnturnedPlayer player)
         {

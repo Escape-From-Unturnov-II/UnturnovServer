@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Xml.Linq;
 using System.Xml.Serialization;
+using UnityEngine;
 
 namespace SpeedMann.Unturnov
 {
@@ -1860,6 +1861,14 @@ namespace SpeedMann.Unturnov
             HideoutConfig = new HideoutConfig
             {
                 Notification_UI = new Notification_UI(52310, 5230),
+                SpawnedBarricadesPerFrame = 5,
+                HideoutDimensions = new Vector3(11, 5, 8),
+                HideoutPositions = new List<Position> 
+                { 
+                    new Position(868, 8.5f, -350, 0),
+                    new Position(879, 8.5f, -350, 0),
+                    new Position(879, 8.5f, -350, 180),
+                }
             };
             PlacementRestrictionConfig = new PlacementRestrictionConfig
             {

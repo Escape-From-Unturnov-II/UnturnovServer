@@ -215,11 +215,13 @@ namespace SpeedMann.Unturnov
         private void OnPreDisconnectSave(CSteamID steamID, ref bool shouldAllow)
         {
             UnturnedPlayer player = UnturnedPlayer.FromCSteamID(steamID);
+            if (player == null) 
+            {
+                return;
+            }
 
             // disable plugin crafting
             player.Player.quests.sendSetFlag(Conf.PluginCraftingFlag, 0);
-
-            if (player == null) return;
 
             if (player.Dead)
             {
@@ -234,6 +236,10 @@ namespace SpeedMann.Unturnov
                 {
                     Logger.LogError($"Could not revive {steamID}!");
                 }
+            }
+            else
+            {
+                TeleportControler.OnPreDisconnectSave(player);
             }
         }
         private void OnPlayerDisconnected(UnturnedPlayer player)
@@ -258,6 +264,10 @@ namespace SpeedMann.Unturnov
             if (!PlayerSavedata.fileExists(player.SteamPlayer().playerID, "/Player/Player.dat"))
             {
                 setupNewPlayer(player);
+            }
+            else
+            {
+                TeleportControler.OnPlayerConnected(player);
             }
         }
         private void OnGetInput(InputInfo inputInfo, ERaycastInfoUsage usage, ref bool shouldAllow)
@@ -328,6 +338,7 @@ namespace SpeedMann.Unturnov
             SecureCaseControler.OnPlayerRevived(playerLife);
             DeathAdditionsControler.OnPlayerRevived(playerLife);
             ScavRunControler.OnPlayerRevived(playerLife);
+            TeleportControler.OnPlayerRevived(playerLife);
         }
         private void OnInspect(PlayerEquipment equipment)
         {

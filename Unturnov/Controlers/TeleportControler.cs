@@ -3,12 +3,8 @@ using SDG.Framework.Devkit;
 using SDG.Unturned;
 using SpeedMann.Unturnov.Models;
 using SpeedMann.Unturnov.Models.Config;
-using Steamworks;
-using System;
+using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
 using Logger = Rocket.Core.Logging.Logger;
 
@@ -71,7 +67,12 @@ namespace SpeedMann.Unturnov.Controlers
     {
         private static TeleportConfig Conf;
         private static Dictionary<ushort, RaidTeleport> teleportConfigDict;
-        
+
+        private const short teleportReady = 0;
+        private const short inRaid = -1;
+        private const short teleportSolo = -2;
+        private const short teleportSquad = -3;
+        private const short teleportBack = -4;
         internal static void Init(TeleportConfig teleportConfig)
         {
             Conf = teleportConfig;
@@ -81,7 +82,53 @@ namespace SpeedMann.Unturnov.Controlers
         {
             teleportConfigDict.Clear();
         }
+        internal static void OnPlayerConnected(UnturnedPlayer player)
+        {
+            bool inRaid = false;
+            foreach (ushort teleportFlagIds in teleportConfigDict.Keys)
+            {
+                if (player.Player.quests.getFlag(teleportFlagIds, out short flagValue))
+                {
+                    if (flagValue < 0)
+                    {
+                        inRaid = true;
+                    }
+                }
+            }
 
+            if (!inRaid)
+            {
+                TeleportToBedOrSpawn(player);
+            }
+        }
+        internal static void OnPreDisconnectSave(UnturnedPlayer player)
+        {
+            foreach (ushort teleportFlagIds in teleportConfigDict.Keys)
+            {
+                if (player.Player.quests.getFlag(teleportFlagIds, out short flagValue))
+                {
+                    if (flagValue != 0)
+                    {
+
+                    }
+                }
+            }
+
+        }
+        internal static void OnPlayerRevived(PlayerLife playerLife)
+        {
+            foreach (var teleportEntry in teleportConfigDict)
+            {
+                if (playerLife.player.quests.getFlag(teleportEntry.Key, out short flagValue))
+                {
+                    if (flagValue < 0)
+                    {
+                        TryStartMapCooldown(playerLife.player, teleportEntry.Value);
+                        return;
+                    }
+                }
+            }
+        }
         internal static void OnFlagChanged(PlayerQuests quests, PlayerQuestFlag flag)
         {
             UnturnedPlayer player = UnturnedPlayer.FromPlayer(quests.player);
@@ -93,26 +140,31 @@ namespace SpeedMann.Unturnov.Controlers
             TeleportDestination dest;
             switch (flag.value)
             {
-                case -1:
+                case teleportSolo:
                     dest = getRandomTeleportLocation(teleport);
-                    teleportPlayer(player, dest);
+                    TeleportPlayer(player, dest, flag.id);
                     break;
-                case -2:
+                case teleportSquad:
                     dest = getRandomTeleportLocation(teleport);
-                    teleportSquad(player, dest);
+                    TeleportSquad(player, dest, flag.id);
+                    break;
+                case teleportBack:
+                    TeleportToSpawn(player);
+                    player.Player.quests.sendSetFlag(flag.id, teleportReady);
                     break;
             }
         }
 
-        internal static void teleportPlayer(UnturnedPlayer player, TeleportDestination destination)
+        private static void TeleportPlayer(UnturnedPlayer player, TeleportDestination destination, ushort flagId)
         {
             destination.findDestination(out Vector3 position, out float rotation);
             
             player.Teleport(position, rotation != 0 ? rotation : MeasurementTool.angleToByte(player.Rotation));
+            player.Player.quests.sendSetFlag(flagId, inRaid);
 
             Logger.Log($"{player.DisplayName} was teleported to {destination.NodeName} [{position.x}, {position.y}, {position.z}]");
         }
-        internal static void teleportSquad(UnturnedPlayer caller, TeleportDestination destination)
+        private static void TeleportSquad(UnturnedPlayer caller, TeleportDestination destination, ushort flagId)
         {
             foreach (SteamPlayer client in Provider.clients)
             {
@@ -120,14 +172,36 @@ namespace SpeedMann.Unturnov.Controlers
                 {
                     if (Vector3.SqrMagnitude(client.player.transform.position - caller.Position) < Conf.SquadTeleportRadius * Conf.SquadTeleportRadius)
                     {
-                        teleportPlayer(UnturnedPlayer.FromCSteamID(client.playerID.steamID), destination);
+                        TeleportPlayer(UnturnedPlayer.FromCSteamID(client.playerID.steamID), destination, flagId);
                     }
                 }
             }
-            teleportPlayer(caller, destination);
+            TeleportPlayer(caller, destination, flagId);
         }
-
-        internal static TeleportDestination getRandomTeleportLocation(RaidTeleport config)
+        private static void TeleportToBedOrSpawn(UnturnedPlayer player)
+        {
+            if(BarricadeManager.tryGetBed(player.CSteamID, out var point, out var angle))
+            {
+                point.y += 0.5f;
+                player.Teleport(point, angle);
+                return;
+            }
+            TeleportToSpawn(player);
+        }
+        private static void TeleportToSpawn(UnturnedPlayer player)
+        {
+            Vector3 point = player.Player.transform.position;
+            float angle = 0;
+            var spawnpoint = LevelPlayers.getSpawn(isAlt: false);
+            if (spawnpoint != null)
+            {
+                point = spawnpoint.point;
+                angle = MeasurementTool.angleToByte(spawnpoint.angle);
+            }
+            point.y += 0.5f;
+            player.Teleport(point, angle);
+        }
+        private static TeleportDestination getRandomTeleportLocation(RaidTeleport config)
         {
             if(config.TeleportDestinations.Count > 0)
             {
@@ -135,7 +209,7 @@ namespace SpeedMann.Unturnov.Controlers
             }
             return null;
         }
-        internal static Dictionary<ushort, RaidTeleport> createDictionaryOfTeleportConfigs(List<RaidTeleport> teleports)
+        private static Dictionary<ushort, RaidTeleport> createDictionaryOfTeleportConfigs(List<RaidTeleport> teleports)
         {
             var teleportDict = new Dictionary<ushort, RaidTeleport>();
             if (teleports != null)
@@ -157,6 +231,28 @@ namespace SpeedMann.Unturnov.Controlers
                 }
             }
             return teleportDict;
+        }
+        private static bool TryStartMapCooldown(Player player, RaidTeleport raidTeleport)
+        {
+            if(raidTeleport.CooldownInMin <= 0 || raidTeleport.CooldownMinFlag == 0 || raidTeleport.CooldownSecFlag == 0)
+            { 
+                return false; 
+            }
+            player.StartCoroutine(MapCooldown(player, raidTeleport.CooldownMinFlag, raidTeleport.CooldownSecFlag, raidTeleport.CooldownInMin));
+            return true;
+        }
+        private static IEnumerator MapCooldown(Player player, ushort minFlagId, ushort secFlagId, float cooldownInMin)
+        {
+            int cooldown = Mathf.RoundToInt(cooldownInMin * 60);
+            for (; cooldown >= 0; cooldown--) 
+            {
+                short minutes = (short)(cooldown / 60);
+                short seconds = (short)(cooldown % 60);
+
+                player.quests.sendSetFlag(minFlagId, minutes);
+                player.quests.sendSetFlag(secFlagId, seconds);
+                yield return new WaitForSeconds(1);
+            }   
         }
     }
 }

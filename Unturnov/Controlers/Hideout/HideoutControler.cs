@@ -36,9 +36,6 @@ namespace SpeedMann.Unturnov.Controlers
             {
                 createHideout(position.GetVector3(), position.rot);
             }
-            createHideout(new Vector3(868, 8.5f, -350), 0);
-            createHideout(new Vector3(879, 8.5f, -350), 0);
-            createHideout(new Vector3(879, 8.5f, -355), 180);
 
             //TODO: add checks for any barricade interactions and prevent them if hideout is not ready
         }
@@ -142,7 +139,7 @@ namespace SpeedMann.Unturnov.Controlers
         {
             GameObject hideoutObject = new GameObject();
             Hideout hideout = hideoutObject.AddComponent<Hideout>();
-            hideout.Initialize(origin, rotation);
+            hideout.Initialize(origin, rotation, Conf.HideoutDimensions, Conf.Debug);
             hideoutObjects.Add(hideoutObject);
 
             freeHideouts.Add(hideout);
@@ -173,10 +170,9 @@ namespace SpeedMann.Unturnov.Controlers
                 return;
             }
             JsonManager.tryReadFromSaves(PlayerTool.getPlayer(player.CSteamID), SaveFileName, out List<BarricadeWrapper> barricades);
-
-            hideout.claim(player.CSteamID, barricades);
             claimedHideouts.Add(player.CSteamID, hideout);
             freeHideouts.RemoveAt(0);
+            hideout.claim(player.CSteamID, barricades);
         }
         internal static bool isHideoutReady(CSteamID playerId)
         {

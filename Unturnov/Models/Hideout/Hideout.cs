@@ -27,19 +27,21 @@ namespace SpeedMann.Unturnov.Models.Hideout
         private bool needsClearing = false;
         private Action<Hideout> onCanFreeCallback;
         private bool debug = true;
-        private Vector3 hideoutDimensions = new Vector3(11, 5, 8);
+        private Vector3 hideoutDimensions;
         private List<BarricadeDrop> barricades = new List<BarricadeDrop>();
 
         internal Hideout()
         {
             
         }
-        internal void Initialize(Vector3 origin, float rotation)
+        internal void Initialize(Vector3 origin, float rotation, Vector3 dimensions, bool debug)
         {
             owner = CSteamID.Nil;
+            hideoutDimensions = dimensions;
             originPosition = origin;
             originRotationEuler = new Vector3(0, rotation, 0);
             originRotationQuanternion = Quaternion.Euler(originRotationEuler);
+            this.debug = debug;
 
             Vector3[] bounds = calcBounds(origin);
             setBounds(bounds);
@@ -48,6 +50,7 @@ namespace SpeedMann.Unturnov.Models.Hideout
         {
             ready = false;
             owner = newOwner;
+            needsClearing = false;
             barricades.Clear();
 
             if (barricadesToRestore == null || barricadesToRestore.Count <= 0)
@@ -83,6 +86,11 @@ namespace SpeedMann.Unturnov.Models.Hideout
         internal void addBarricade(BarricadeDrop drop)
         {
             barricades.Add(drop);
+            if (debug)
+            {
+                Logger.Log($"added barricade {drop.asset.id} to hideout of {owner}");
+            }
+            
             BarricadeHelper.tryGetPlantedOfFarm(drop, out uint planted);
         }
         internal void removeBarricade(BarricadeDrop drop)
@@ -91,7 +99,11 @@ namespace SpeedMann.Unturnov.Models.Hideout
             {
                 Logger.LogError($"could not find destroyed barricade {drop.asset.id} in hideout of {owner}");
                 return;
-            };
+            }
+            if (debug)
+            {
+                Logger.Log($"Destroyed barricade {drop.asset.id} in hideout of {owner} with {barricades.Count} barricades");
+            }
         }
         internal List<BarricadeWrapper> getBarricades()
         {
@@ -158,6 +170,7 @@ namespace SpeedMann.Unturnov.Models.Hideout
 
             StopCoroutine("restoreBarricadesInner");
             ready = false;
+            needsClearing = false;
             owner = CSteamID.Nil;
             barricades.Clear();
         }

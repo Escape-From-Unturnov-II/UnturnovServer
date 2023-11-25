@@ -165,6 +165,7 @@
     <Compile Include="Models\Config\OpenableItemsConfig.cs" />
     <Compile Include="Models\Config\ItemExtensions\PlacementRestriction.cs" />
     <Compile Include="Models\Config\PlacementRestrictionConfig.cs" />
+    <Compile Include="Models\Config\Position.cs" />
     <Compile Include="Models\Config\RaidTeleport.cs" />
     <Compile Include="Models\Config\SecureCaseConfig.cs" />
     <Compile Include="Models\Config\CaseSize.cs" />
