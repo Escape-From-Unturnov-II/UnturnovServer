@@ -3,6 +3,8 @@ using SDG.Framework.Devkit;
 using SDG.Unturned;
 using SpeedMann.Unturnov.Models;
 using SpeedMann.Unturnov.Models.Config;
+using SpeedMann.Unturnov.Models.Hideout;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -87,18 +89,16 @@ namespace SpeedMann.Unturnov.Controlers
             bool inRaid = false;
             foreach (ushort teleportFlagIds in teleportConfigDict.Keys)
             {
-                if (player.Player.quests.getFlag(teleportFlagIds, out short flagValue))
+                if (player.Player.quests.getFlag(teleportFlagIds, out short flagValue) && flagValue < 0)
                 {
-                    if (flagValue < 0)
-                    {
-                        inRaid = true;
-                    }
+                    inRaid = true;
+                    break;
                 }
             }
 
             if (!inRaid)
             {
-                TeleportToBedOrSpawn(player);
+                TeleportToHideoutOrSpawn(player);
             }
         }
         internal static void OnPreDisconnectSave(UnturnedPlayer player)
@@ -132,11 +132,20 @@ namespace SpeedMann.Unturnov.Controlers
         internal static void OnFlagChanged(PlayerQuests quests, PlayerQuestFlag flag)
         {
             UnturnedPlayer player = UnturnedPlayer.FromPlayer(quests.player);
-            if(!teleportConfigDict.TryGetValue(flag.id, out RaidTeleport teleport))
+            if(flag.id == Conf.HideoutTeleportFlag)
             {
+                CheckHideoutTeleports(player, flag.value);
                 return;
             }
 
+            if(teleportConfigDict.TryGetValue(flag.id, out RaidTeleport teleport))
+            {
+                CheckRaidTeleports(player, flag, teleport);
+                return;
+            }
+        }
+        private static void CheckRaidTeleports(UnturnedPlayer player, PlayerQuestFlag flag, RaidTeleport teleport)
+        {
             TeleportDestination dest;
             switch (flag.value)
             {
@@ -154,7 +163,19 @@ namespace SpeedMann.Unturnov.Controlers
                     break;
             }
         }
-
+        private static void CheckHideoutTeleports(UnturnedPlayer player, short flagValue)
+        {
+            switch (flagValue)
+            {
+                case teleportSolo:
+                    if (!TryTeleportToHideout(player))
+                    {
+                        Logger.LogWarning($"Could not teleport {player.CSteamID} to hideout!");
+                    }
+                    player.Player.quests.sendSetFlag(Conf.HideoutTeleportFlag, teleportReady);
+                    break;
+            }
+        }
         private static void TeleportPlayer(UnturnedPlayer player, TeleportDestination destination, ushort flagId)
         {
             destination.findDestination(out Vector3 position, out float rotation);
@@ -178,9 +199,28 @@ namespace SpeedMann.Unturnov.Controlers
             }
             TeleportPlayer(caller, destination, flagId);
         }
+        private static void TeleportToHideoutOrSpawn(UnturnedPlayer player)
+        {
+            if (!TryTeleportToHideout(player))
+            {
+                TeleportToSpawn(player);
+            }
+        }
+        private static bool TryTeleportToHideout(UnturnedPlayer player)
+        {
+            Hideout hideout = HideoutControler.getHideout(player.CSteamID);
+            if (hideout == null)
+            {
+                return false;
+            }
+
+            Vector3 point = new Vector3(hideout.originPosition.x, hideout.originPosition.y + 0.5f, hideout.originPosition.z);
+            player.Teleport(point, 0);
+            return true;
+        }
         private static void TeleportToBedOrSpawn(UnturnedPlayer player)
         {
-            if(BarricadeManager.tryGetBed(player.CSteamID, out var point, out var angle))
+            if (BarricadeManager.tryGetBed(player.CSteamID, out var point, out var angle))
             {
                 point.y += 0.5f;
                 player.Teleport(point, angle);

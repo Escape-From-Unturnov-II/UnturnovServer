@@ -135,7 +135,7 @@ namespace SpeedMann.Unturnov
 
         protected override void Unload()
         {
-            UnturnedPatches.Cleanup();
+
             ScavRunControler.Cleanup();
             TeleportControler.Cleanup();
             QuestExtensionControler.Cleanup();
@@ -189,6 +189,9 @@ namespace SpeedMann.Unturnov
             U.Events.OnPlayerConnected -= OnPlayerConnected;
 
             Level.onPreLevelLoaded -= OnPreLevelLoaded;
+
+
+            UnturnedPatches.Cleanup();
 
             Inst = null;
             Conf = null;

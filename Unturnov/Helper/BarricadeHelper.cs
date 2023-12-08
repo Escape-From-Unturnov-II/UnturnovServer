@@ -240,10 +240,10 @@ namespace SpeedMann.Unturnov.Helper
         internal static bool tryGetStoredItems(BarricadeDrop drop, out List<ItemJarWrapper> storedItems, bool remove = false)
         {
             storedItems = new List<ItemJarWrapper>();
-            if (drop == null)
+            if (drop == null || !drop.model.TryGetComponent(out InteractableStorage storage))
+            {
                 return false;
-            InteractableStorage storage = drop.model.GetComponent<InteractableStorage>();
-
+            }
             tryCloseStorage(storage);
 
             return tryGetStoredItems(storage, out storedItems, remove);
@@ -251,16 +251,28 @@ namespace SpeedMann.Unturnov.Helper
         internal static bool tryGetStoredItems(InteractableStorage storage, out List<ItemJarWrapper> storedItems, bool remove = false)
         {
             storedItems = new List<ItemJarWrapper>();
-            if (storage == null)
-                return false;
-
-            int i = 0;
-            while (storage.items.items.Count > i)
+            if (storage?.items?.items == null)
             {
-                storedItems.Add(new ItemJarWrapper(storage.items.items[i]));
+                return false;
+            }
+
+            byte i = 0;
+            int itemCount = storage.items.items.Count;
+
+            while (i < itemCount)
+            {
+                ItemJar itemJar = storage.items.items[i];
+                if(itemJar == null)
+                {
+                    i++;
+                    continue;
+                }
+                storedItems.Add(new ItemJarWrapper(itemJar));
+
                 if (remove)
                 {
-                    storage.items.removeItem(0);
+                    storage.items.removeItem(i);
+                    itemCount--;
                 }
                 else
                 {

@@ -1,17 +1,9 @@
 ﻿using HarmonyLib;
-using Rocket.Core.Logging;
-using Rocket.Unturned.Enumerations;
-using Rocket.Unturned.Player;
-using SDG.Framework.Devkit;
 using SDG.Unturned;
 using SpeedMann.Unturnov.Models;
 using Steamworks;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using UnityEngine;
-using static UnityEngine.Random;
 using Logger = Rocket.Core.Logging.Logger;
 
 namespace SpeedMann.Unturnov.Helper
@@ -126,8 +118,15 @@ namespace SpeedMann.Unturnov.Helper
                     return;
 
                 bool shouldAllow = true;
-                OnPostGetInput?.Invoke(__result, usage, ref shouldAllow);
-
+                
+                try
+                {
+                    OnPostGetInput?.Invoke(__result, usage, ref shouldAllow);
+                }
+                catch (Exception e)
+                {
+                    Logger.LogException(e, $"Exception in OnPostGetInput Patch: ");
+                }
                 if (!shouldAllow)
                     __result = null;
             }
@@ -138,7 +137,15 @@ namespace SpeedMann.Unturnov.Helper
             [HarmonyPrefix]
             internal static bool OnPreEquipmentUpdateStateInvoker(PlayerEquipment __instance)
             {
-                OnPreEquipmentUpdateState?.Invoke(__instance);
+                try
+                {
+                    OnPreEquipmentUpdateState?.Invoke(__instance);
+                }
+                catch (Exception e)
+                {
+                    Logger.LogException(e, $"Exception in OnPreEquipmentUpdateState Patch: ");
+                }
+                
                 return true;
             }
         }
@@ -149,7 +156,14 @@ namespace SpeedMann.Unturnov.Helper
             [HarmonyPrefix]
             internal static bool OnPreDestroyBarricadeInvoker(BarricadeDrop barricade, byte x, byte y, ushort plant)
             {
-                OnPreDestroyBarricade?.Invoke(barricade, x, y, plant);
+                try
+                {
+                    OnPreDestroyBarricade?.Invoke(barricade, x, y, plant);
+                }
+                catch (Exception e)
+                {
+                    Logger.LogException(e, $"Exception in OnPreDestroyBarricade Patch: ");
+                }
                 return true;
             }
         }
@@ -161,7 +175,15 @@ namespace SpeedMann.Unturnov.Helper
             internal static bool OnPreBarricadeStorageRequestInvoker(InteractableStorage __instance, ServerInvocationContext context, bool quickGrab)
             {
                 bool shouldAllow = true;
-                OnPreBarricadeStorageRequest?.Invoke(__instance, context, quickGrab, ref shouldAllow);
+                try
+                {
+                    OnPreBarricadeStorageRequest?.Invoke(__instance, context, quickGrab, ref shouldAllow);
+                }
+                catch (Exception e)
+                {
+                    Logger.LogException(e, $"Exception in OnPreBarricadeStorageRequest Patch: ");
+                }
+                
                 return shouldAllow;
             }
         }
@@ -172,14 +194,28 @@ namespace SpeedMann.Unturnov.Helper
             [HarmonyPrefix]
             internal static bool OnPreAttachMagazineInvoker(UseableGun __instance, byte page, byte x, byte y, byte[] hash, out UseableGun __state)
             {
-                OnPreAttachMagazine?.Invoke(__instance, page, x, y, hash);
+                try
+                {
+                    OnPreAttachMagazine?.Invoke(__instance, page, x, y, hash);
+                }
+                catch (Exception e)
+                {
+                    Logger.LogException(e, $"Exception in OnPreAttachMagazine Patch: ");
+                }
                 __state = __instance;
                 return true;
             }
             [HarmonyPostfix]
             internal static void OnPostAttachMagazineInvoker(UseableGun __state)
             {
-                OnPostAttachMagazine?.Invoke(__state);
+                try
+                {
+                    OnPostAttachMagazine?.Invoke(__state);
+                }
+                catch (Exception e)
+                {
+                    Logger.LogException(e, $"Exception in OnPostAttachMagazine Patch: ");
+                }
             }
         }
         [HarmonyPatch(typeof(PlayerInventory), nameof(PlayerInventory.tryAddItemAuto), new Type[] { typeof(Item), typeof(bool), typeof(bool), typeof(bool), typeof(bool) })]
@@ -188,7 +224,15 @@ namespace SpeedMann.Unturnov.Helper
             [HarmonyPrefix]
             internal static bool OnPreTryAddItemAutoInvoker(PlayerInventory __instance, Item item, ref bool autoEquipWeapon, ref bool autoEquipUseable, ref bool autoEquipClothing)
             {
-                OnPreTryAddItemAuto?.Invoke(__instance, item, ref autoEquipWeapon, ref autoEquipUseable, ref autoEquipClothing);
+                try
+                {
+                    OnPreTryAddItemAuto?.Invoke(__instance, item, ref autoEquipWeapon, ref autoEquipUseable, ref autoEquipClothing);
+                }
+                catch (Exception e)
+                {
+                    Logger.LogException(e, $"Exception in OnPreTryAddItemAuto Patch: ");
+                }
+                
                 return true;
             }
         }
@@ -199,7 +243,15 @@ namespace SpeedMann.Unturnov.Helper
             internal static bool OnPreInteractabilityConditionInvoker(ObjectAsset __instance, Player player, out bool __state)
             {
                 var shouldAllow = true;
-                OnPreInteractabilityCondition?.Invoke(__instance, player, ref shouldAllow);
+                try
+                {
+                    OnPreInteractabilityCondition?.Invoke(__instance, player, ref shouldAllow);
+                }
+                catch (Exception e)
+                {
+                    Logger.LogException(e, $"Exception in OnPreInteractabilityCondition Patch: ");
+                }
+                
                 __state = shouldAllow;
                 return true;
             }
@@ -237,7 +289,15 @@ namespace SpeedMann.Unturnov.Helper
             internal static bool OnPreDisconnectSaveInvoker(CSteamID steamID)
             {
                 var shouldAllow = true;
-                OnPreDisconnectSave?.Invoke(steamID, ref shouldAllow);
+                try
+                {
+                    OnPreDisconnectSave?.Invoke(steamID, ref shouldAllow);
+                }
+                catch (Exception e)
+                {
+                    Logger.LogException(e, $"Exception in OnPreDisconnectSave Patch: ");
+                }
+                
                 return shouldAllow;
             }
         }
@@ -248,7 +308,15 @@ namespace SpeedMann.Unturnov.Helper
             internal static bool OnPreShutdownSaveInvoker()
             {
                 var shouldAllow = true;
-                OnPreShutdownSave?.Invoke(ref shouldAllow);
+                
+                try
+                {
+                    OnPreShutdownSave?.Invoke(ref shouldAllow);
+                }
+                catch (Exception e)
+                {
+                    Logger.LogException(e, $"Exception in OnPreShutdownSave Patch: ");
+                }
                 return shouldAllow;
             }
         }
@@ -265,7 +333,15 @@ namespace SpeedMann.Unturnov.Helper
             [HarmonyPrefix]
             internal static void OnPreLifeUpdatedInvoker(PlayerLife __instance)
             {
-                OnPrePlayerDead?.Invoke(__instance);
+                try
+                {
+                    OnPrePlayerDead?.Invoke(__instance);
+                }
+                catch (Exception e)
+                {
+                    Logger.LogException(e, $"Exception in OnPrePlayerDead Patch: ");
+                }
+                
             }
 
 
@@ -281,7 +357,15 @@ namespace SpeedMann.Unturnov.Helper
             [HarmonyPostfix]
             internal static void OnPosReviveInvoker(PlayerLife __state)
             {
-                OnPostPlayerRevive?.Invoke(__state);
+                try
+                {
+                    OnPostPlayerRevive?.Invoke(__state);
+                }
+                catch (Exception e)
+                {
+                    Logger.LogException(e, $"Exception in OnPostPlayerRevive Patch: ");
+                }
+                
             }
         }
         [HarmonyPatch(typeof(PlayerInventory), "ReceiveDragItem")]
@@ -292,7 +376,15 @@ namespace SpeedMann.Unturnov.Helper
        ref byte page_1, ref byte x_1, ref byte y_1, ref byte rot_1)
             {
                 var shouldAllow = true;
-                OnPrePlayerDraggedItem?.Invoke(__instance, page_0, x_0, y_0, page_1, x_1, y_1, rot_1, ref shouldAllow);
+                try
+                {
+                    OnPrePlayerDraggedItem?.Invoke(__instance, page_0, x_0, y_0, page_1, x_1, y_1, rot_1, ref shouldAllow);
+                }
+                catch (Exception e)
+                {
+                    Logger.LogException(e, $"Exception in OnPrePlayerDraggedItem Patch: ");
+                }
+                
                 return shouldAllow;
             }
         }
@@ -304,8 +396,15 @@ namespace SpeedMann.Unturnov.Helper
     byte rot_0, byte page_1, byte x_1, byte y_1, byte rot_1)
             {
                 var shouldAllow = true;
-                OnPrePlayerSwappedItem?.Invoke(__instance, page_0, x_0, y_0, rot_0, page_1, x_1, y_1, rot_1,
-                    ref shouldAllow);
+                
+                try
+                {
+                    OnPrePlayerSwappedItem?.Invoke(__instance, page_0, x_0, y_0, rot_0, page_1, x_1, y_1, rot_1, ref shouldAllow);
+                }
+                catch (Exception e)
+                {
+                    Logger.LogException(e, $"Exception in OnPrePlayerSwappedItem Patch: ");
+                }
                 return shouldAllow;
             }
         }
@@ -319,7 +418,15 @@ namespace SpeedMann.Unturnov.Helper
                 object target = __instance.onStateUpdated.Target;
                 if (target is PlayerInventory)
                 {
-                    OnPrePlayerAddItem?.Invoke((PlayerInventory)target, __instance, item, ref __result, ref shouldAllow);
+                    try
+                    {
+                        OnPrePlayerAddItem?.Invoke((PlayerInventory)target, __instance, item, ref __result, ref shouldAllow);
+                    }
+                    catch (Exception e)
+                    {
+                        Logger.LogException(e, $"Exception in OnPrePlayerAddItem Patch: ");
+                    }
+                    
                 }
                 __result = shouldAllow;
                 return shouldAllow;
@@ -333,7 +440,15 @@ namespace SpeedMann.Unturnov.Helper
             [HarmonyPrefix]
             internal static bool OnPreAnimalDeathInvoker(Animal animal)
             {
-                onAnimalDeath?.Invoke(animal);
+                try
+                {
+                    onAnimalDeath?.Invoke(animal);
+                }
+                catch (Exception e)
+                {
+                    Logger.LogException(e, $"Exception in onAnimalDeath Patch: ");
+                }
+                
                 return true;
             }
         }
@@ -343,7 +458,15 @@ namespace SpeedMann.Unturnov.Helper
             [HarmonyPrefix]
             internal static bool OnPreZombieDeathInvoker(Zombie zombie)
             {
-                onZombieDeath?.Invoke(zombie);
+                try
+                {
+                    onZombieDeath?.Invoke(zombie);
+                }
+                catch (Exception e)
+                {
+                    Logger.LogException(e, $"Exception in onZombieDeath Patch: ");
+                }
+               
                 return true;
             }
         }
@@ -354,9 +477,6 @@ namespace SpeedMann.Unturnov.Helper
             [HarmonyPrefix]
             internal static bool OnPreClientAcceptedInvoker(SteamPending player)
             {
-                
-                Logger.Log($"{player.playerID.characterName}");
-
                 return true;
             }
         }

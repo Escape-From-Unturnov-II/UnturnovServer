@@ -139,7 +139,7 @@ namespace SpeedMann.Unturnov.Controlers
         {
             GameObject hideoutObject = new GameObject();
             Hideout hideout = hideoutObject.AddComponent<Hideout>();
-            hideout.Initialize(origin, rotation, Conf.HideoutDimensions, Conf.Debug);
+            hideout.Initialize(origin, rotation, Conf.HideoutDimensions, Conf.HideoutOriginOffset, Conf.Debug);
             hideoutObjects.Add(hideoutObject);
 
             freeHideouts.Add(hideout);

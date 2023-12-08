@@ -34,7 +34,7 @@ namespace SpeedMann.Unturnov.Models.Hideout
         {
             
         }
-        internal void Initialize(Vector3 origin, float rotation, Vector3 dimensions, bool debug)
+        internal void Initialize(Vector3 origin, float rotation, Vector3 dimensions, Vector3 originOffset, bool debug)
         {
             owner = CSteamID.Nil;
             hideoutDimensions = dimensions;
@@ -43,7 +43,7 @@ namespace SpeedMann.Unturnov.Models.Hideout
             originRotationQuanternion = Quaternion.Euler(originRotationEuler);
             this.debug = debug;
 
-            Vector3[] bounds = calcBounds(origin);
+            Vector3[] bounds = calcBounds(origin - originRotationQuanternion * originOffset);
             setBounds(bounds);
         }
         internal void claim(CSteamID newOwner, List<BarricadeWrapper> barricadesToRestore = null)
@@ -158,7 +158,6 @@ namespace SpeedMann.Unturnov.Models.Hideout
         private Vector3[] calcBounds(Vector3 point)
         {
             Vector3[] bounds = new Vector3[2];
-
             bounds[0] = point;
             bounds[1] = point + originRotationQuanternion * hideoutDimensions;
 
