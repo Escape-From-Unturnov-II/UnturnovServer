@@ -15,6 +15,7 @@ using UnityEngine;
 using Logger = Rocket.Core.Logging.Logger;
 using SpeedMann.Unturnov.Models.Hideout;
 using Org.BouncyCastle.Crypto;
+using System.Security.Cryptography;
 
 namespace SpeedMann.Unturnov.Helper
 {
@@ -26,7 +27,7 @@ namespace SpeedMann.Unturnov.Helper
         internal static void Init(string PluginDirectory, bool debug = true)
         {
             Debug = debug;
-            PluginSavesPath = $"{PluginDirectory}\\Saves";
+            PluginSavesPath = Path.Combine(PluginDirectory, "Saves");
             // creates dicts if needed
             Directory.CreateDirectory(PluginSavesPath);
             PluginDirectoryPath = PluginDirectory;
@@ -189,7 +190,7 @@ namespace SpeedMann.Unturnov.Helper
             filePath = "";
             var playerId = player.channel.owner.playerID;
             // TODO: handle +_{playerId.characterID}
-            string playerSavesPath = $"{PluginSavesPath}\\{playerId.steamID}";
+            string playerSavesPath = Path.Combine(PluginSavesPath, playerId.steamID.ToString());
             try
             {
                 Directory.CreateDirectory(playerSavesPath);
@@ -199,7 +200,7 @@ namespace SpeedMann.Unturnov.Helper
                 Logger.LogError($"Error creating directories of path {playerSavesPath}:\n {ex}");
                 return false;
             }
-            filePath = $"{playerSavesPath}\\{fileName}.json";
+            filePath = Path.Combine(playerSavesPath, $"{ fileName}.json");
             return true;
         }
     }

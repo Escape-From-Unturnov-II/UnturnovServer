@@ -19,9 +19,11 @@ namespace SpeedMann.Unturnov.Models.Config
         {
 
         }
-        public RaidTeleport(ushort teleportFlag, List<TeleportDestination> teleportDestinations)
+        public RaidTeleport(ushort teleportFlag, ushort cooldownMinFlag, ushort cooldownSecFlag, List<TeleportDestination> teleportDestinations)
         {
             TeleportFlag = teleportFlag;
+            CooldownInMin = cooldownMinFlag;
+            CooldownSecFlag = cooldownSecFlag;
             TeleportDestinations = teleportDestinations;
         }
     }

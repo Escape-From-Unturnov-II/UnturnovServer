@@ -70,12 +70,28 @@ namespace SpeedMann.Unturnov.Commands
                         UnturnedChat.Say(caller, pos, Color.cyan);
                         Logger.Log(pos);
                         break;
+                    case "tp":
+                        Hideout hideout = HideoutControler.getHideout(player.CSteamID);
+                        if (hideout == null)
+                        {
+                            UnturnedChat.Say(caller, $"you have no hideout!", Color.red);
+                            break;
+                        }
+                        TeleportControler.TryTeleportToHideout(player);
+
+                        break;
                     case "change":
                         EffectControler.hideBorders(player.CSteamID);
 
                         HideoutControler.freeHideout(player);
                         HideoutControler.claimHideout(player);
-                        Hideout hideout = HideoutControler.getHideout(player.CSteamID);
+                        hideout = HideoutControler.getHideout(player.CSteamID);
+                        if(hideout == null)
+                        {
+                            UnturnedChat.Say(caller, $"Could not find new Hideout!", Color.red);
+                            break;
+                        }
+                        EffectControler.spawnBorders(player.CSteamID, hideout);
 
                         UnturnedChat.Say(caller, $"Changed Hideout to {hideout.bounds[0]} {hideout.bounds[1]}", Color.cyan);
                         break;
@@ -96,17 +112,7 @@ namespace SpeedMann.Unturnov.Commands
                                 {
                                     UnturnedChat.Say(caller, $"you have no hideout!", Color.red);
                                 }
-                                Vector3[] points = new Vector3[4]
-                                {
-                                    hideout.bounds[0],
-                                    new Vector3(hideout.bounds[0].x, hideout.bounds[0].y, hideout.bounds[1].z),
-                                    hideout.bounds[1],
-                                    new Vector3(hideout.bounds[1].x, hideout.bounds[0].y, hideout.bounds[0].z),
-                                };
-                                EffectControler.spawnBorder(player.CSteamID, points[0], points[1], hideout.bounds[0].y, hideout.bounds[1].y);
-                                EffectControler.spawnBorder(player.CSteamID, points[1], points[2], hideout.bounds[0].y, hideout.bounds[1].y);
-                                EffectControler.spawnBorder(player.CSteamID, points[2], points[3], hideout.bounds[0].y, hideout.bounds[1].y);
-                                EffectControler.spawnBorder(player.CSteamID, points[3], points[0], hideout.bounds[0].y, hideout.bounds[1].y);
+                                EffectControler.spawnBorders(player.CSteamID, hideout);
                                 break;
                             case "hide":
                                 EffectControler.hideBorders(player.CSteamID);
@@ -121,6 +127,10 @@ namespace SpeedMann.Unturnov.Commands
                         throw new WrongUsageOfCommandException(caller, this);
                 }
             }
+
+        }
+        private void ShowBoarder()
+        {
 
         }
     }

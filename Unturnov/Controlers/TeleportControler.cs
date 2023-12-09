@@ -144,6 +144,28 @@ namespace SpeedMann.Unturnov.Controlers
                 return;
             }
         }
+        internal static bool TryTeleportToHideout(UnturnedPlayer player)
+        {
+            Hideout hideout = HideoutControler.getHideout(player.CSteamID);
+            if (hideout == null)
+            {
+                return false;
+            }
+
+            Vector3 point = new Vector3(hideout.originPosition.x, hideout.originPosition.y + 0.5f, hideout.originPosition.z);
+            player.Teleport(point, 0);
+            return true;
+        }
+        internal static bool TryTeleportToBed(UnturnedPlayer player)
+        {
+            if (BarricadeManager.tryGetBed(player.CSteamID, out var point, out var angle))
+            {
+                point.y += 0.5f;
+                player.Teleport(point, angle);
+                return true;
+            }
+            return false;
+        }
         private static void CheckRaidTeleports(UnturnedPlayer player, PlayerQuestFlag flag, RaidTeleport teleport)
         {
             TeleportDestination dest;
@@ -206,27 +228,13 @@ namespace SpeedMann.Unturnov.Controlers
                 TeleportToSpawn(player);
             }
         }
-        private static bool TryTeleportToHideout(UnturnedPlayer player)
-        {
-            Hideout hideout = HideoutControler.getHideout(player.CSteamID);
-            if (hideout == null)
-            {
-                return false;
-            }
-
-            Vector3 point = new Vector3(hideout.originPosition.x, hideout.originPosition.y + 0.5f, hideout.originPosition.z);
-            player.Teleport(point, 0);
-            return true;
-        }
         private static void TeleportToBedOrSpawn(UnturnedPlayer player)
         {
-            if (BarricadeManager.tryGetBed(player.CSteamID, out var point, out var angle))
+            if (!TryTeleportToBed(player))
             {
-                point.y += 0.5f;
-                player.Teleport(point, angle);
-                return;
+                TeleportToSpawn(player);
             }
-            TeleportToSpawn(player);
+            
         }
         private static void TeleportToSpawn(UnturnedPlayer player)
         {
@@ -278,10 +286,11 @@ namespace SpeedMann.Unturnov.Controlers
             { 
                 return false; 
             }
-            player.StartCoroutine(MapCooldown(player, raidTeleport.CooldownMinFlag, raidTeleport.CooldownSecFlag, raidTeleport.CooldownInMin));
+            
+            player.StartCoroutine(MapCooldown(player, raidTeleport.TeleportFlag, raidTeleport.CooldownMinFlag, raidTeleport.CooldownSecFlag, raidTeleport.CooldownInMin));
             return true;
         }
-        private static IEnumerator MapCooldown(Player player, ushort minFlagId, ushort secFlagId, float cooldownInMin)
+        private static IEnumerator MapCooldown(Player player, ushort teleportFlag, ushort minFlagId, ushort secFlagId, float cooldownInMin)
         {
             int cooldown = Mathf.RoundToInt(cooldownInMin * 60);
             for (; cooldown >= 0; cooldown--) 
@@ -292,7 +301,8 @@ namespace SpeedMann.Unturnov.Controlers
                 player.quests.sendSetFlag(minFlagId, minutes);
                 player.quests.sendSetFlag(secFlagId, seconds);
                 yield return new WaitForSeconds(1);
-            }   
+            }
+            player.quests.sendSetFlag(teleportFlag, teleportReady);
         }
     }
 }

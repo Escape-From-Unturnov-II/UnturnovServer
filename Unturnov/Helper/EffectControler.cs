@@ -1,15 +1,11 @@
 ﻿using SDG.NetTransport;
 using SDG.Unturned;
 using Steamworks;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Rocket.Core.Logging;
 using UnityEngine;
 using Rocket.Unturned.Player;
 using Logger = Rocket.Core.Logging.Logger;
+using SpeedMann.Unturnov.Models.Hideout;
+
 
 namespace SpeedMann.Unturnov.Helper
 {
@@ -47,7 +43,25 @@ namespace SpeedMann.Unturnov.Helper
 
             EffectManager.askEffectClearByID(EventBorder_ID, transportConnection);
         }
-
+        internal static void spawnBorders(CSteamID executorID, Hideout hideout)
+        {
+            if (hideout == null)
+            {
+                return;
+            }
+                
+            Vector3[] points = new Vector3[4]
+            {
+                hideout.bounds[0],
+                new Vector3(hideout.bounds[0].x, hideout.bounds[0].y, hideout.bounds[1].z),
+                hideout.bounds[1],
+                new Vector3(hideout.bounds[1].x, hideout.bounds[0].y, hideout.bounds[0].z),
+            };
+            spawnBorder(executorID, points[0], points[1], hideout.bounds[0].y, hideout.bounds[1].y);
+            spawnBorder(executorID, points[1], points[2], hideout.bounds[0].y, hideout.bounds[1].y);
+            spawnBorder(executorID, points[2], points[3], hideout.bounds[0].y, hideout.bounds[1].y);
+            spawnBorder(executorID, points[3], points[0], hideout.bounds[0].y, hideout.bounds[1].y);
+        }
         internal static void spawnBorder(CSteamID executorID, Vector3 pointA, Vector3 pointB, float lowestPoint, float heighestPoint)
         {
             calcBorderValues(pointA, pointB, lowestPoint, heighestPoint, out Vector3 position, out Vector3 rotation, out Vector3 scale);

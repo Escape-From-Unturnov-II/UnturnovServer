@@ -1651,7 +1651,7 @@ namespace SpeedMann.Unturnov
             };
             TeleportConfig = new TeleportConfig(false, 5, 50304,
                 new List<RaidTeleport>{
-                    new RaidTeleport(50305, 
+                    new RaidTeleport(50305, 50306, 50307,
                         new List<TeleportDestination> {
                             new TeleportDestination("FA1"),
                             new TeleportDestination("FA2"),
