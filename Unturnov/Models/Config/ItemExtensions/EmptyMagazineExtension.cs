@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Serialization;
 
 namespace SpeedMann.Unturnov.Models
 {
@@ -13,6 +14,7 @@ namespace SpeedMann.Unturnov.Models
 
         public class LoadedMagazineVariant : ItemExtension
         {
+            [XmlAttribute("RefillAmmoBlueprintIndex")]
             public byte RefillAmmoBlueprintIndex;
         }
     }

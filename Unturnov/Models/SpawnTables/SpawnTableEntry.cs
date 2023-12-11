@@ -9,6 +9,7 @@ namespace SpeedMann.Unturnov.Models
 {
     public class SpawnTableEntry : ItemExtension
     {
+        [XmlAttribute("Weight")]
         public int weight = 0;
         [XmlIgnore]
         public float chance = 0;

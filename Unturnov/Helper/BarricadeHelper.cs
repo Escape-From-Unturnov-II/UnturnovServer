@@ -72,7 +72,7 @@ namespace SpeedMann.Unturnov.Helper
 
             return true;
         }
-        internal static bool trySalvageBarricade(BarricadeDrop drop, Player player = null)
+        internal static bool trySalvageBarricade(BarricadeDrop drop, Player player = null, bool spreadWide = false)
         {
             if (!BarricadeManager.tryGetRegion(drop.model, out var x, out var y, out var plant, out var region))
             {
@@ -90,7 +90,7 @@ namespace SpeedMann.Unturnov.Helper
                 }
                 else
                 {
-                    ItemManager.dropItem(item, drop.model.position, playEffect: false, isDropped: true, wideSpread: true);
+                    ItemManager.dropItem(item, drop.model.position, playEffect: false, isDropped: true, wideSpread: spreadWide);
                 }
             }
             else if (drop.asset.isSalvageable)
@@ -105,7 +105,7 @@ namespace SpeedMann.Unturnov.Helper
                     }
                     else
                     {
-                        ItemManager.dropItem(item, drop.model.position, playEffect: false, isDropped: true, wideSpread: true);
+                        ItemManager.dropItem(item, drop.model.position, playEffect: false, isDropped: true, wideSpread: spreadWide);
                     }
                 }
             }

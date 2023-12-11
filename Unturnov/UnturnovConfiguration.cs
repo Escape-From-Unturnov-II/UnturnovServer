@@ -1862,7 +1862,7 @@ namespace SpeedMann.Unturnov
             {
                 Notification_UI = new Notification_UI(52310, 5230),
                 SpawnedBarricadesPerFrame = 5,
-                HideoutDimensions = new Vector3(11, 5, 8),
+                HideoutDimensions = new Vector3Wrapper(new Vector3(11, 5, 8)),
                 HideoutPositions = new List<Position> 
                 { 
                     new Position(868, 8.5f, -350, 0),
@@ -1873,7 +1873,7 @@ namespace SpeedMann.Unturnov
             PlacementRestrictionConfig = new PlacementRestrictionConfig
             {
                 Debug = true,
-                Offset = 1,
+                Offset = 0.1f,
                 Notification_UI = new Notification_UI(52310, 5230),
                 Restrictions = new List<PlacementRestriction>
                 {
@@ -2050,6 +2050,14 @@ namespace SpeedMann.Unturnov
             addNames(DeathDropConfig.DeathDrops);
             addNames(GunModdingResults);
 
+            foreach (PlacementRestriction restriction in PlacementRestrictionConfig.Restrictions)
+            {
+                addNames(restriction.RestrictedItems);
+            }
+            foreach (FoundationSet foundationSet in PlacementRestrictionConfig.FoundationSets)
+            {
+                addNames(foundationSet.Foundations);
+            }
             foreach (CombineDescription combDesc in AutoCombine)
             {
                 addName(combDesc);

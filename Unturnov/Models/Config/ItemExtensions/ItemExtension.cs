@@ -3,13 +3,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Serialization;
 
 namespace SpeedMann.Unturnov.Models
 {
     public class ItemExtension
     {
-        public string Name;
+        [XmlAttribute("Id")]
         public ushort Id;
+        [XmlAttribute("Name")]
+        public string Name;
 
         public ItemExtension()
         {

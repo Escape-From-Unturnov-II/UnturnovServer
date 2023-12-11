@@ -220,6 +220,7 @@ namespace SpeedMann.Unturnov.Helper
         }
         internal class BarricadeConnections
         {
+            // TODO: add support for capacity
             private static Dictionary<BarricadeDrop, List<BarricadeDrop>> ConnectedBarricades = new Dictionary<BarricadeDrop, List<BarricadeDrop>>();
             private static Dictionary<BarricadeDrop, BarricadeDrop> ReverseConnection = new Dictionary<BarricadeDrop, BarricadeDrop>();
             internal static bool tryAddBarricadeConnection(BarricadeDrop foundation, BarricadeDrop addedBarricade)
