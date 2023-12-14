@@ -21,6 +21,8 @@ namespace SpeedMann.Unturnov.Helper
         private static MethodInfo ProviderBroadcastConnectInfo;
         private static MethodInfo ProviderBroadcastDisconnectInfo;
 
+        private static FieldInfo SendChooseDialogueResponseRequestInfo;
+
         private static FieldInfo PlayerLifeLastTimeDamagedInfo;
         private static FieldInfo PlayerLifeRecentKillerInfo;
         private static FieldInfo PlayerLifeConbatCooldownInfo;
@@ -56,6 +58,17 @@ namespace SpeedMann.Unturnov.Helper
             if (ProviderWriteConnectedMessageInfo != null)
             {
                 ProviderWriteConnectedMessageInfo.Invoke(null, new object[] { writer, aboutPlayer, forPlayer });
+                return true;
+            }
+            return false;
+        }
+
+        public static bool TryGetSendDialogueResponce(out ServerInstanceMethod<Guid, byte> clientInstanceMethod)
+        {
+            clientInstanceMethod = null;
+            if (SendChooseDialogueResponseRequestInfo != null)
+            {
+                clientInstanceMethod = (ServerInstanceMethod<Guid, byte>)SendChooseDialogueResponseRequestInfo.GetValue(null);
                 return true;
             }
             return false;
@@ -217,6 +230,9 @@ namespace SpeedMann.Unturnov.Helper
             ProviderWriteConnectedMessageInfo = type.GetMethod("WriteConnectedMessage", BindingFlags.Static | BindingFlags.NonPublic);
             ProviderBroadcastConnectInfo = type.GetMethod("broadcastEnemyConnected", BindingFlags.Static | BindingFlags.NonPublic);
             ProviderBroadcastDisconnectInfo = type.GetMethod("broadcastEnemyDisconnected", BindingFlags.Static | BindingFlags.NonPublic);
+
+            type = typeof(PlayerQuests);
+            SendChooseDialogueResponseRequestInfo = type.GetField("SendChooseDialogueResponseRequest", BindingFlags.Static | BindingFlags.NonPublic);
 
             type = typeof(ItemJar);
             ItemJarItemInfo = type.GetField("_item", BindingFlags.NonPublic);

@@ -17,7 +17,7 @@ using SpeedMann.Unturnov.Controlers;
 using SpeedMann.Unturnov.Helper;
 using SpeedMann.Unturnov.Models;
 using Logger = Rocket.Core.Logging.Logger;
-
+using System.Collections;
 
 namespace SpeedMann.Unturnov
 {
@@ -483,7 +483,11 @@ namespace SpeedMann.Unturnov
 
         }
         #region HelperFunctions
-       
+        public static IEnumerator ChangeFlagDelayed(Player player, ushort flagId, short value)
+        {
+            yield return new WaitForSeconds(0.2f);
+            player.quests.sendSetFlag(flagId, value);
+        }
         private Dictionary<ushort, CombineDescription> createDictionaryFromAutoCombine(List<CombineDescription> autoCombine)
         {
             Dictionary<ushort, CombineDescription> autoCombineDict = new Dictionary<ushort, CombineDescription>();

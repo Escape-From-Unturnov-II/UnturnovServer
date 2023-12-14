@@ -5,16 +5,19 @@ using SpeedMann.Unturnov.Commands;
 using SpeedMann.Unturnov.Models;
 using SpeedMann.Unturnov.Models.Config;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
+using UnityEngine;
 using Logger = Rocket.Core.Logging.Logger;
 
 namespace SpeedMann.Unturnov.Helper
 {
-    //TODO: test reload persistance
+    //TODO: rework with coroutine and quest (similar to teleports)
     public class ScavRunControler
     {
 
@@ -241,10 +244,7 @@ namespace SpeedMann.Unturnov.Helper
         internal static bool tryStopScavRun(UnturnedPlayer player)
         {
             ushort flag = Unturnov.Conf.ScavRunControlFlag;
-            if (controlFlagCheck(flag))
-            {
-                player.Player.quests.sendSetFlag(flag, scavCooldown);
-            }
+
             ulong steamId = player.CSteamID.m_SteamID;
             if (StoredInventories.TryGetValue(steamId, out StoredInventory storedInv)
                 && StoredStats.TryGetValue(steamId, out PlayerStats stats))
@@ -269,6 +269,11 @@ namespace SpeedMann.Unturnov.Helper
                 if (tryGetTier(player.Player.quests, out ScavKitTier tier))
                 {
                     UnturnedChat.Say(player, Util.Translate("scav_cooldown", ScavCommands.formatTime(tier.Cooldown)), UnityEngine.Color.green);
+                    startScavCooldown(player, tier); 
+                    if (controlFlagCheck(flag))
+                    {
+                        player.Player.quests.sendSetFlag(flag, scavCooldown);
+                    }
                 }
                 return true;
             }
@@ -423,7 +428,33 @@ namespace SpeedMann.Unturnov.Helper
             }
             return true;
         }
+
+        private static IEnumerator ScavCooldown(Player player, QuestAsset questAsset, ushort teleportFlag, ushort minFlagId, ushort secFlagId, float cooldownInMin)
+        {
+            player.quests.sendSetFlag(teleportFlag, scavCooldown);
+            int cooldown = Mathf.RoundToInt(cooldownInMin * 60);
+
+            UpdateCooldown(player, minFlagId, secFlagId, cooldown);
+            if (player.quests.GetQuestStatus(questAsset) == ENPCQuestStatus.NONE)
+            {
+                player.quests.ServerAddQuest(questAsset);
+            }
+
+            for (; cooldown >= 0; cooldown--)
+            {
+                UpdateCooldown(player, minFlagId, secFlagId, cooldown);
+                yield return new WaitForSeconds(1);
+            }
+            player.quests.sendSetFlag(teleportFlag, scavReady);
+        }
+        private static void UpdateCooldown(Player player, ushort minFlagId, ushort secFlagId, int cooldownInSec)
+        {
+            short minutes = (short)(cooldownInSec / 60);
+            short seconds = (short)(cooldownInSec % 60);
+            player.quests.sendSetFlag(minFlagId, minutes);
+            player.quests.sendSetFlag(secFlagId, seconds);
+        }
         #endregion
-        
+
     }
 }

@@ -9,21 +9,24 @@ namespace SpeedMann.Unturnov.Models.Config
     public class RaidTeleport
     {
         public ushort TeleportFlag;
+        public ushort CooldownQuestId;
         public ushort CooldownMinFlag;
         public ushort CooldownSecFlag;
         public float CooldownInMin;
-
+        public TeleportDestination ExtractDestination;
         public List<TeleportDestination> TeleportDestinations;
-
+        
         public RaidTeleport()
         {
 
         }
-        public RaidTeleport(ushort teleportFlag, ushort cooldownMinFlag, ushort cooldownSecFlag, List<TeleportDestination> teleportDestinations)
+        public RaidTeleport(ushort teleportFlag, ushort cooldownQuestId, ushort cooldownMinFlag, ushort cooldownSecFlag, float cooldownInMin, TeleportDestination extractDestination ,List<TeleportDestination> teleportDestinations)
         {
             TeleportFlag = teleportFlag;
-            CooldownInMin = cooldownMinFlag;
+            CooldownQuestId = cooldownQuestId;
             CooldownSecFlag = cooldownSecFlag;
+            CooldownInMin = cooldownInMin;
+            ExtractDestination = extractDestination;
             TeleportDestinations = teleportDestinations;
         }
     }

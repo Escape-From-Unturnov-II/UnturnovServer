@@ -12,16 +12,18 @@ namespace SpeedMann.Unturnov.Models
     {
         [XmlAttribute("Type")]
         public EAssetType type;
+        //TODO: Add Capacity
+        /*
         [XmlAttribute("Capacity")]
         public uint capacity = 1;
+        */
         public PlacementFoundation()
         {
 
         }
-        public PlacementFoundation(ushort id, EAssetType type, uint capacity, string name = "") : base(id, name)
+        public PlacementFoundation(ushort id, EAssetType type, string name = "") : base(id, name)
         {
             this.type = type;
-            this.capacity = capacity;
         }
     }
 }

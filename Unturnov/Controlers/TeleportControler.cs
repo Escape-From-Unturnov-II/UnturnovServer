@@ -75,6 +75,7 @@ namespace SpeedMann.Unturnov.Controlers
         private const short teleportSolo = -2;
         private const short teleportSquad = -3;
         private const short teleportBack = -4;
+        private const short onCooldown = -5;
         internal static void Init(TeleportConfig teleportConfig)
         {
             Conf = teleportConfig;
@@ -121,9 +122,14 @@ namespace SpeedMann.Unturnov.Controlers
             {
                 if (playerLife.player.quests.getFlag(teleportEntry.Key, out short flagValue))
                 {
-                    if (flagValue < 0)
+                    if (flagValue == inRaid)
                     {
-                        TryStartMapCooldown(playerLife.player, teleportEntry.Value);
+                        if (!TryStartMapCooldown(playerLife.player, teleportEntry.Value))
+                        {
+                            playerLife.player.quests.sendSetFlag(teleportEntry.Value.TeleportFlag, teleportReady);
+                            return;
+                        }
+
                         return;
                     }
                 }
@@ -153,7 +159,7 @@ namespace SpeedMann.Unturnov.Controlers
             }
 
             Vector3 point = new Vector3(hideout.originPosition.x, hideout.originPosition.y + 0.5f, hideout.originPosition.z);
-            player.Teleport(point, 0);
+            player.Teleport(point, hideout.originRotationEuler.x);
             return true;
         }
         internal static bool TryTeleportToBed(UnturnedPlayer player)
@@ -180,8 +186,7 @@ namespace SpeedMann.Unturnov.Controlers
                     TeleportSquad(player, dest, flag.id);
                     break;
                 case teleportBack:
-                    TeleportToSpawn(player);
-                    player.Player.quests.sendSetFlag(flag.id, teleportReady);
+                    TeleportPlayer(player, teleport.ExtractDestination, flag.id, false);
                     break;
             }
         }
@@ -198,12 +203,19 @@ namespace SpeedMann.Unturnov.Controlers
                     break;
             }
         }
-        private static void TeleportPlayer(UnturnedPlayer player, TeleportDestination destination, ushort flagId)
+        private static void TeleportPlayer(UnturnedPlayer player, TeleportDestination destination, ushort flagId, bool enterRaid = true)
         {
             destination.findDestination(out Vector3 position, out float rotation);
             
             player.Teleport(position, rotation != 0 ? rotation : MeasurementTool.angleToByte(player.Rotation));
-            player.Player.quests.sendSetFlag(flagId, inRaid);
+            if (!enterRaid)
+            {
+                player.Player.quests.sendSetFlag(flagId, teleportReady);
+            }
+            else
+            {
+                player.Player.quests.sendSetFlag(flagId, inRaid);
+            }
 
             Logger.Log($"{player.DisplayName} was teleported to {destination.NodeName} [{position.x}, {position.y}, {position.z}]");
         }
@@ -282,27 +294,49 @@ namespace SpeedMann.Unturnov.Controlers
         }
         private static bool TryStartMapCooldown(Player player, RaidTeleport raidTeleport)
         {
-            if(raidTeleport.CooldownInMin <= 0 || raidTeleport.CooldownMinFlag == 0 || raidTeleport.CooldownSecFlag == 0)
+            if (raidTeleport.CooldownInMin <= 0)
             { 
                 return false; 
             }
-            
-            player.StartCoroutine(MapCooldown(player, raidTeleport.TeleportFlag, raidTeleport.CooldownMinFlag, raidTeleport.CooldownSecFlag, raidTeleport.CooldownInMin));
+            if(raidTeleport.CooldownMinFlag == 0 || raidTeleport.CooldownSecFlag == 0 || raidTeleport.CooldownQuestId == 0)
+            {
+                Logger.LogError($"Could not start cooldown quest {raidTeleport.CooldownQuestId} for teleport {raidTeleport.TeleportFlag}!");
+                return false;
+            }
+            QuestAsset questAsset = Assets.find(EAssetType.NPC, raidTeleport.CooldownQuestId) as QuestAsset;
+            if (questAsset == null)
+            {
+                Logger.LogError($"Could not find cooldown quest {raidTeleport.CooldownQuestId} for teleport {raidTeleport.TeleportFlag}!");
+                return false;
+            }
+            Logger.LogError($"Started map cooldonw for {raidTeleport.TeleportFlag}, duration {raidTeleport.CooldownInMin}min");
+            player.StartCoroutine(MapCooldown(player, questAsset, raidTeleport.TeleportFlag, raidTeleport.CooldownMinFlag, raidTeleport.CooldownSecFlag, raidTeleport.CooldownInMin));
             return true;
         }
-        private static IEnumerator MapCooldown(Player player, ushort teleportFlag, ushort minFlagId, ushort secFlagId, float cooldownInMin)
+        private static IEnumerator MapCooldown(Player player, QuestAsset questAsset,ushort teleportFlag, ushort minFlagId, ushort secFlagId, float cooldownInMin)
         {
+            player.quests.sendSetFlag(teleportFlag, onCooldown);
             int cooldown = Mathf.RoundToInt(cooldownInMin * 60);
+
+            UpdateCooldown(player, minFlagId, secFlagId, cooldown);
+            if (player.quests.GetQuestStatus(questAsset) == ENPCQuestStatus.NONE)
+            {
+                player.quests.ServerAddQuest(questAsset);
+            }
+
             for (; cooldown >= 0; cooldown--) 
             {
-                short minutes = (short)(cooldown / 60);
-                short seconds = (short)(cooldown % 60);
-
-                player.quests.sendSetFlag(minFlagId, minutes);
-                player.quests.sendSetFlag(secFlagId, seconds);
+                UpdateCooldown(player, minFlagId, secFlagId, cooldown);
                 yield return new WaitForSeconds(1);
             }
             player.quests.sendSetFlag(teleportFlag, teleportReady);
+        }
+        private static void UpdateCooldown(Player player, ushort minFlagId, ushort secFlagId, int cooldownInSec)
+        {
+            short minutes = (short)(cooldownInSec / 60);
+            short seconds = (short)(cooldownInSec % 60);
+            player.quests.sendSetFlag(minFlagId, minutes);
+            player.quests.sendSetFlag(secFlagId, seconds);
         }
     }
 }
