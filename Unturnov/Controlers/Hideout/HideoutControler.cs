@@ -1,4 +1,5 @@
-﻿using Rocket.Unturned.Player;
+﻿using Rocket.Unturned.Chat;
+using Rocket.Unturned.Player;
 using SDG.Unturned;
 using SpeedMann.Unturnov.Helper;
 using SpeedMann.Unturnov.Models;
@@ -71,6 +72,7 @@ namespace SpeedMann.Unturnov.Controlers
             if (playerId == CSteamID.Nil || !claimedHideouts.TryGetValue(playerId, out Hideout hideout) || hideout == null)
             {
                 shouldAllow = false;
+                UnturnedChat.Say(playerId, Util.Translate("no_hideout"), Color.red);
                 Logger.Log($"Hideout of {playerId} not found!");
                 return;
             }
@@ -79,6 +81,7 @@ namespace SpeedMann.Unturnov.Controlers
             if (!hideout.isReady())
             {
                 shouldAllow = false;
+                UnturnedChat.Say(playerId, Util.Translate("hideout_not_ready"), Color.red);
                 Logger.Log($"Hideout of {playerId} not ready!");
                 return;
             }
@@ -88,7 +91,8 @@ namespace SpeedMann.Unturnov.Controlers
                 shouldAllow = false;
                 Vector3 lower = hideout.bounds[0];
                 Vector3 upper = hideout.bounds[1];
-
+                UnturnedChat.Say(playerId, Util.Translate("hideout_out_of_bounds"), Color.red);
+                
                 Logger.Log($"placed at {point}, hideout bounds: lower x: {lower.x} y: {lower.y} z: {lower.z} upper x: {upper.x} y: {upper.y} z: {upper.z}");
                 return;
             }

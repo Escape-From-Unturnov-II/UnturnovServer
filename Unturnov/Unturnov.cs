@@ -44,8 +44,11 @@ namespace SpeedMann.Unturnov
                 { "scav_ready", "Scav run is ready" },
                 { "scav_cooldown", "Scav mode is ready in {0}"},
                 { "raid_ready", "Raid {0} is ready"},
-                { "raid_cooldown", "Raid {0} is blocked for {1}"},
+                { "raid_cooldown", "Raid {0} is on cooldown for {1}"},
                 { "container_item_restricted", "You are not allowed to store this {0} in the secure container!" },
+                { "hideout_out_of_bounds", "You can only build in your hideout!" },
+                { "hideout_not_ready", "Your hideout is not ready yet!" },
+                { "no_hideout", "You do not have a hideout!" },
             };
 
         #region Load

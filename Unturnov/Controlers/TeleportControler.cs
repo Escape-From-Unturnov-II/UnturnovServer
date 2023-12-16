@@ -189,7 +189,7 @@ namespace SpeedMann.Unturnov.Controlers
             switch (flag.value)
             {
                 case teleportReady:
-                    UnturnedChat.Say(player, Util.Translate("scav_ready", teleport.RaidName), Color.green);
+                    UnturnedChat.Say(player, Util.Translate("raid_ready", teleport.RaidName), Color.green);
                     break;
                 case inRaid:
                     break;
