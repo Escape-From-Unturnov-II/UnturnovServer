@@ -10,6 +10,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Security.AccessControl;
 using System.Text;
 using System.Threading.Tasks;
@@ -34,12 +35,24 @@ namespace SpeedMann.Unturnov.Controlers
         {
             lastDamagedZombie.Clear();
             lastDamagedAnimal.Clear();
+            foreach (var playerCooldownEntry in activeCooldownDict)
+            {
+                Player player = PlayerTool.getPlayer(playerCooldownEntry.Key);
+                foreach (var cooldownEntry in playerCooldownEntry.Value)
+                {
+                   if(cooldownEntry.Value != null)
+                   {
+                        player.StopCoroutine(cooldownEntry.Value);
+                   }
+                }
+            }
             activeCooldownDict.Clear();
         }
         internal static void OnPlayerDisconected(UnturnedPlayer player)
         {
             lastDamagedAnimal.Remove(player.CSteamID);
             lastDamagedZombie.Remove(player.CSteamID);
+            activeCooldownDict.Remove(player.CSteamID);
         }
         internal static void OnPlayerDeath(UnturnedPlayer player, EDeathCause cause, ELimb limb, CSteamID murderer)
         {
@@ -158,15 +171,7 @@ namespace SpeedMann.Unturnov.Controlers
         public static bool TryStartQuestBasedCooldown(Player player, QuestCooldown questCooldown, float cooldownInMin, ushort controlFlag, short startValue, short stopValue, bool restore = false)
         {
             CSteamID steamId = player.channel.owner.playerID.steamID;
-            //TODO: handle active cooldowns
-            /*
-            if(activeCooldownDict.TryGetValue(steamId, out Dictionary<ushort, Coroutine> activeCooldowns) && activeCooldowns.TryGetValue(controlFlag, out Coroutine coroutine) && coroutine != null)
-            {
-                player.StopCoroutine(coroutine);
-            }
-            */
 
-            float cooldown;
             if (questCooldown == null || !questCooldown.IsValid())
             {
                 Logger.LogError($"Could not start cooldown for flag {controlFlag}!");
@@ -180,61 +185,94 @@ namespace SpeedMann.Unturnov.Controlers
                 player.quests.sendSetFlag(controlFlag, stopValue);
                 return false;
             }
+
             short minValue = 0;
             short secValue = 0;
-            if (!restore)
-            {
-                cooldown = cooldownInMin;
-            }
-            else
+            float cooldown = cooldownInMin;
+
+            if (restore)
             {
                 player.quests.getFlag(questCooldown.MinFlag, out minValue);
                 player.quests.getFlag(questCooldown.SecFlag, out secValue);
 
                 cooldown = minValue + (float)secValue / 60;
             }
+
             if (cooldown <= 0)
             {
                 if (restore)
                 {
-                    Logger.Log($"Reset map cooldown for {controlFlag} min {minValue}, sec {secValue} for {steamId}");
+                    Logger.Log($"Reset cooldown for {controlFlag} min {minValue}, sec {secValue} for {steamId}");
                     SetCooldown(player, questCooldown.MinFlag, questCooldown.SecFlag, 0);
                     player.quests.sendSetFlag(controlFlag, stopValue);
+                    return true;
                 }
                 return false;
             }
 
 
             Logger.Log($"Started cooldown for {controlFlag}, duration {cooldownInMin}min for {steamId}, restore {restore}");
-            player.StartCoroutine(Cooldown(player, questAsset, controlFlag, questCooldown.MinFlag, questCooldown.SecFlag, cooldown, startValue, stopValue));
+
+            Coroutine cooldownCoroutine = player.StartCoroutine(CooldownRoutine(player, questAsset, controlFlag, questCooldown.MinFlag, questCooldown.SecFlag, cooldown, startValue, stopValue));
+            AddOrReplaceCooldown(player, controlFlag, cooldownCoroutine);
             return true;
         }
-        private static IEnumerator Cooldown(Player player, QuestAsset questAsset, ushort teleportFlag, ushort minFlagId, ushort secFlagId, float cooldownInMin, short startValue, short stopValue)
+        private static IEnumerator CooldownRoutine(Player player, QuestAsset questAsset, ushort controlFlag, ushort minFlagId, ushort secFlagId, float cooldownInMin, short startValue, short stopValue)
         {
-            player.quests.sendSetFlag(teleportFlag, startValue);
-            int cooldown = Mathf.RoundToInt(cooldownInMin * 60);
-
+            player.quests.sendSetFlag(controlFlag, startValue);
+            short cooldown = (short)Mathf.RoundToInt(cooldownInMin * 60);
             SetCooldown(player, minFlagId, secFlagId, cooldown);
             if (player.quests.GetQuestStatus(questAsset) == ENPCQuestStatus.NONE)
             {
                 player.quests.ServerAddQuest(questAsset);
             }
-            //TODO rework cooldown to use flag values in a while instead of fixed values
-            for (; cooldown >= 0; cooldown--)
+            short minutes = (short)(cooldown / 60);
+            short seconds = (short)(cooldown % 60);
+            while (cooldown >= 0)
             {
-                SetCooldown(player, minFlagId, secFlagId, cooldown);
-                yield return new WaitForSeconds(1);
+                yield return new WaitForSecondsRealtime(1);
+                seconds--;
+                if(seconds < 0)
+                {
+                    minutes--;
+                    if (minutes < 0)
+                    {
+                        break;
+                    }
+                    player.quests.sendSetFlag(minFlagId, minutes);
+                    seconds = 60;
+                }
+                player.quests.sendSetFlag(secFlagId, seconds);
             }
-            player.quests.sendSetFlag(teleportFlag, stopValue);
+
+            player.quests.sendSetFlag(controlFlag, stopValue);
             player.quests.ServerRemoveQuest(questAsset, true);
+            if (activeCooldownDict.TryGetValue(player.channel.owner.playerID.steamID, out Dictionary<ushort, Coroutine> activeCooldowns))
+            {
+                activeCooldowns.Remove(controlFlag);
+            }
         }
         
-        private static void SetCooldown(Player player, ushort minFlagId, ushort secFlagId, int cooldownInSec)
+        private static void SetCooldown(Player player, ushort minFlagId, ushort secFlagId, short cooldownInSec)
         {
             short minutes = (short)(cooldownInSec / 60);
             short seconds = (short)(cooldownInSec % 60);
             player.quests.sendSetFlag(minFlagId, minutes);
             player.quests.sendSetFlag(secFlagId, seconds);
+        }
+        private static void AddOrReplaceCooldown(Player player, ushort controlFlag, Coroutine newCoroutine)
+        {
+            CSteamID steamId = player.channel.owner.playerID.steamID;
+            Dictionary<ushort, Coroutine> activeCooldowns;
+            if (!activeCooldownDict.TryGetValue(steamId, out activeCooldowns))
+            {
+                activeCooldowns = new Dictionary<ushort, Coroutine>();
+            }
+            if (activeCooldowns.TryGetValue(controlFlag, out Coroutine coroutine) && coroutine != null)
+            {
+                player.StopCoroutine(coroutine);
+            }
+            activeCooldowns[controlFlag] = newCoroutine;
         }
         #endregion
     }

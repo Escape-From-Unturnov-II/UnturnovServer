@@ -143,7 +143,6 @@ namespace SpeedMann.Unturnov.Controlers
         internal static void OnFlagChanged(PlayerQuests quests, PlayerQuestFlag flag)
         {
             UnturnedPlayer player = UnturnedPlayer.FromPlayer(quests.player);
-            Logger.Log($"{player.DisplayName} flag {flag.id} changed to {flag.value}");
             if (flag.id == Conf.HideoutTeleportFlag)
             {
                 CheckHideoutTeleports(player, flag.value);
@@ -190,6 +189,8 @@ namespace SpeedMann.Unturnov.Controlers
             {
                 case teleportReady:
                     UnturnedChat.Say(player, Util.Translate("scav_ready", teleport.RaidName), Color.green);
+                    break;
+                case inRaid:
                     break;
                 case teleportSolo:
                     EnterRaid(player, teleport, false);

@@ -62,14 +62,13 @@ namespace SpeedMann.Unturnov.Commands
                 switch (command[0].ToLower())
                 {
                     case "state":
-                        ushort flag = Unturnov.Conf.ScavConfig.ScavRunControlFlag;
                         if (ScavRunControler.tryGetStateName(player, out string state))
                         {
                             UnturnedChat.Say(caller, $"ScavRun state: {state}", UnityEngine.Color.green);
                         }
                         break;
                     case "start":
-                        if (isInSafezone(player))
+                        if (isInSafezone(player) || player.IsAdmin)
                         {
                             if (!caller.HasPermission("scav.start"))
                             {
@@ -84,7 +83,7 @@ namespace SpeedMann.Unturnov.Commands
                         }
                         break;
                     case "stop":
-                        if (isInSafezone(player))
+                        if (isInSafezone(player) || player.IsAdmin)
                         {
                             if (!ScavRunControler.tryStopScavRun(player))
                             {
