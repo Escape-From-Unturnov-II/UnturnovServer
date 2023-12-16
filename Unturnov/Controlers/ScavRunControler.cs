@@ -165,27 +165,12 @@ namespace SpeedMann.Unturnov.Helper
                 }
             }
         }
-        private static bool TryRestoreScavCooldown(UnturnedPlayer player)
-        {
-            ushort flag = Conf.ScavRunControlFlag;
-            if (!controlFlagCheck(flag))
-            {
-                return false;
-            }
-            return QuestExtensionControler.TryStartQuestBasedCooldown(player.Player,
-                Conf.QuestCooldown,
-                0,
-                flag,
-                scavCooldown,
-                scavReady, 
-                true);
-        }
         internal static bool tryStartScavRun(UnturnedPlayer player)
         {
             ushort flag = Conf.ScavRunControlFlag;
             if (controlFlagCheck(flag))
             {
-                player.Player.quests.sendSetFlag(flag, scavActive);
+                Unturnov.ChangeFlagDelayed(player.Player, flag, scavActive);
             }
             StoredInventory inventory = new StoredInventory();
 
@@ -241,7 +226,7 @@ namespace SpeedMann.Unturnov.Helper
                     TryStartScavCooldown(player, tier); 
                     if (controlFlagCheck(flag))
                     {
-                        player.Player.quests.sendSetFlag(flag, scavCooldown);
+                        Unturnov.ChangeFlagDelayed(player.Player, flag, scavCooldown);
                     }
                 }
                 return true;
@@ -397,6 +382,17 @@ namespace SpeedMann.Unturnov.Helper
             }
             return true;
         }
+        private static bool TryRestoreScavCooldown(UnturnedPlayer player)
+        {
+            ushort flag = Conf.ScavRunControlFlag;
+            if (!controlFlagCheck(flag))
+            {
+                return false;
+            }
+
+            player.Player.StartCoroutine(TryStartScavCooldownDelayed(player, 0, flag, true));
+            return true;
+        }
         private static bool TryStartScavCooldown(UnturnedPlayer player, ScavKitTier tier)
         {
             ushort flag = Conf.ScavRunControlFlag;
@@ -404,12 +400,19 @@ namespace SpeedMann.Unturnov.Helper
             {
                 return false;
             }
-            return QuestExtensionControler.TryStartQuestBasedCooldown(player.Player,
+            player.Player.StartCoroutine(TryStartScavCooldownDelayed(player, tier.CooldownInMin, flag));
+            return true;
+        }
+        private static IEnumerator TryStartScavCooldownDelayed(UnturnedPlayer player, float cooldown, ushort flag, bool restore = false)
+        {
+            yield return null;
+            QuestExtensionControler.TryStartQuestBasedCooldown(player.Player,
                 Conf.QuestCooldown,
-                tier.CooldownInMin,
+                cooldown,
                 flag,
                 scavCooldown,
-                scavReady);
+                scavReady,
+                restore);
         }
         #endregion
 

@@ -22,7 +22,7 @@ namespace SpeedMann.Unturnov.Models.Config
         }
         public RaidTeleport(string raidName, ushort teleportFlag, QuestCooldown questCooldown, float cooldownInMin, TeleportDestination extractDestination ,List<TeleportDestination> teleportDestinations)
         {
-            string RaidName = raidName;
+            RaidName = raidName;
             TeleportFlag = teleportFlag;
             if (questCooldown != null)
             {

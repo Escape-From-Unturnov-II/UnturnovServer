@@ -6,6 +6,7 @@ using SpeedMann.Unturnov.Commands;
 using SpeedMann.Unturnov.Models;
 using SpeedMann.Unturnov.Models.Config;
 using SpeedMann.Unturnov.Models.Hideout;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Logger = Rocket.Core.Logging.Logger;
@@ -320,13 +321,18 @@ namespace SpeedMann.Unturnov.Controlers
             }
             return teleportDict;
         }
-        private static bool TryStartMapCooldown(Player player, RaidTeleport raidTeleport, bool restore = false)
+        private static void TryStartMapCooldown(Player player, RaidTeleport raidTeleport, bool restore = false)
         {
-            return QuestExtensionControler.TryStartQuestBasedCooldown(player, 
-                raidTeleport.QuestCooldown, 
+            player.StartCoroutine(TryStartMapCooldownDelayed(player, raidTeleport, restore));
+        }
+        private static IEnumerator TryStartMapCooldownDelayed(Player player, RaidTeleport raidTeleport, bool restore = false)
+        {
+            yield return null;
+            QuestExtensionControler.TryStartQuestBasedCooldown(player,
+                raidTeleport.QuestCooldown,
                 raidTeleport.CooldownInMin,
                 raidTeleport.TeleportFlag,
-                onCooldown, 
+                onCooldown,
                 teleportReady,
                 restore);
         }

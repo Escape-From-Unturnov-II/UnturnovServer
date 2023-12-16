@@ -486,7 +486,6 @@ namespace SpeedMann.Unturnov
         #region HelperFunctions
         public static void ChangeFlagDelayed(Player player, ushort flagId, short value)
         {
-            Logger.Log($"started change flag delayed {flagId} value {value}");
             player.StartCoroutine(ChangeFlagDelayedRoutine(player, flagId, value));
         }
         private static IEnumerator ChangeFlagDelayedRoutine(Player player, ushort flagId, short value)
