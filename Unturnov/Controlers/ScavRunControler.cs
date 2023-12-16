@@ -295,26 +295,27 @@ namespace SpeedMann.Unturnov.Helper
         }
         internal static void giveScavItems(UnturnedPlayer player, KitTierEntry entry, SpawnTableExtension table)
         {
-            if (table.Items.Count > 0)
+            if (table.Items.Count <= 0)
             {
-                int count = entry.CountMax > entry.CountMin ? entry.CountMax : entry.CountMin;
+                return;
+            }
+            int count = entry.CountMax > entry.CountMin ? entry.CountMax : entry.CountMin;
 
-                for (int i = 0; i < count; i++)
+            for (int i = 0; i < count; i++)
+            {
+                if (i >= entry.CountMin && UnityEngine.Random.value < entry.NoItemChance)
                 {
-                    if (i >= entry.CountMin && UnityEngine.Random.value < entry.NoItemChance)
-                    {
-                        continue;
-                    }
-                    ushort itemId = table.getRandomItem();
-                    Item item = new Item(itemId, true);
-                    if (item == null || itemId == 0)
-                    {
-                        Logger.LogError($"Error in Scav Spawn table, invalid ItemId: {itemId}");
-                        continue;
-                    }
-                    
-                    player.Inventory.forceAddItem(item, true);
+                    continue;
                 }
+                ushort itemId = table.getRandomItem();
+                Item item = new Item(itemId, true);
+                if (item == null || itemId == 0)
+                {
+                    Logger.LogError($"Error in Scav Spawn table, invalid ItemId: {itemId}");
+                    continue;
+                }
+
+                player.Inventory.forceAddItem(item, true);
             }
         }
 
