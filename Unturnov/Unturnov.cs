@@ -12,7 +12,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using SpeedMann.Unturnov.Classes;
 using SpeedMann.Unturnov.Controlers;
 using SpeedMann.Unturnov.Helper;
 using SpeedMann.Unturnov.Models;
@@ -44,6 +43,8 @@ namespace SpeedMann.Unturnov
             {
                 { "scav_ready", "Scav run is ready" },
                 { "scav_cooldown", "Scav mode is ready in {0}"},
+                { "raid_ready", "Raid {0} is ready"},
+                { "raid_cooldown", "Raid {0} is blocked for {1}"},
                 { "container_item_restricted", "You are not allowed to store this {0} in the secure container!" },
             };
 
@@ -60,7 +61,7 @@ namespace SpeedMann.Unturnov
 
             UnturnedPrivateFields.Init();
             UnturnedPatches.Init();
-            ScavRunControler.Init();
+            ScavRunControler.Init(Conf.ScavConfig);
             TeleportControler.Init(Conf.TeleportConfig);
             SecureCaseControler.Init(Conf.SecureCaseConfig);
             PlacementRestrictionControler.Init(Conf.PlacementRestrictionConfig);
@@ -483,9 +484,15 @@ namespace SpeedMann.Unturnov
 
         }
         #region HelperFunctions
-        public static IEnumerator ChangeFlagDelayed(Player player, ushort flagId, short value)
+        public static void ChangeFlagDelayed(Player player, ushort flagId, short value)
         {
-            yield return new WaitForSeconds(0.2f);
+            Logger.Log($"started change flag delayed {flagId} value {value}");
+            player.StartCoroutine(ChangeFlagDelayedRoutine(player, flagId, value));
+        }
+        private static IEnumerator ChangeFlagDelayedRoutine(Player player, ushort flagId, short value)
+        {
+            yield return null;
+            Logger.Log($"change flag delayed {flagId} value {value}");
             player.quests.sendSetFlag(flagId, value);
         }
         private Dictionary<ushort, CombineDescription> createDictionaryFromAutoCombine(List<CombineDescription> autoCombine)

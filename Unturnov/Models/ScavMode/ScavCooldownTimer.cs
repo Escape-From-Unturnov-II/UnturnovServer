@@ -19,7 +19,7 @@ namespace SpeedMann.Unturnov.Models
         public ScavCooldownTimer(ScavKitTier tier, PlayerQuests quests)
         {
             Quests = quests;
-            internalTimer = new Timer(tier.Cooldown > 0 ? tier.Cooldown * 1000 : 1000);
+            internalTimer = new Timer(tier.CooldownInMin > 0 ? tier.CooldownInMin * 1000 : 1000);
             internalTimer.Elapsed += timerElapsed;
             internalTimer.AutoReset = false;
         }

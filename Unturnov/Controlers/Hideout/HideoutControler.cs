@@ -244,6 +244,14 @@ namespace SpeedMann.Unturnov.Controlers
             
             JsonManager.tryWriteToSaves(PlayerTool.getPlayer(playerId), SaveFileName, removedBarricades);
         }
+        internal static float GetHideoutSpawnRotation()
+        {
+            if (Conf == null)
+            {
+                return 0;
+            }
+            return Conf.HideoutSpawnRotation;
+        }
         private static void freeInner(Hideout hideout)
         {
             OnHideoutClearUpdate?.Invoke(hideout.owner, true);

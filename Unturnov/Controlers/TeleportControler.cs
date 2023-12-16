@@ -1,11 +1,11 @@
-﻿using Rocket.Unturned.Player;
-using SDG.Framework.Devkit;
+﻿using Google.Protobuf.WellKnownTypes;
+using Rocket.Unturned.Chat;
+using Rocket.Unturned.Player;
 using SDG.Unturned;
+using SpeedMann.Unturnov.Commands;
 using SpeedMann.Unturnov.Models;
 using SpeedMann.Unturnov.Models.Config;
 using SpeedMann.Unturnov.Models.Hideout;
-using System;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Logger = Rocket.Core.Logging.Logger;
@@ -80,6 +80,12 @@ namespace SpeedMann.Unturnov.Controlers
         {
             Conf = teleportConfig;
             teleportConfigDict = createDictionaryOfTeleportConfigs(teleportConfig.RaidTeleports);
+
+            foreach (SteamPlayer player in Provider.clients)
+            {
+                UnturnedPlayer uPlayer = UnturnedPlayer.FromPlayer(player.player);
+                OnPlayerConnected(uPlayer);
+            }
         }
         internal static void Cleanup()
         {
@@ -87,34 +93,36 @@ namespace SpeedMann.Unturnov.Controlers
         }
         internal static void OnPlayerConnected(UnturnedPlayer player)
         {
-            bool inRaid = false;
-            foreach (ushort teleportFlagIds in teleportConfigDict.Keys)
+            bool isInRaid = false;
+            foreach (var teleportFlagEntries in teleportConfigDict)
             {
-                if (player.Player.quests.getFlag(teleportFlagIds, out short flagValue) && flagValue < 0)
+                if (player.Player.quests.getFlag(teleportFlagEntries.Key, out short flagValue))
                 {
-                    inRaid = true;
-                    break;
+                    switch (flagValue)
+                    {
+                        case teleportReady:
+                            break;
+                        case inRaid:
+                            isInRaid = true;
+                            break;
+                        case onCooldown:
+                            TryStartMapCooldown(player.Player, teleportFlagEntries.Value, true);
+                            break;
+                        default:
+                            Logger.LogError($"Player {player.CSteamID} joined with invalid teleport flag {teleportFlagEntries.Key} value {flagValue}");
+                            player.Player.quests.sendSetFlag(teleportFlagEntries.Key, teleportReady);
+                            break;
+                    }
                 }
             }
 
-            if (!inRaid)
+            if (!isInRaid)
             {
                 TeleportToHideoutOrSpawn(player);
             }
         }
         internal static void OnPreDisconnectSave(UnturnedPlayer player)
         {
-            foreach (ushort teleportFlagIds in teleportConfigDict.Keys)
-            {
-                if (player.Player.quests.getFlag(teleportFlagIds, out short flagValue))
-                {
-                    if (flagValue != 0)
-                    {
-
-                    }
-                }
-            }
-
         }
         internal static void OnPlayerRevived(PlayerLife playerLife)
         {
@@ -124,12 +132,9 @@ namespace SpeedMann.Unturnov.Controlers
                 {
                     if (flagValue == inRaid)
                     {
-                        if (!TryStartMapCooldown(playerLife.player, teleportEntry.Value))
-                        {
-                            playerLife.player.quests.sendSetFlag(teleportEntry.Value.TeleportFlag, teleportReady);
-                            return;
-                        }
-
+                        UnturnedPlayer player = UnturnedPlayer.FromPlayer(playerLife.player);
+                        UnturnedChat.Say(player, Util.Translate("raid_cooldown", teleportEntry.Value.RaidName, ScavCommands.formatTime(teleportEntry.Value.CooldownInMin * 60)), Color.green);
+                        TryStartMapCooldown(playerLife.player, teleportEntry.Value);
                         return;
                     }
                 }
@@ -138,13 +143,14 @@ namespace SpeedMann.Unturnov.Controlers
         internal static void OnFlagChanged(PlayerQuests quests, PlayerQuestFlag flag)
         {
             UnturnedPlayer player = UnturnedPlayer.FromPlayer(quests.player);
-            if(flag.id == Conf.HideoutTeleportFlag)
+            Logger.Log($"{player.DisplayName} flag {flag.id} changed to {flag.value}");
+            if (flag.id == Conf.HideoutTeleportFlag)
             {
                 CheckHideoutTeleports(player, flag.value);
                 return;
             }
 
-            if(teleportConfigDict.TryGetValue(flag.id, out RaidTeleport teleport))
+            if (teleportConfigDict.TryGetValue(flag.id, out RaidTeleport teleport))
             {
                 CheckRaidTeleports(player, flag, teleport);
                 return;
@@ -159,7 +165,9 @@ namespace SpeedMann.Unturnov.Controlers
             }
 
             Vector3 point = new Vector3(hideout.originPosition.x, hideout.originPosition.y + 0.5f, hideout.originPosition.z);
-            player.Teleport(point, hideout.originRotationEuler.x);
+            float rotation = hideout.originRotationEuler.x + HideoutControler.GetHideoutSpawnRotation();
+            player.Teleport(point, rotation);
+            Logger.Log($"{player.DisplayName} was teleported to his hideout at ({point})");
             return true;
         }
         internal static bool TryTeleportToBed(UnturnedPlayer player)
@@ -168,25 +176,32 @@ namespace SpeedMann.Unturnov.Controlers
             {
                 point.y += 0.5f;
                 player.Teleport(point, angle);
+
                 return true;
             }
             return false;
         }
+
+
         private static void CheckRaidTeleports(UnturnedPlayer player, PlayerQuestFlag flag, RaidTeleport teleport)
         {
-            TeleportDestination dest;
+            
             switch (flag.value)
             {
+                case teleportReady:
+                    UnturnedChat.Say(player, Util.Translate("scav_ready", teleport.RaidName), Color.green);
+                    break;
                 case teleportSolo:
-                    dest = getRandomTeleportLocation(teleport);
-                    TeleportPlayer(player, dest, flag.id);
+                    EnterRaid(player, teleport, false);
                     break;
                 case teleportSquad:
-                    dest = getRandomTeleportLocation(teleport);
-                    TeleportSquad(player, dest, flag.id);
+                    EnterRaid(player, teleport, true);
                     break;
                 case teleportBack:
                     TeleportPlayer(player, teleport.ExtractDestination, flag.id, false);
+                    break;
+                default:
+                    Logger.LogError($"Player {player.CSteamID} got invalid teleport flag {flag.id} value {flag.value}");
                     break;
             }
         }
@@ -199,22 +214,34 @@ namespace SpeedMann.Unturnov.Controlers
                     {
                         Logger.LogWarning($"Could not teleport {player.CSteamID} to hideout!");
                     }
-                    player.Player.quests.sendSetFlag(Conf.HideoutTeleportFlag, teleportReady);
+                    Unturnov.ChangeFlagDelayed(player.Player, Conf.HideoutTeleportFlag, teleportReady);
                     break;
+            }
+        }
+        private static void EnterRaid(UnturnedPlayer player, RaidTeleport teleport, bool withSquad)
+        {
+            TeleportDestination dest = getRandomTeleportLocation(teleport);
+            if (withSquad)
+            {
+                TeleportSquad(player, dest, teleport.TeleportFlag);
+            }
+            else
+            {
+                TeleportPlayer(player, dest, teleport.TeleportFlag);
             }
         }
         private static void TeleportPlayer(UnturnedPlayer player, TeleportDestination destination, ushort flagId, bool enterRaid = true)
         {
             destination.findDestination(out Vector3 position, out float rotation);
-            
+
             player.Teleport(position, rotation != 0 ? rotation : MeasurementTool.angleToByte(player.Rotation));
             if (!enterRaid)
             {
-                player.Player.quests.sendSetFlag(flagId, teleportReady);
+                Unturnov.ChangeFlagDelayed(player.Player, flagId, teleportReady);
             }
             else
             {
-                player.Player.quests.sendSetFlag(flagId, inRaid);
+                Unturnov.ChangeFlagDelayed(player.Player, flagId, inRaid);
             }
 
             Logger.Log($"{player.DisplayName} was teleported to {destination.NodeName} [{position.x}, {position.y}, {position.z}]");
@@ -292,51 +319,15 @@ namespace SpeedMann.Unturnov.Controlers
             }
             return teleportDict;
         }
-        private static bool TryStartMapCooldown(Player player, RaidTeleport raidTeleport)
+        private static bool TryStartMapCooldown(Player player, RaidTeleport raidTeleport, bool restore = false)
         {
-            if (raidTeleport.CooldownInMin <= 0)
-            { 
-                return false; 
-            }
-            if(raidTeleport.CooldownMinFlag == 0 || raidTeleport.CooldownSecFlag == 0 || raidTeleport.CooldownQuestId == 0)
-            {
-                Logger.LogError($"Could not start cooldown quest {raidTeleport.CooldownQuestId} for teleport {raidTeleport.TeleportFlag}!");
-                return false;
-            }
-            QuestAsset questAsset = Assets.find(EAssetType.NPC, raidTeleport.CooldownQuestId) as QuestAsset;
-            if (questAsset == null)
-            {
-                Logger.LogError($"Could not find cooldown quest {raidTeleport.CooldownQuestId} for teleport {raidTeleport.TeleportFlag}!");
-                return false;
-            }
-            Logger.LogError($"Started map cooldonw for {raidTeleport.TeleportFlag}, duration {raidTeleport.CooldownInMin}min");
-            player.StartCoroutine(MapCooldown(player, questAsset, raidTeleport.TeleportFlag, raidTeleport.CooldownMinFlag, raidTeleport.CooldownSecFlag, raidTeleport.CooldownInMin));
-            return true;
-        }
-        private static IEnumerator MapCooldown(Player player, QuestAsset questAsset,ushort teleportFlag, ushort minFlagId, ushort secFlagId, float cooldownInMin)
-        {
-            player.quests.sendSetFlag(teleportFlag, onCooldown);
-            int cooldown = Mathf.RoundToInt(cooldownInMin * 60);
-
-            UpdateCooldown(player, minFlagId, secFlagId, cooldown);
-            if (player.quests.GetQuestStatus(questAsset) == ENPCQuestStatus.NONE)
-            {
-                player.quests.ServerAddQuest(questAsset);
-            }
-
-            for (; cooldown >= 0; cooldown--) 
-            {
-                UpdateCooldown(player, minFlagId, secFlagId, cooldown);
-                yield return new WaitForSeconds(1);
-            }
-            player.quests.sendSetFlag(teleportFlag, teleportReady);
-        }
-        private static void UpdateCooldown(Player player, ushort minFlagId, ushort secFlagId, int cooldownInSec)
-        {
-            short minutes = (short)(cooldownInSec / 60);
-            short seconds = (short)(cooldownInSec % 60);
-            player.quests.sendSetFlag(minFlagId, minutes);
-            player.quests.sendSetFlag(secFlagId, seconds);
+            return QuestExtensionControler.TryStartQuestBasedCooldown(player, 
+                raidTeleport.QuestCooldown, 
+                raidTeleport.CooldownInMin,
+                raidTeleport.TeleportFlag,
+                onCooldown, 
+                teleportReady,
+                restore);
         }
     }
 }

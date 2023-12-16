@@ -11,7 +11,7 @@ namespace SpeedMann.Unturnov.Models
     public class ScavKitTier
     {
         public short RequiredFalgValue;
-        public uint Cooldown;
+        public float CooldownInMin;
         public byte HandWidth;
         public byte HandHeight;
 

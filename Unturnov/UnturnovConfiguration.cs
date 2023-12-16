@@ -3,6 +3,7 @@ using SDG.Unturned;
 using SpeedMann.Unturnov.Models;
 using SpeedMann.Unturnov.Models.Config;
 using SpeedMann.Unturnov.Models.Config.ItemExtensions;
+using SpeedMann.Unturnov.Models.Config.QuestExtensions;
 using System;
 using System.Collections.Generic;
 using System.Xml.Linq;
@@ -16,20 +17,18 @@ namespace SpeedMann.Unturnov
         public bool Debug;
         public string DatabaseConnectionString;
         public ushort PluginCraftingFlag = 40404;
-        public ushort ScavKitTierFlag;
-        public ushort ScavRunControlFlag;
 
         public uint BedTimer;
 
         public TeleportConfig TeleportConfig = new TeleportConfig();
+        public ScavConfig ScavConfig = new ScavConfig();
         public List<EmptyMagazineExtension> UnloadMagBlueprints;
         public List<AirdropSignal> AirdropSignals;
         
         public List<CombineDescription> AutoCombine;
         [XmlArrayItem(ElementName = "Item")]
         public List<ItemExtension> GunModdingResults;
-        public List<ScavKitTier> ScavKitTiers;
-        public ScavSpawnTableSet ScavSpawnTables;
+        
 
         public PlayerKitConfig NewPlayerKitConfig;
         public PlacementRestrictionConfig PlacementRestrictionConfig;
@@ -43,8 +42,7 @@ namespace SpeedMann.Unturnov
             Debug = true;
             DatabaseConnectionString = "SERVER=127.0.0.1;DATABASE=unturnov;UID=root;PASSWORD=;PORT=3306;charset=utf8";
             
-            ScavKitTierFlag = 0;
-            ScavRunControlFlag = 50303;
+            
 
             BedTimer = 1;
             DeathDropConfig = new DeathAdditionConfig()
@@ -1651,8 +1649,10 @@ namespace SpeedMann.Unturnov
             };
             TeleportConfig = new TeleportConfig(false, 5, 50304,
                 new List<RaidTeleport>{
-                    new RaidTeleport(50305, 
-                        50005, 50306, 50307, 1,
+                    new RaidTeleport( "DefaultMap",
+                        50305, 
+                        new QuestCooldown(50005, 50306, 50307),
+                        1,
                         new TeleportDestination("FA1"),
                         new List<TeleportDestination> {
                             new TeleportDestination("FA1"),
@@ -1664,11 +1664,13 @@ namespace SpeedMann.Unturnov
                             new TeleportDestination("FA7"),
                         })
                     });
-            ScavKitTiers = new List<ScavKitTier>
+            ScavConfig = new ScavConfig(50303, 0, 
+                new QuestCooldown(50008, 50308, 50309),
+                new List<ScavKitTier>
             {
                 new ScavKitTier
                 {
-                    Cooldown = 300,
+                    CooldownInMin = 1,
 
                     GlassesConfig = new KitTierEntry
                     {
@@ -1753,8 +1755,8 @@ namespace SpeedMann.Unturnov
                         NoItemChance = 0,
                     },
                 }
-            };
-            ScavSpawnTables = new ScavSpawnTableSet
+            },
+                new ScavSpawnTableSet
             {
                 GlassesTable = new SpawnTableExtension(),
                 MaskTable = new SpawnTableExtension(),
@@ -1858,11 +1860,13 @@ namespace SpeedMann.Unturnov
                     }
                 },
                 SupplyTable = new SpawnTableExtension(),
-            };
+            });
+            
 
             HideoutConfig = new HideoutConfig
             {
                 Notification_UI = new Notification_UI(52310, 5230),
+                HideoutSpawnRotation = 0,
                 SpawnedBarricadesPerFrame = 5,
                 HideoutDimensions = new Vector3Wrapper(new Vector3(11, 5, 8)),
                 HideoutPositions = new List<Position> 

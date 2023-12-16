@@ -1,7 +1,9 @@
-﻿using Rocket.Unturned.Chat;
+﻿using Google.Protobuf.WellKnownTypes;
+using Rocket.Unturned.Chat;
 using Rocket.Unturned.Player;
 using SDG.Unturned;
 using SpeedMann.Unturnov.Commands;
+using SpeedMann.Unturnov.Controlers;
 using SpeedMann.Unturnov.Models;
 using SpeedMann.Unturnov.Models.Config;
 using System;
@@ -23,7 +25,8 @@ namespace SpeedMann.Unturnov.Helper
 
         static Dictionary<ulong, StoredInventory> StoredInventories = new Dictionary<ulong, StoredInventory>();
         static Dictionary<ulong, PlayerStats> StoredStats = new Dictionary<ulong, PlayerStats>();
-        private static Dictionary<ulong, ScavCooldownTimer> ScavCooldownTimers = new Dictionary<ulong, ScavCooldownTimer>();
+
+        private static ScavConfig Conf;
         private static bool isInit = false;
 
         public const string InventoryTableName = "ScavPlayerInventory";
@@ -35,11 +38,12 @@ namespace SpeedMann.Unturnov.Helper
         private const short scavRequestEnd = 3;
         private const short scavCooldown = 4;
 
-        public static void Init()
+        public static void Init(ScavConfig scavConfig)
         {
-            foreach (ScavKitTier tier in Unturnov.Conf.ScavKitTiers)
+            Conf = scavConfig;
+            foreach (ScavKitTier tier in Conf.ScavKitTiers)
             {
-                tier.localSet = new ScavSpawnTableSet(tier, Unturnov.Conf.ScavSpawnTables);
+                tier.localSet = new ScavSpawnTableSet(tier, Conf.ScavSpawnTables);
             }
             Unturnov.Database.CheckInventoryStorageSchema(InventoryTableName);
             Unturnov.Database.CheckPlayerStatsSchema(PlayerStatsTableName);
@@ -47,31 +51,8 @@ namespace SpeedMann.Unturnov.Helper
             // reload checks
             foreach (SteamPlayer player in Provider.clients)
             {
-                if(player.player.quests.getFlag(Unturnov.Conf.ScavRunControlFlag, out short value))
-                {
-                    UnturnedPlayer uPlayer = UnturnedPlayer.FromPlayer(player.player);
-                    ulong playerId = uPlayer.CSteamID.m_SteamID;
-
-                    if(value == scavActive || value == scavRequestEnd)
-                    {
-                        StoredInventory inventory = Unturnov.Database.GetInventory(InventoryTableName, playerId);
-                        PlayerStats stats = Unturnov.Database.GetPlayerStats(PlayerStatsTableName, playerId);
-                        StoredStats.Add(playerId, stats);
-                        StoredInventories.Add(playerId, inventory);
-                        Unturnov.Database.RemoveInventory(InventoryTableName, playerId);
-                    }
-
-                    switch (value)
-                    {
-                        case scavRequestStart:
-                            stopScavCooldown(uPlayer);
-                            tryStartScavRun(uPlayer);
-                            break;
-                        case scavRequestEnd:
-                            tryStopScavRun(uPlayer);
-                            break;
-                    }
-                }
+                UnturnedPlayer uPlayer = UnturnedPlayer.FromPlayer(player.player);
+                OnPlayerConnected(uPlayer);
             }
 
             isInit = true;
@@ -86,38 +67,27 @@ namespace SpeedMann.Unturnov.Helper
             {
                 Unturnov.Database.SetInventory(InventoryTableName, inventoryPair.Key, inventoryPair.Value);
             }
-            foreach (KeyValuePair<ulong, ScavCooldownTimer> entry in ScavCooldownTimers)
-            {
-                entry.Value.Stop();
-            }
-            ScavCooldownTimers = new Dictionary<ulong, ScavCooldownTimer>();
         }
 
         internal static void OnFlagChanged(PlayerQuests quests, PlayerQuestFlag flag)
         {
-            if (flag.id == Unturnov.Conf.ScavRunControlFlag && tryGetTier(quests, out ScavKitTier tier))
+            if (flag.id == Conf.ScavRunControlFlag && tryGetTier(quests, out ScavKitTier tier))
             {
                 UnturnedPlayer player = UnturnedPlayer.FromPlayer(quests.player);
                 
                 switch (flag.value)
                 {
-                    // scav ready
                     case scavReady:
-                        stopScavCooldown(player);
-                        UnturnedChat.Say(player, Util.Translate("scav_ready"), UnityEngine.Color.green);
+                        UnturnedChat.Say(player, Util.Translate("scav_ready"), Color.green);
                         break;
-                    // scav active
                     case scavRequestStart:
-                        stopScavCooldown(player);
                         tryStartScavRun(player);
                         break;
-                    // scav cooldown
                     case scavRequestEnd:
                         tryStopScavRun(player);
                         break;
                     case scavActive:
                     case scavCooldown:
-                        // dont log error if scav start / stop
                         break;
                     default:
                         Logger.LogError($"Error ScavRunControlFlag for {player.DisplayName} was set to an invalid value");
@@ -127,7 +97,35 @@ namespace SpeedMann.Unturnov.Helper
         }
         internal static void OnPlayerConnected(UnturnedPlayer player)
         {
-            if (isScavRunActive(player))
+            ushort flag = Conf.ScavRunControlFlag;
+            if (!controlFlagCheck(flag) || !player.Player.quests.getFlag(flag, out short value))
+            {
+                return;
+            }
+            if (!tryGetTier(player.Player.quests, out ScavKitTier tier))
+            {
+                Logger.LogError($"Error loading tier for player {player.DisplayName}");
+                return;
+            }
+
+            bool isScavActive = false;
+            switch (value)
+            {
+                case scavReady:
+                    break;
+                case scavActive:
+                    isScavActive = true;
+                    break;
+                case scavCooldown:
+                    TryRestoreScavCooldown(player);               
+                    break;
+                default:
+                    Logger.LogError($"Player {player.CSteamID} joined with invalid scav flag {flag} value {value}");
+                    player.Player.quests.sendSetFlag(flag, scavReady);
+                    break;
+            }
+
+            if (isScavActive)
             {
                 if(StoredStats.TryGetValue(player.CSteamID.m_SteamID, out PlayerStats stats))
                 {
@@ -139,18 +137,12 @@ namespace SpeedMann.Unturnov.Helper
                 }
 
                 inventory = Unturnov.Database.GetInventory(InventoryTableName, player.CSteamID.m_SteamID);
-                StoredStats.Add(player.CSteamID.m_SteamID, Unturnov.Database.GetPlayerStats(PlayerStatsTableName, player.CSteamID.m_SteamID));
+                stats = Unturnov.Database.GetPlayerStats(PlayerStatsTableName, player.CSteamID.m_SteamID);
+                StoredStats.Add(player.CSteamID.m_SteamID, stats);
                 StoredInventories.Add(player.CSteamID.m_SteamID, inventory);
                 Unturnov.Database.RemoveInventory(InventoryTableName, player.CSteamID.m_SteamID);
                 return;
             }
-
-            if (!tryGetTier(player.Player.quests, out ScavKitTier tier))
-            {
-                Logger.LogError($"Error loading tier for player {player.DisplayName}");
-                return;
-            }
-            startScavCooldown(player, tier);
         }
         internal static void OnPlayerDisconnected(UnturnedPlayer player)
         {
@@ -161,7 +153,6 @@ namespace SpeedMann.Unturnov.Helper
                 Unturnov.Database.SetInventory(InventoryTableName, player.CSteamID.m_SteamID, inventory);
                 Unturnov.Database.SetPlayerStats(PlayerStatsTableName, player.CSteamID.m_SteamID, stats);
             }
-            stopScavCooldown(player);
         }
         internal static void OnPlayerRevived(PlayerLife playerLife)
         {
@@ -174,46 +165,24 @@ namespace SpeedMann.Unturnov.Helper
                 }
             }
         }
-        internal static void startScavCooldown(UnturnedPlayer player, ScavKitTier tier)
+        private static bool TryRestoreScavCooldown(UnturnedPlayer player)
         {
-            ushort flag = Unturnov.Conf.ScavRunControlFlag;
-            if (controlFlagCheck(flag))
+            ushort flag = Conf.ScavRunControlFlag;
+            if (!controlFlagCheck(flag))
             {
-                ScavCooldownTimer timer;
-                if (ScavCooldownTimers.TryGetValue(player.CSteamID.m_SteamID, out timer))
-                {
-                    timer.Stop();
-                    ScavCooldownTimers.Remove(player.CSteamID.m_SteamID);
-                }
-                timer = new ScavCooldownTimer(tier, player.Player.quests);
-                ScavCooldownTimers.Add(player.CSteamID.m_SteamID, timer);
-                timer.Elapsed += queueEnableScavMode;
-
-                timer.Start();
+                return false;
             }
+            return QuestExtensionControler.TryStartQuestBasedCooldown(player.Player,
+                Conf.QuestCooldown,
+                0,
+                flag,
+                scavCooldown,
+                scavReady, 
+                true);
         }
-
-        internal static void stopScavCooldown(UnturnedPlayer player)
-        {
-            if (ScavCooldownTimers.TryGetValue(player.CSteamID.m_SteamID, out ScavCooldownTimer timer))
-            {
-                timer.Stop();
-                ScavCooldownTimers.Remove(player.CSteamID.m_SteamID);
-            }
-        }
-
-        internal static void queueEnableScavMode(PlayerQuests quests)
-        {           
-            ushort flag = Unturnov.Conf.ScavRunControlFlag;
-            if (controlFlagCheck(flag))
-            {
-                Unturnov.MainThreadQueue.Add(new SetFalgQueueEntry(quests, flag, scavReady));
-            }
-        }
-
         internal static bool tryStartScavRun(UnturnedPlayer player)
         {
-            ushort flag = Unturnov.Conf.ScavRunControlFlag;
+            ushort flag = Conf.ScavRunControlFlag;
             if (controlFlagCheck(flag))
             {
                 player.Player.quests.sendSetFlag(flag, scavActive);
@@ -243,7 +212,7 @@ namespace SpeedMann.Unturnov.Helper
 
         internal static bool tryStopScavRun(UnturnedPlayer player)
         {
-            ushort flag = Unturnov.Conf.ScavRunControlFlag;
+            ushort flag = Conf.ScavRunControlFlag;
 
             ulong steamId = player.CSteamID.m_SteamID;
             if (StoredInventories.TryGetValue(steamId, out StoredInventory storedInv)
@@ -268,8 +237,8 @@ namespace SpeedMann.Unturnov.Helper
                 Logger.Log($"{player.DisplayName} stopped his ScavRun");
                 if (tryGetTier(player.Player.quests, out ScavKitTier tier))
                 {
-                    UnturnedChat.Say(player, Util.Translate("scav_cooldown", ScavCommands.formatTime(tier.Cooldown)), UnityEngine.Color.green);
-                    startScavCooldown(player, tier); 
+                    UnturnedChat.Say(player, Util.Translate("scav_cooldown", ScavCommands.formatTime(tier.CooldownInMin*60)), Color.green);
+                    TryStartScavCooldown(player, tier); 
                     if (controlFlagCheck(flag))
                     {
                         player.Player.quests.sendSetFlag(flag, scavCooldown);
@@ -283,18 +252,18 @@ namespace SpeedMann.Unturnov.Helper
 
         internal static void giveScavKit(UnturnedPlayer player) 
         {
-            if (Unturnov.Conf.ScavKitTiers.Count > 0)
+            if (Conf.ScavKitTiers.Count > 0)
             {
                 // check tier flag
                 ScavKitTier tier = null;
-                if (Unturnov.Conf.ScavKitTierFlag != 0 && player.Player.quests.getFlag(Unturnov.Conf.ScavKitTierFlag, out short flagValue))
+                if (Conf.ScavKitTierFlag != 0 && player.Player.quests.getFlag(Conf.ScavKitTierFlag, out short flagValue))
                 {
-                    tier = Unturnov.Conf.ScavKitTiers.Find(x => x.RequiredFalgValue == flagValue);
+                    tier = Conf.ScavKitTiers.Find(x => x.RequiredFalgValue == flagValue);
                 }
                 // default to index 0
                 if(tier == null)
                 {
-                    tier = Unturnov.Conf.ScavKitTiers[0];
+                    tier = Conf.ScavKitTiers[0];
                 }
 
                 player.Inventory.items[2].resize(tier.HandWidth, tier.HandHeight);
@@ -368,7 +337,7 @@ namespace SpeedMann.Unturnov.Helper
         public static bool tryGetStateName(UnturnedPlayer player, out string state)
         {
             state = "unknown";
-            ushort flag = Unturnov.Conf.ScavRunControlFlag;
+            ushort flag = Conf.ScavRunControlFlag;
             if (controlFlagCheck(flag) && player.Player.quests.getFlag(flag, out short value))
             {
                 switch (value)
@@ -395,28 +364,28 @@ namespace SpeedMann.Unturnov.Helper
         }
         internal static bool tryGetTier(PlayerQuests quests, out ScavKitTier tier)
         {
-            if(Unturnov.Conf.ScavKitTiers.Count <= 0)
+            if(Conf.ScavKitTiers.Count <= 0)
             {
                 tier = null;
                 return false;
             }
 
-            ushort tierFlag = Unturnov.Conf.ScavKitTierFlag;
+            ushort tierFlag = Conf.ScavKitTierFlag;
             short scavTierIndex;
             if (tierFlag == 0 || !quests.getFlag(tierFlag, out scavTierIndex) || scavTierIndex < 0)
             {
                 scavTierIndex = 0;
             }
-            if (scavTierIndex >= Unturnov.Conf.ScavKitTiers.Count)
+            if (scavTierIndex >= Conf.ScavKitTiers.Count)
             {
-                scavTierIndex = (short)(Unturnov.Conf.ScavKitTiers.Count - 1);
+                scavTierIndex = (short)(Conf.ScavKitTiers.Count - 1);
             }
-            tier = Unturnov.Conf.ScavKitTiers[scavTierIndex];
+            tier = Conf.ScavKitTiers[scavTierIndex];
             return true;
         }
         internal static bool isScavRunActive(UnturnedPlayer player)
         {
-            ushort flag = Unturnov.Conf.ScavRunControlFlag;
+            ushort flag = Conf.ScavRunControlFlag;
             return controlFlagCheck(flag) && player.Player.quests.getFlag(flag, out short value) && value == scavActive;
         }
         internal static bool controlFlagCheck(ushort flag)
@@ -428,31 +397,19 @@ namespace SpeedMann.Unturnov.Helper
             }
             return true;
         }
-
-        private static IEnumerator ScavCooldown(Player player, QuestAsset questAsset, ushort teleportFlag, ushort minFlagId, ushort secFlagId, float cooldownInMin)
+        private static bool TryStartScavCooldown(UnturnedPlayer player, ScavKitTier tier)
         {
-            player.quests.sendSetFlag(teleportFlag, scavCooldown);
-            int cooldown = Mathf.RoundToInt(cooldownInMin * 60);
-
-            UpdateCooldown(player, minFlagId, secFlagId, cooldown);
-            if (player.quests.GetQuestStatus(questAsset) == ENPCQuestStatus.NONE)
+            ushort flag = Conf.ScavRunControlFlag;
+            if (!controlFlagCheck(flag))
             {
-                player.quests.ServerAddQuest(questAsset);
+                return false;
             }
-
-            for (; cooldown >= 0; cooldown--)
-            {
-                UpdateCooldown(player, minFlagId, secFlagId, cooldown);
-                yield return new WaitForSeconds(1);
-            }
-            player.quests.sendSetFlag(teleportFlag, scavReady);
-        }
-        private static void UpdateCooldown(Player player, ushort minFlagId, ushort secFlagId, int cooldownInSec)
-        {
-            short minutes = (short)(cooldownInSec / 60);
-            short seconds = (short)(cooldownInSec % 60);
-            player.quests.sendSetFlag(minFlagId, minutes);
-            player.quests.sendSetFlag(secFlagId, seconds);
+            return QuestExtensionControler.TryStartQuestBasedCooldown(player.Player,
+                Conf.QuestCooldown,
+                tier.CooldownInMin,
+                flag,
+                scavCooldown,
+                scavReady);
         }
         #endregion
 

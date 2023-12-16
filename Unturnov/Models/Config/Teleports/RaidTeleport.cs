@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SpeedMann.Unturnov.Models.Config.QuestExtensions;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,10 +9,9 @@ namespace SpeedMann.Unturnov.Models.Config
 {
     public class RaidTeleport
     {
+        public string RaidName = "MapName";
         public ushort TeleportFlag;
-        public ushort CooldownQuestId;
-        public ushort CooldownMinFlag;
-        public ushort CooldownSecFlag;
+        public QuestCooldown QuestCooldown = new QuestCooldown();
         public float CooldownInMin;
         public TeleportDestination ExtractDestination;
         public List<TeleportDestination> TeleportDestinations;
@@ -20,11 +20,14 @@ namespace SpeedMann.Unturnov.Models.Config
         {
 
         }
-        public RaidTeleport(ushort teleportFlag, ushort cooldownQuestId, ushort cooldownMinFlag, ushort cooldownSecFlag, float cooldownInMin, TeleportDestination extractDestination ,List<TeleportDestination> teleportDestinations)
+        public RaidTeleport(string raidName, ushort teleportFlag, QuestCooldown questCooldown, float cooldownInMin, TeleportDestination extractDestination ,List<TeleportDestination> teleportDestinations)
         {
+            string RaidName = raidName;
             TeleportFlag = teleportFlag;
-            CooldownQuestId = cooldownQuestId;
-            CooldownSecFlag = cooldownSecFlag;
+            if (questCooldown != null)
+            {
+                QuestCooldown = questCooldown;
+            }
             CooldownInMin = cooldownInMin;
             ExtractDestination = extractDestination;
             TeleportDestinations = teleportDestinations;

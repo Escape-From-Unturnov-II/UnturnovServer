@@ -9,6 +9,7 @@ namespace SpeedMann.Unturnov.Models.Config
     {
         public bool Debug;
         public uint SpawnedBarricadesPerFrame;
+        public float HideoutSpawnRotation;
         public Vector3Wrapper HideoutDimensions = new Vector3Wrapper();
         public Vector3Wrapper HideoutOriginOffset = new Vector3Wrapper();
         public Notification_UI Notification_UI = new Notification_UI();

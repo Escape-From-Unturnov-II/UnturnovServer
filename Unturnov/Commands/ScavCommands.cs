@@ -62,7 +62,7 @@ namespace SpeedMann.Unturnov.Commands
                 switch (command[0].ToLower())
                 {
                     case "state":
-                        ushort flag = Unturnov.Conf.ScavRunControlFlag;
+                        ushort flag = Unturnov.Conf.ScavConfig.ScavRunControlFlag;
                         if (ScavRunControler.tryGetStateName(player, out string state))
                         {
                             UnturnedChat.Say(caller, $"ScavRun state: {state}", UnityEngine.Color.green);
@@ -117,12 +117,12 @@ namespace SpeedMann.Unturnov.Commands
             return true;
        }
 
-        public static string formatTime(uint timeInSec)
+        public static string formatTime(float timeInSec)
         {
-            uint d = timeInSec / 60 / 60 / 24;
-            uint h = timeInSec / 60 / 60 % 24;
-            uint m = timeInSec / 60 % 60;
-            uint s = timeInSec % 60;
+            float d = timeInSec / 60 / 60 / 24;
+            float h = timeInSec / 60 / 60 % 24;
+            float m = timeInSec / 60 % 60;
+            float s = timeInSec % 60;
             return (d > 0 ? $"{d} days ":"")
                 + (h > 0 ? $"{h} hours " : "")
                 + (m > 0 ? $"{m} minutes " : "")
