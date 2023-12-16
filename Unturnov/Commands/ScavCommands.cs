@@ -118,10 +118,12 @@ namespace SpeedMann.Unturnov.Commands
 
         public static string formatTime(float timeInSec)
         {
-            float d = timeInSec / 60 / 60 / 24;
-            float h = timeInSec / 60 / 60 % 24;
-            float m = timeInSec / 60 % 60;
-            float s = timeInSec % 60;
+            TimeSpan timeSpan = TimeSpan.FromSeconds(timeInSec);
+
+            uint d = (uint)timeSpan.Days;
+            uint h = (uint)timeSpan.Hours;
+            uint m = (uint)timeSpan.Minutes;
+            uint s = (uint)timeSpan.Seconds;
             return (d > 0 ? $"{d} days ":"")
                 + (h > 0 ? $"{h} hours " : "")
                 + (m > 0 ? $"{m} minutes " : "")
