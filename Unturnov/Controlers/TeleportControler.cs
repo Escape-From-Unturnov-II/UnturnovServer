@@ -192,6 +192,7 @@ namespace SpeedMann.Unturnov.Controlers
                     UnturnedChat.Say(player, Util.Translate("raid_ready", teleport.RaidName), Color.green);
                     break;
                 case inRaid:
+                case onCooldown:
                     break;
                 case teleportSolo:
                     EnterRaid(player, teleport, false);

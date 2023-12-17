@@ -63,13 +63,18 @@ namespace SpeedMann.Unturnov.Controlers
         }
         internal static void OnBarricadeDeploy(Barricade barricade, ItemBarricadeAsset asset, Transform hit, ref Vector3 point, ref float angle_x, ref float angle_y, ref float angle_z, ref ulong owner, ref ulong group, ref bool shouldAllow)
         {
+            
             // hit != null barricade is placed on vehicle
-            if (hit != null || !shouldAllow) 
+            if (hit != null 
+                || !shouldAllow 
+                || owner == 0)
+            {
                 return;
+            }
+
 
             CSteamID playerId = new CSteamID(owner);
-           
-            if (playerId == CSteamID.Nil || !claimedHideouts.TryGetValue(playerId, out Hideout hideout) || hideout == null)
+            if (!claimedHideouts.TryGetValue(playerId, out Hideout hideout) || hideout == null)
             {
                 shouldAllow = false;
                 UnturnedChat.Say(playerId, Util.Translate("no_hideout"), Color.red);
@@ -99,13 +104,17 @@ namespace SpeedMann.Unturnov.Controlers
         }
         internal static void OnBarricadeSalvageRequest(BarricadeDrop barricadeDrop, SteamPlayer instigatorClient, ref bool shouldAllow)
         {
-            if (!shouldAllow) 
+            if (!shouldAllow 
+                || barricadeDrop == null 
+                || barricadeDrop.GetServersideData().owner == 0)
+            {
                 return;
-
-            if (!isHideoutReady(new CSteamID(barricadeDrop.GetServersideData().owner)))
+            }
+                
+            CSteamID owner = new CSteamID(barricadeDrop.GetServersideData().owner);
+            if (!isHideoutReady(owner))
             {
                 shouldAllow = false;
-
             }
         }
         internal static void OnBarricadeSpawned(BarricadeRegion region, BarricadeDrop drop)
@@ -121,23 +130,31 @@ namespace SpeedMann.Unturnov.Controlers
         }
         internal static void OnGetInput(InputInfo inputInfo, ERaycastInfoUsage usage, ref bool shouldAllow)
         {
-            if (!shouldAllow)
+            if (!shouldAllow
+                || inputInfo.type != ERaycastInfoType.BARRICADE 
+                || !BarricadeHelper.tryGetBarricadeDrop(inputInfo.transform, out var drop)
+                || drop == null
+                || drop.GetServersideData().owner == 0)
+            {
                 return;
-
-            if (inputInfo.type != ERaycastInfoType.BARRICADE || !BarricadeHelper.tryGetBarricadeDrop(inputInfo.transform, out var drop))
-                return;
+            }
+                
 
             if (!isHideoutReady(new CSteamID(drop.GetServersideData().owner)))
+            {
                 shouldAllow = false;
-
+            }
         }
         internal static void OnBarricadeStorageRequest(InteractableStorage storage, ServerInvocationContext context, bool quickGrab, ref bool shouldAllow)
         {
-            if (!shouldAllow)
+            if (!shouldAllow || storage == null || storage.owner == CSteamID.Nil)
+            {
                 return;
-
+            }
             if (!isHideoutReady(storage.owner))
+            {
                 shouldAllow = false;
+            }  
         }
         internal static void createHideout(Vector3 origin, float rotation)
         {
@@ -199,6 +216,10 @@ namespace SpeedMann.Unturnov.Controlers
         {
             BarricadeData data = drop.GetServersideData();
             CSteamID playerId = new CSteamID(data.owner);
+            if(playerId == CSteamID.Nil)
+            {
+                return;
+            }
             if (!claimedHideouts.TryGetValue(playerId, out var hideoutObject))
             {
                 Logger.LogWarning($"{playerId} has no hideout");
