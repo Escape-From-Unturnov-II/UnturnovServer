@@ -100,6 +100,9 @@ namespace SpeedMann.Unturnov.Helper
         public static event PostPlayerRevive OnPostPlayerRevive;
         #endregion
         #region QuestExtension
+
+        public delegate void PreSendSetFlag(PlayerQuests playerQuests, ushort id, short value, ref bool shouldAllow);  
+        public static event PreSendSetFlag OnSendSetFlag;
         public delegate void AnimalDeath(Animal animal);  
         public static event AnimalDeath onAnimalDeath;
         public delegate void ZombieDeath(Zombie zombie);
@@ -434,6 +437,26 @@ namespace SpeedMann.Unturnov.Helper
         }
         #endregion
         #region QuestExtension
+        
+        [HarmonyPatch(typeof(PlayerQuests), nameof(PlayerQuests.sendSetFlag))]
+        class SendSetFlag
+        {
+            [HarmonyPrefix]
+            internal static bool OnPreSendSetFlagInvoker(PlayerQuests __instance, ushort id, short value)
+            {
+                bool shouldAllow = true;
+                try
+                {
+                    OnSendSetFlag?.Invoke(__instance, id, value, ref shouldAllow);
+                }
+                catch (Exception e)
+                {
+                    Logger.LogException(e, $"Exception in OnPreSendSetFlag Patch: ");
+                }
+
+                return shouldAllow;
+            }
+        }
         [HarmonyPatch(typeof(AnimalManager), nameof(AnimalManager.sendAnimalDead))]
         class AnimalDeathManager
         {

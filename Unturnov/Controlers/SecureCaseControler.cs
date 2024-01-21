@@ -16,6 +16,7 @@ using Logger = Rocket.Core.Logging.Logger;
 
 namespace SpeedMann.Unturnov.Helper
 {
+    //TODO: upgrading secure case does not apply at runtime
     public class SecureCaseControler
     {
         public static SecureCaseConfig Conf { get; private set; }

@@ -72,7 +72,6 @@ namespace SpeedMann.Unturnov
             QuestExtensionControler.Init();
             DeathAdditionsControler.Init(Conf.DeathDropConfig);
             WeaponModdingControler.Init(Conf.GunModdingResults);
-            UnloadMagControler.Init(Conf.UnloadMagBlueprints);
             JsonManager.Init(Directory);
             
 
@@ -85,7 +84,7 @@ namespace SpeedMann.Unturnov
 
             UnturnedPatches.OnPreTryAddItemAuto += OnTryAddItem;
 
-            PlayerQuests.onAnyFlagChanged += OnFlagChanged;
+            UnturnedPatches.OnSendSetFlag += OnFlagChanged;
 
             UnturnedPatches.OnPreEquipmentUpdateState += OnEquipmentStateUpdate;
             UnturnedPlayerEvents.OnPlayerInventoryAdded += OnInventoryUpdated;
@@ -151,7 +150,7 @@ namespace SpeedMann.Unturnov
 
             UnturnedPatches.OnPreTryAddItemAuto -= OnTryAddItem;
 
-            PlayerQuests.onAnyFlagChanged -= OnFlagChanged;
+            UnturnedPatches.OnSendSetFlag -= OnFlagChanged;
 
             UnturnedPatches.OnPreEquipmentUpdateState -= OnEquipmentStateUpdate;
             UnturnedPlayerEvents.OnPlayerInventoryAdded -= OnInventoryUpdated;
@@ -204,6 +203,7 @@ namespace SpeedMann.Unturnov
         private void OnPreLevelLoaded(int level)
         {
             Conf.addNames();
+            UnloadMagControler.Init(Conf.UnloadMagBlueprints);
             HideoutControler.Init(Conf.HideoutConfig);
             AirdropControler.Init(Conf.AirdropSignals);
         }
@@ -296,10 +296,17 @@ namespace SpeedMann.Unturnov
             OpenableItemsControler.OnEquipmentChanged(equipment);
 
         }
-        private void OnFlagChanged(PlayerQuests quests, PlayerQuestFlag flag)
+        private void OnFlagChanged(PlayerQuests quests, ushort flagId, short flagValue, ref bool shouldAllow)
         {
-            ScavRunControler.OnFlagChanged(quests, flag);
-            TeleportControler.OnFlagChanged(quests, flag);
+            PlayerQuestFlag flag = new PlayerQuestFlag(flagId, flagValue);
+            UnturnedPlayer player = UnturnedPlayer.FromPlayer(quests.player);
+            quests.setFlag(flagId, flagValue);
+
+            ScavRunControler.OnFlagChanged(player, flag);
+            TeleportControler.OnFlagChanged(player, flag);
+
+            quests.getFlag(flagId, out short newValue);
+            shouldAllow = flagValue == newValue; 
         }
         private void OnBarricadeDeploy(Barricade barricade, ItemBarricadeAsset asset, Transform hit, ref Vector3 point, ref float angle_x, ref float angle_y, ref float angle_z, ref ulong owner, ref ulong group, ref bool shouldAllow)
         {
@@ -487,10 +494,7 @@ namespace SpeedMann.Unturnov
 
         }
         #region HelperFunctions
-        public static void ChangeFlagDelayed(Player player, ushort flagId, short value)
-        {
-            player.StartCoroutine(ChangeFlagDelayedRoutine(player, flagId, value));
-        }
+
         private static IEnumerator ChangeFlagDelayedRoutine(Player player, ushort flagId, short value)
         {
             yield return null;

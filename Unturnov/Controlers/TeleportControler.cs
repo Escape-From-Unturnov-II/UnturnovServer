@@ -141,9 +141,8 @@ namespace SpeedMann.Unturnov.Controlers
                 }
             }
         }
-        internal static void OnFlagChanged(PlayerQuests quests, PlayerQuestFlag flag)
+        internal static void OnFlagChanged(UnturnedPlayer player, PlayerQuestFlag flag)
         {
-            UnturnedPlayer player = UnturnedPlayer.FromPlayer(quests.player);
             if (flag.id == Conf.HideoutTeleportFlag)
             {
                 CheckHideoutTeleports(player, flag.value);
@@ -217,7 +216,7 @@ namespace SpeedMann.Unturnov.Controlers
                     {
                         Logger.LogWarning($"Could not teleport {player.CSteamID} to hideout!");
                     }
-                    Unturnov.ChangeFlagDelayed(player.Player, Conf.HideoutTeleportFlag, teleportReady);
+                    player.Player.quests.sendSetFlag(Conf.HideoutTeleportFlag, teleportReady);
                     break;
             }
         }
@@ -240,11 +239,11 @@ namespace SpeedMann.Unturnov.Controlers
             player.Teleport(position, rotation != 0 ? rotation : MeasurementTool.angleToByte(player.Rotation));
             if (!enterRaid)
             {
-                Unturnov.ChangeFlagDelayed(player.Player, flagId, teleportReady);
+                player.Player.quests.sendSetFlag(flagId, teleportReady);
             }
             else
             {
-                Unturnov.ChangeFlagDelayed(player.Player, flagId, inRaid);
+                player.Player.quests.sendSetFlag(flagId, inRaid);
             }
 
             Logger.Log($"{player.DisplayName} was teleported to {destination.NodeName} [{position.x}, {position.y}, {position.z}]");

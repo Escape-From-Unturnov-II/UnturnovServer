@@ -185,6 +185,7 @@
     <Compile Include="Models\Config\ItemExtensions\EmptyMagazineExtension.cs" />
     <Compile Include="Models\Config\QuestExtensions\QuestEquipment.cs" />
     <Compile Include="Models\Config\QuestExtensions\QuestExtension.cs" />
+    <Compile Include="Models\LoadedMagazineWrapper.cs" />
     <Compile Include="Models\SavedPlayerKit.cs" />
     <Compile Include="Models\SpawnTables\KitTierEntry.cs" />
     <Compile Include="Models\SpawnTables\KitTierGunEntry.cs" />

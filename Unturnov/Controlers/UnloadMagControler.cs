@@ -58,10 +58,11 @@ namespace SpeedMann.Unturnov.Controlers
     {
         private static Dictionary<ushort, ushort> FullToEmptyMagazineDict;
         private static Dictionary<ushort, EmptyMagazineExtension> EmptyMageDict;
-        internal static void Init(List<EmptyMagazineExtension> UnloadMagExtensions)
+        internal static void Init(List<EmptyMagazineExtension> unloadMagExtensions)
         {
-            FullToEmptyMagazineDict = createDictionaryFromMagazineExtensions(UnloadMagExtensions);
-            EmptyMageDict = Unturnov.createDictionaryFromItemExtensions(UnloadMagExtensions);
+            FindMatchingBlueprintsForEmptyMags(unloadMagExtensions);
+            FullToEmptyMagazineDict = createDictionaryFromMagazineExtensions(unloadMagExtensions);
+            EmptyMageDict = Unturnov.createDictionaryFromItemExtensions(unloadMagExtensions);
         }
 
         internal static void ReplaceEmptyMagInGun(PlayerEquipment equipment)
@@ -127,6 +128,84 @@ namespace SpeedMann.Unturnov.Controlers
         }
 
         #region HelperFunctions
+        private static void FindMatchingBlueprintsForEmptyMags(List<EmptyMagazineExtension> unloadMagExtensions)
+        {
+            List<LoadedMagazineWrapper> loadedVariantWrappers = new List<LoadedMagazineWrapper>();
+            for (int i = 0; i < unloadMagExtensions.Count; i++)
+            {
+                loadedVariantWrappers.Clear();
+                var emptyMagExtension = unloadMagExtensions[i];
+                if (!TryLoadEmptyMagRequirements(emptyMagExtension, loadedVariantWrappers, out ItemAsset emptyMagAsset))
+                {
+                    continue;
+                }
+
+                foreach (var emptyBlueprint in emptyMagAsset.blueprints)
+                {
+                    if (emptyBlueprint.type != EBlueprintType.AMMO || emptyBlueprint.supplies.Length <= 0)
+                    {
+                        continue;
+                    }
+                    
+                    if (!TryFindLoadedMagVariant(emptyBlueprint, loadedVariantWrappers))
+                    {
+                        Logger.LogError($"Could not find any loaded mag variant for {emptyMagExtension.Id} / blueprint {emptyBlueprint.supplies[0]}!");
+                    }
+                }
+            }
+        }
+        private static bool TryLoadEmptyMagRequirements(EmptyMagazineExtension emptyMagExtension, List<LoadedMagazineWrapper> listToFill, out ItemAsset emptyMagAsset)
+        {
+            listToFill.Clear();
+            emptyMagAsset = Assets.find(EAssetType.ITEM, emptyMagExtension.Id) as ItemAsset;
+            if (emptyMagAsset == null)
+            {
+                Logger.LogError($"Could not find empty mag {emptyMagExtension.Id}!");
+                return false;
+            }
+            foreach (EmptyMagazineExtension.LoadedMagazineVariant loadedVariant in emptyMagExtension.LoadedMagazines)
+            {
+                ItemAsset loadedMagItem = Assets.find(EAssetType.ITEM, loadedVariant.Id) as ItemAsset;
+                if (emptyMagAsset == null)
+                {
+                    Logger.LogError($"Could not find loaded mag variant {loadedVariant.Id} for {emptyMagExtension.Id}!");
+                    continue;
+                }
+                listToFill.Add(new LoadedMagazineWrapper(loadedVariant, loadedMagItem));
+            }
+            if (listToFill.Count <= 0)
+            {
+                Logger.LogError($"Could not find any loaded mag variants for {emptyMagExtension.Id}!");
+                return false;
+            }
+            return true;
+        }
+        private static bool TryFindLoadedMagVariant(Blueprint emptyBlueprint, List<LoadedMagazineWrapper> loadedMagVariants)
+        {
+            foreach (var loadedVariantWrapper in loadedMagVariants)
+            {
+                for (int y = 0; y < loadedVariantWrapper.itemAsset.blueprints.Count; y++)
+                {
+                    var loadedBlueprint = loadedVariantWrapper.itemAsset.blueprints[y];
+                    if (loadedBlueprint.type != EBlueprintType.AMMO || emptyBlueprint.supplies.Length <= 0)
+                    {
+                        continue;
+                    }
+                    if (loadedBlueprint.supplies[0].id == emptyBlueprint.supplies[0].id)
+                    {
+                        int oldIndex = loadedVariantWrapper.loadedMagazineVariant.RefillAmmoBlueprintIndex;
+                        
+                        if (oldIndex != y)
+                        {
+                            loadedVariantWrapper.loadedMagazineVariant.RefillAmmoBlueprintIndex = (byte)y;
+                            Logger.LogWarning($"Loaded mag blueprint index {oldIndex} of {loadedVariantWrapper.loadedMagazineVariant.Id} was changed to {y}");
+                        }
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
         private static EmptyMagazineExtension.LoadedMagazineVariant tryFindFullMagazineVariant(UnturnedPlayer player, Blueprint blueprint, EmptyMagazineExtension magExtension, ushort itemId, byte blueprintIndex)
         {
             EmptyMagazineExtension.LoadedMagazineVariant fullVariant = null;

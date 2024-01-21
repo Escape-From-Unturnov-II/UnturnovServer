@@ -69,12 +69,10 @@ namespace SpeedMann.Unturnov.Helper
             }
         }
 
-        internal static void OnFlagChanged(PlayerQuests quests, PlayerQuestFlag flag)
+        internal static void OnFlagChanged(UnturnedPlayer player, PlayerQuestFlag flag)
         {
-            if (flag.id == Conf.ScavRunControlFlag && tryGetTier(quests, out ScavKitTier tier))
+            if (flag.id == Conf.ScavRunControlFlag && tryGetTier(player.Player.quests, out ScavKitTier tier))
             {
-                UnturnedPlayer player = UnturnedPlayer.FromPlayer(quests.player);
-                
                 switch (flag.value)
                 {
                     case scavReady:
@@ -170,7 +168,7 @@ namespace SpeedMann.Unturnov.Helper
             ushort flag = Conf.ScavRunControlFlag;
             if (controlFlagCheck(flag))
             {
-                Unturnov.ChangeFlagDelayed(player.Player, flag, scavActive);
+                player.Player.quests.sendSetFlag(flag, scavActive);
             }
             StoredInventory inventory = new StoredInventory();
 
@@ -226,7 +224,7 @@ namespace SpeedMann.Unturnov.Helper
                     TryStartScavCooldown(player, tier); 
                     if (controlFlagCheck(flag))
                     {
-                        Unturnov.ChangeFlagDelayed(player.Player, flag, scavCooldown);
+                        player.Player.quests.sendSetFlag(flag, scavCooldown);
                     }
                 }
                 return true;
