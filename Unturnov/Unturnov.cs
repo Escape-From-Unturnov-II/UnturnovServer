@@ -17,6 +17,8 @@ using SpeedMann.Unturnov.Helper;
 using SpeedMann.Unturnov.Models;
 using Logger = Rocket.Core.Logging.Logger;
 using System.Collections;
+using static Rocket.Unturned.Events.UnturnedEvents;
+
 
 namespace SpeedMann.Unturnov
 {
@@ -134,6 +136,12 @@ namespace SpeedMann.Unturnov
                 OnPreLevelLoaded(0);
             }
             printPluginInfo();
+
+            List<SteamPlayer> players = Provider.clients;
+            foreach (SteamPlayer player in players)
+            {
+                OnPlayerConnectedInner(UnturnedPlayer.FromSteamPlayer(player), true);
+            }
         }
 
         protected override void Unload()
@@ -258,12 +266,16 @@ namespace SpeedMann.Unturnov
         }
         private void OnPlayerConnected(UnturnedPlayer player)
         {
+            OnPlayerConnectedInner(player);
+        }
+        private void OnPlayerConnectedInner(UnturnedPlayer player, bool restore = false)
+        {
             // enable plugin crafting
             player.Player.quests.sendSetFlag(Conf.PluginCraftingFlag, 1);
 
             HideoutControler.OnPlayerConnected(player);
             ScavRunControler.OnPlayerConnected(player);
-            
+
             if (!ScavRunControler.isScavRunActive(player))
             {
                 SecureCaseControler.OnPlayerConnected(player);
@@ -272,7 +284,7 @@ namespace SpeedMann.Unturnov
             {
                 setupNewPlayer(player);
             }
-            else
+            else if(!restore)
             {
                 TeleportControler.OnPlayerConnected(player);
             }
@@ -427,6 +439,10 @@ namespace SpeedMann.Unturnov
             }
             #endregion
 
+        }
+        private void OnInventoryStateUpdated()
+        {
+            UnloadMagControler.ReplaceEmptyMagWithEmptyVarient();
         }
         private void OnCraft(PlayerCrafting crafting, ref ushort itemID, ref byte blueprintIndex, ref bool shouldAllow)
         {
