@@ -376,6 +376,7 @@ namespace SpeedMann.Unturnov
         }
         private void OnItemSwapped(PlayerInventory inventory, byte page_0, byte x_0, byte y_0, byte rot_0, byte page_1, byte x_1, byte y_1, byte rot_1, ref bool shouldAllow)
         {
+            //TODO: add stackable items that just stack when swapping
             SecureCaseControler.OnItemSwapped(inventory, page_0, x_0, y_0, rot_0, page_1, x_1, y_1, rot_1, ref shouldAllow);
             OpenableItemsControler.OnItemSwapped(inventory, page_0, x_0, y_0, rot_0, page_1, x_1, y_1, rot_1, ref shouldAllow);
         }
@@ -439,10 +440,6 @@ namespace SpeedMann.Unturnov
             }
             #endregion
 
-        }
-        private void OnInventoryStateUpdated()
-        {
-            UnloadMagControler.ReplaceEmptyMagWithEmptyVarient();
         }
         private void OnCraft(PlayerCrafting crafting, ref ushort itemID, ref byte blueprintIndex, ref bool shouldAllow)
         {

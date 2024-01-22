@@ -117,6 +117,7 @@ namespace SpeedMann.Unturnov.Controlers
          */
         internal static void ReplaceEmptyMagWithEmptyVarient(UnturnedPlayer player, InventoryGroup inventoryGroup, byte inventoryIndex, ItemJar itemJ)
         {
+            //TODO: find a way to replace on amount update on craft
             if (itemJ.item.amount > 0 || !FullToEmptyMagazineDict.TryGetValue(itemJ.item.id, out ushort emptyMagId))
                 return;
 
