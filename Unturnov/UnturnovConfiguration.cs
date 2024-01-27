@@ -24,11 +24,13 @@ namespace SpeedMann.Unturnov
         public ScavConfig ScavConfig = new ScavConfig();
         public List<EmptyMagazineExtension> UnloadMagBlueprints;
         public List<AirdropSignal> AirdropSignals;
-        
+
+        [XmlArrayItem(ElementName = "Item")]
+        public List<ItemExtensionAmount> StackableItems;
         public List<CombineDescription> AutoCombine;
         [XmlArrayItem(ElementName = "Item")]
         public List<ItemExtension> GunModdingResults;
-        
+
 
         public PlayerKitConfig NewPlayerKitConfig;
         public PlacementRestrictionConfig PlacementRestrictionConfig;
@@ -1065,6 +1067,17 @@ namespace SpeedMann.Unturnov
             {
                 new AirdropSignal(38107, 0, 10),
             };
+            StackableItems = new List<ItemExtensionAmount>
+            {
+                #region RUB
+                // 10
+                new ItemExtensionAmount(37002, 100),
+                #endregion
+                #region Ammo
+                new ItemExtensionAmount(37695, 0),
+                #endregion
+
+            };
             AutoCombine = new List<CombineDescription>
             {
                 #region RUB
@@ -2055,6 +2068,7 @@ namespace SpeedMann.Unturnov
         {
             addNames(DeathDropConfig.DeathDrops);
             addNames(GunModdingResults);
+            addNames(StackableItems);
 
             foreach (PlacementRestriction restriction in PlacementRestrictionConfig.Restrictions)
             {

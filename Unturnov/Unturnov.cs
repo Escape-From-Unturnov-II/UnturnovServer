@@ -214,6 +214,7 @@ namespace SpeedMann.Unturnov
             UnloadMagControler.Init(Conf.UnloadMagBlueprints);
             HideoutControler.Init(Conf.HideoutConfig);
             AirdropControler.Init(Conf.AirdropSignals);
+            ItemStackController.Init(Conf.StackableItems);
         }
         private void Update()
         {
@@ -376,13 +377,18 @@ namespace SpeedMann.Unturnov
         }
         private void OnItemSwapped(PlayerInventory inventory, byte page_0, byte x_0, byte y_0, byte rot_0, byte page_1, byte x_1, byte y_1, byte rot_1, ref bool shouldAllow)
         {
-            //TODO: add stackable items that just stack when swapping
+            ItemStackController.OnItemSwapped(inventory, page_0, x_0, y_0, rot_0, page_1, x_1, y_1, rot_1, ref shouldAllow);
+            if (!shouldAllow) return;
             SecureCaseControler.OnItemSwapped(inventory, page_0, x_0, y_0, rot_0, page_1, x_1, y_1, rot_1, ref shouldAllow);
+            if (!shouldAllow) return;
             OpenableItemsControler.OnItemSwapped(inventory, page_0, x_0, y_0, rot_0, page_1, x_1, y_1, rot_1, ref shouldAllow);
         }
         private void OnItemDragged(PlayerInventory inventory, byte page_0, byte x_0, byte y_0, byte page_1, byte x_1, byte y_1, byte rot_1, ref bool shouldAllow)
         {
+            ItemStackController.OnItemDragged(inventory, page_0, x_0, y_0, page_1, x_1, y_1, rot_1, ref shouldAllow);
+            if (!shouldAllow) return;
             SecureCaseControler.OnItemDragged(inventory, page_0, x_0, y_0, page_1, x_1, y_1, rot_1, ref shouldAllow);
+            if (!shouldAllow) return;
             OpenableItemsControler.OnItemDragged(inventory, page_0, x_0, y_0, page_1, x_1, y_1, rot_1, ref shouldAllow);
         }
         private void OnPreItemAdded(PlayerInventory inventory, Items page, Item item, ref bool didAdditem, ref bool shouldAllow)
