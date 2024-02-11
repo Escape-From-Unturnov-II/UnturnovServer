@@ -31,7 +31,7 @@ namespace SpeedMann.Unturnov.Helper
         {
             if (flag.id == Conf.CaseUpgradeFlagId)
             {
-                resizeHands(quests.player);
+                resizeHands(quests.player, flag.value);
             }
         }
         public static void OnPrePlayerDead(PlayerLife playerLife)
@@ -194,19 +194,23 @@ namespace SpeedMann.Unturnov.Helper
                 return null;
             }
             short caseLvl;
-            if (!player.quests.getFlag(Conf.CaseUpgradeFlagId, out caseLvl) || caseLvl < 0)
+            if (!player.quests.getFlag(Conf.CaseUpgradeFlagId, out caseLvl))
             {
                 caseLvl = 0;
             }
-            if (caseLvl >= Conf.CaseSizes.Count)
-            {
-                caseLvl = (short)(Conf.CaseSizes.Count - 1);
-            }
-            return Conf.CaseSizes[caseLvl];
+            return GetCaseSize(player, caseLvl);
         }
+
         public static void resizeHands(Player player)
         {
             CaseSize caseSize = getCaseSize(player);
+            if (caseSize == null)
+                return;
+            resizeHands(player, caseSize);
+        }
+        private static void resizeHands(Player player, short caseLvl)
+        {
+            CaseSize caseSize = GetCaseSize(player, caseLvl);
             if (caseSize == null)
                 return;
             resizeHands(player, caseSize);
@@ -234,6 +238,18 @@ namespace SpeedMann.Unturnov.Helper
         public static void RestoreHands(UnturnedPlayer player, CaseContent content)
         {
             InventoryHelper.tryRestorePage(player.Inventory, player.Inventory.items[2], content.Items);
+        }
+        private static CaseSize GetCaseSize(Player player, short caseLvl)
+        {
+            if (caseLvl < 0)
+            {
+                caseLvl = 0;
+            }
+            if (caseLvl >= Conf.CaseSizes.Count)
+            {
+                caseLvl = (short)(Conf.CaseSizes.Count - 1);
+            }
+            return Conf.CaseSizes[caseLvl];
         }
         #endregion
     }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Security.Cryptography;
 using MySqlX.XDevAPI.Relational;
 using Rocket.API;
 using Rocket.Core.Logging;
@@ -145,7 +146,74 @@ namespace SpeedMann.Unturnov
 
 
 		}
+        public static void stackItem(PlayerInventory inventory, ItemJar itemJar_0, byte page_0, ItemJar itemJar_1, byte page_1, byte index_1, byte stackSize)
+        {
+            int newAmmount = itemJar_0.item.amount + itemJar_1.item.amount;
 
+            if (newAmmount > stackSize)
+            {
+                inventory.sendUpdateAmount(page_0, itemJar_0.x, itemJar_0.y, stackSize);
+                inventory.sendUpdateAmount(page_1, itemJar_1.x, itemJar_1.y, (byte)(newAmmount - stackSize));
+                Logger.Log($"Filled stack of {itemJar_0.item.id} {stackSize}");
+            }
+            else
+            {
+                inventory.removeItem(page_1, index_1);
+                inventory.sendUpdateAmount(page_0, itemJar_0.x, itemJar_0.y, (byte)newAmmount);
+                Logger.Log($"Set new amount {newAmmount} stack of {itemJar_0.item.id} with stacksize: {stackSize}");
+            }
+        }
+        public static int searchAmount(PlayerInventory inventory, out List<InventorySearch> search, ushort id)
+		{
+            search = new List<InventorySearch>();
+			int foundAmmount = 0;
+            for (byte pageIndex = PlayerInventory.SLOTS; pageIndex < PlayerInventory.PAGES - 2; pageIndex++)
+            {
+                var pageItems = inventory.items[pageIndex].items;
+                for (byte i = 0; i < pageItems.Count; i++)
+                {
+                    ItemJar itemJar = pageItems[i];
+                    if (itemJar.item.id != id 
+						|| itemJar.item.amount < 0)
+                    {
+						continue;
+                    }
+                    ItemAsset asset = itemJar.GetAsset();
+                    if (asset == null)
+                    {
+                        continue;
+                    }
+                    search.Add(new InventorySearch(pageIndex, itemJar));
+                    foundAmmount += itemJar.item.amount;
+                }
+            }
+			return foundAmmount;
+        }
+		public static bool tryFindSplittable(PlayerInventory inventory, out InventorySearch search, ushort id)
+		{
+			search = null;
+            for (byte pageIndex = PlayerInventory.SLOTS; pageIndex < PlayerInventory.PAGES - 2; pageIndex++)
+            {
+                var pageItems = inventory.items[pageIndex].items;
+                for (byte i = 0; i < pageItems.Count; i++)
+                {
+                    ItemJar itemJar = pageItems[i];
+                    if (itemJar.item.id != id
+                        || itemJar.item.amount < 1)
+                    {
+                        continue;
+                    }
+                    ItemAsset asset = itemJar.GetAsset();
+                    if (asset == null)
+                    {
+                        continue;
+                    }
+                    search = new InventorySearch(pageIndex, itemJar);
+					return true;
+                }
+            }
+            return false;
+        }
         public static ushort findAmmo(PlayerInventory inventory, ushort itemId, out List<InventorySearch> foundAmmo)
 		{
             ushort amount = 0;
@@ -423,7 +491,27 @@ namespace SpeedMann.Unturnov
 
 			return true;
         }
-		public enum StorageType
+        public static void FillExisting(Player player, ushort id, byte stackSize, ref byte amount)
+        {
+            searchAmount(player.inventory, out List<InventorySearch> foundItems, id);
+            foreach (InventorySearch foundItem in foundItems)
+            {
+                if (foundItem.jar.item.amount < stackSize)
+                {
+                    byte addedAmount = CalculateAddedAmount(amount, foundItem.jar.item.amount, stackSize);
+                    amount -= addedAmount;
+                    byte newAmount = (byte)(foundItem.jar.item.amount + addedAmount);
+                    player.inventory.sendUpdateAmount(foundItem.page, foundItem.jar.x, foundItem.jar.y, newAmount);
+                }
+            }
+        }
+        public static byte CalculateAddedAmount(byte availableAmount, byte currentAmount, byte stackSize)
+        {
+            byte remainingSpace = (byte)(stackSize - currentAmount);
+            byte addedAmount = Math.Min(availableAmount, remainingSpace);
+            return addedAmount;
+        }
+        public enum StorageType
 		{
 			PrimaryWeapon = 0,
 			SecondaryWeapon = 1,

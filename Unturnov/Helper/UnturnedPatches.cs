@@ -107,6 +107,9 @@ namespace SpeedMann.Unturnov.Helper
         public static event AnimalDeath onAnimalDeath;
         public delegate void ZombieDeath(Zombie zombie);
         public static event ZombieDeath onZombieDeath;
+
+        public delegate void ForceGiveItem(Player player, ushort id, byte amount, ref bool success, ref bool shouldAllow);
+        public static event ForceGiveItem OnPreForceGiveItem;
         #endregion
         #endregion
 
@@ -323,7 +326,26 @@ namespace SpeedMann.Unturnov.Helper
                 return shouldAllow;
             }
         }
-
+        
+        [HarmonyPatch(typeof(ItemTool), nameof(ItemTool.tryForceGiveItem))]
+        class ForceAddItem
+        {
+            [HarmonyPrefix]
+            internal static bool OnPreForceGiveItemInvoker(Player player, ushort id, byte amount, ref bool __result)
+            {
+                var shouldAllow = true;
+                try
+                {
+                    OnPreForceGiveItem?.Invoke(player, id, amount, ref __result, ref shouldAllow);
+                }
+                catch (Exception e)
+                {
+                    Logger.LogException(e, $"Exception in OnPreForceGiveItem Patch: ");
+                }
+                return shouldAllow;
+            }
+        }
+        
         #region SecureCase
         internal class LiveUpdateInventory
         {

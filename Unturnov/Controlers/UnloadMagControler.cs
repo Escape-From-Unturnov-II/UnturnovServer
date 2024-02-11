@@ -64,7 +64,22 @@ namespace SpeedMann.Unturnov.Controlers
             FullToEmptyMagazineDict = createDictionaryFromMagazineExtensions(unloadMagExtensions);
             EmptyMageDict = Unturnov.createDictionaryFromItemExtensions(unloadMagExtensions);
         }
+        public static void OnItemDragged(PlayerInventory inventory, byte page_0, byte x_0, byte y_0, byte page_1, byte x_1, byte y_1, byte rot_1, ref bool shouldAllow)
+        {
+            /*
+            byte index_0 = inventory.items[page_0].getIndex(x_0, y_0);
+            byte index_1 = inventory.items[page_1].getIndex(x_1, y_1);
+            ItemJar itemJar_0 = inventory.items[page_0].getItem(index_0);
+            ItemJar itemJar_1 = inventory.items[page_1].getItem(index_1);
+            if (FullToEmptyMagazineDict.ContainsKey())
+            {
 
+            }
+            //TODO: add check for set magazines to refill them
+            shouldAllow = false;
+            InventoryHelper.stackItem(inventory, itemJar_0, page_0, itemJar_1, page_1, index_1, stackSize);
+            */
+        }
         internal static void ReplaceEmptyMagInGun(PlayerEquipment equipment)
         {
             if (equipment?.state == null || equipment.state.Length < 11)
@@ -150,7 +165,7 @@ namespace SpeedMann.Unturnov.Controlers
                     
                     if (!TryFindLoadedMagVariant(emptyBlueprint, loadedVariantWrappers))
                     {
-                        Logger.LogError($"Could not find any loaded mag variant for {emptyMagExtension.Id} / blueprint {emptyBlueprint.supplies[0]}!");
+                        Logger.LogError($"Could not find any loaded mag variant for {emptyMagExtension.Id} / blueprint {emptyBlueprint.supplies[0].id}!");
                     }
                 }
             }

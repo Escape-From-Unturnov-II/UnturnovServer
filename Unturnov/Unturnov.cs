@@ -17,7 +17,6 @@ using SpeedMann.Unturnov.Helper;
 using SpeedMann.Unturnov.Models;
 using Logger = Rocket.Core.Logging.Logger;
 using System.Collections;
-using static Rocket.Unturned.Events.UnturnedEvents;
 
 
 namespace SpeedMann.Unturnov
@@ -28,10 +27,7 @@ namespace SpeedMann.Unturnov
         public static UnturnovConfiguration Conf;
         public static DatabaseManager Database;
         public static bool ModsLoaded = false;
-        
 
-        private Dictionary<ushort, CombineDescription> AutoCombineDict;     
-        
         internal static List<CSteamID> ReplaceBypass;
         internal static List<MainQueueEntry> MainThreadQueue = new List<MainQueueEntry>();
 
@@ -59,6 +55,7 @@ namespace SpeedMann.Unturnov
             Inst = this;
             Conf = Configuration.Instance;
             Database = new DatabaseManager();
+            ReplaceBypass = new List<CSteamID>();
 
             // force set bed timer
             oldBedTimer = Provider.modeConfigData.Gameplay.Timer_Home;
@@ -75,11 +72,6 @@ namespace SpeedMann.Unturnov
             DeathAdditionsControler.Init(Conf.DeathDropConfig);
             WeaponModdingControler.Init(Conf.GunModdingResults);
             JsonManager.Init(Directory);
-            
-
-            ReplaceBypass = new List<CSteamID>();
-            
-            AutoCombineDict = createDictionaryFromAutoCombine(Conf.AutoCombine);
 
 
             Conf.updateConfig();
@@ -91,6 +83,7 @@ namespace SpeedMann.Unturnov
             UnturnedPatches.OnPreEquipmentUpdateState += OnEquipmentStateUpdate;
             UnturnedPlayerEvents.OnPlayerInventoryAdded += OnInventoryUpdated;
             PlayerCrafting.onCraftBlueprintRequested += OnCraft;
+            UnturnedPatches.OnPreForceGiveItem += OnPreForceGiveItem;
 
             BarricadeManager.onDeployBarricadeRequested += OnBarricadeDeploy;
             BarricadeManager.onBarricadeSpawned += OnBarricadeSpawned;
@@ -163,6 +156,7 @@ namespace SpeedMann.Unturnov
             UnturnedPatches.OnPreEquipmentUpdateState -= OnEquipmentStateUpdate;
             UnturnedPlayerEvents.OnPlayerInventoryAdded -= OnInventoryUpdated;
             PlayerCrafting.onCraftBlueprintRequested -= OnCraft;
+            UnturnedPatches.OnPreForceGiveItem -= OnPreForceGiveItem;
 
             BarricadeManager.onDeployBarricadeRequested -= OnBarricadeDeploy;
             BarricadeManager.onBarricadeSpawned -= OnBarricadeSpawned;
@@ -214,7 +208,7 @@ namespace SpeedMann.Unturnov
             UnloadMagControler.Init(Conf.UnloadMagBlueprints);
             HideoutControler.Init(Conf.HideoutConfig);
             AirdropControler.Init(Conf.AirdropSignals);
-            ItemStackController.Init(Conf.StackableItems);
+            ItemStackController.Init(Conf.StackableItems, Conf.AutoCombine);
         }
         private void Update()
         {
@@ -370,10 +364,15 @@ namespace SpeedMann.Unturnov
         private void OnInspect(PlayerEquipment equipment)
         {
             OpenableItemsControler.OnInspect(equipment);
+            //TODO: add info for stims
         }
         private void OnThrowableSpawned(UseableThrowable useable, GameObject throwable)
         {
             AirdropControler.OnThrowableSpawned(useable, throwable);
+        }
+        private void OnPreForceGiveItem(Player player, ushort id, byte amount, ref bool success, ref bool shouldAllow)
+        {
+            ItemStackController.OnPreForceGiveItem(player, id, amount, ref success, ref shouldAllow);
         }
         private void OnItemSwapped(PlayerInventory inventory, byte page_0, byte x_0, byte y_0, byte rot_0, byte page_1, byte x_1, byte y_1, byte rot_1, ref bool shouldAllow)
         {
@@ -390,6 +389,8 @@ namespace SpeedMann.Unturnov
             SecureCaseControler.OnItemDragged(inventory, page_0, x_0, y_0, page_1, x_1, y_1, rot_1, ref shouldAllow);
             if (!shouldAllow) return;
             OpenableItemsControler.OnItemDragged(inventory, page_0, x_0, y_0, page_1, x_1, y_1, rot_1, ref shouldAllow);
+            if (!shouldAllow) return;
+            UnloadMagControler.OnItemDragged(inventory, page_0, x_0, y_0, page_1, x_1, y_1, rot_1, ref shouldAllow);
         }
         private void OnPreItemAdded(PlayerInventory inventory, Items page, Item item, ref bool didAdditem, ref bool shouldAllow)
         {
@@ -416,36 +417,13 @@ namespace SpeedMann.Unturnov
                 ReplaceBypass.Remove(player.CSteamID);
                 return;
             }
+            ItemStackController.OnInventoryUpdated(player, inventoryGroup, inventoryIndex, itemJ);
 
             WeaponModdingControler.HandleAttachmentsOfCraftedGuns(player, inventoryGroup, inventoryIndex, itemJ);
 
             UnloadMagControler.EmptyEmptyMagVariants(player, inventoryGroup, itemJ);
             UnloadMagControler.ReplaceEmptyMagWithEmptyVarient(player, inventoryGroup, inventoryIndex, itemJ);
-            #region auto combine
-            //TODO: add implementation to combine 2x2 + 1 = 5
-            CombineDescription combine;
-            if (AutoCombineDict.TryGetValue(itemJ.item.id, out combine))
-            {
-                List<InventorySearch> foundItems = player.Inventory.search(itemJ.item.id, true, true);
-                if(foundItems.Count() >= combine.RequiredAmount)
-                {
-                    int results = foundItems.Count() / combine.RequiredAmount;
-                    int turns = combine.RequiredAmount;
-                    foreach (InventorySearch item in foundItems)
-                    {
-                        byte index = player.Inventory.getIndex(item.page, item.jar.x, item.jar.y);
-                        player.Inventory.removeItem(item.page, index);
-                    }
-                    for (byte i = 0; i < results; i++)
-                    {
-                        player.Inventory.forceAddItem(new Item(combine.Result.Id, true), false);
-                    }
-                    Logger.Log($"combined {results}x {itemJ.item.id} to {combine.Result.Id}");
-                }
-                return;
-            }
-            #endregion
-
+            
         }
         private void OnCraft(PlayerCrafting crafting, ref ushort itemID, ref byte blueprintIndex, ref bool shouldAllow)
         {
@@ -456,17 +434,13 @@ namespace SpeedMann.Unturnov
             WeaponModdingControler.SaveAttachmentsOfCraftedGun(blueprint, crafting);
 
             UnloadMagControler.ReplaceEmptyMagazineBlueprintWithFullVariant(blueprint, crafting, ref itemID, ref blueprintIndex, ref shouldAllow, ref replaced);
-            #region Check Disable Autocombine
-            foreach (BlueprintOutput outP in blueprint.outputs)
+            ItemStackController.OnCraft(player, blueprint, out bool shouldAddBypass, ref shouldAllow);
+            if (shouldAddBypass && !ReplaceBypass.Contains(player.CSteamID))
             {
-                if (AutoCombineDict.ContainsKey(outP.id) && (!ReplaceBypass.Contains(player.CSteamID)))
-                {
-                    ReplaceBypass.Add(player.CSteamID);
-                    return;
-                }
+                ReplaceBypass.Add(player.CSteamID);
+                return;
             }
 
-            #endregion
         }
         private void OnZombieDamage(ref DamageZombieParameters parameters, ref bool canDamage)
         {
@@ -514,35 +488,6 @@ namespace SpeedMann.Unturnov
         }
         #region HelperFunctions
 
-        private static IEnumerator ChangeFlagDelayedRoutine(Player player, ushort flagId, short value)
-        {
-            yield return null;
-            Logger.Log($"change flag delayed {flagId} value {value}");
-            player.quests.sendSetFlag(flagId, value);
-        }
-        private Dictionary<ushort, CombineDescription> createDictionaryFromAutoCombine(List<CombineDescription> autoCombine)
-        {
-            Dictionary<ushort, CombineDescription> autoCombineDict = new Dictionary<ushort, CombineDescription>();
-            if (autoCombine != null)
-            {
-                foreach (CombineDescription craftDesc in autoCombine)
-                {
-                    if (craftDesc.Id == 0)
-                    {
-                        Logger.LogWarning("Resource Item with invalid Id");
-                        continue;
-                    }
-
-                    if (autoCombineDict.ContainsKey(craftDesc.Id))
-                    {
-                        Logger.LogWarning("Resource Item with Id:" + craftDesc.Id + " is a duplicate!");
-                        continue;
-                    }
-                    autoCombineDict.Add(craftDesc.Id, craftDesc);
-                }
-            }
-            return autoCombineDict;
-        }
         internal static Dictionary<ushort, T> createDictionaryFromItemExtensions<T>(List<T> itemExtensions) where T : ItemExtension
         {
             Dictionary<ushort, T> itemExtensionsDict = new Dictionary<ushort, T>();
