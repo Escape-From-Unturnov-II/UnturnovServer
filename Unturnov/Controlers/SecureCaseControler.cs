@@ -16,7 +16,6 @@ using Logger = Rocket.Core.Logging.Logger;
 
 namespace SpeedMann.Unturnov.Helper
 {
-    //TODO: upgrading secure case does not apply at runtime
     public class SecureCaseControler
     {
         public static SecureCaseConfig Conf { get; private set; }
@@ -27,11 +26,11 @@ namespace SpeedMann.Unturnov.Helper
             Conf = conf;
         }
 
-        public static void OnFlagChanged(PlayerQuests quests, PlayerQuestFlag flag)
+        public static void OnFlagChanged(UnturnedPlayer player, PlayerQuestFlag flag)
         {
             if (flag.id == Conf.CaseUpgradeFlagId)
             {
-                resizeHands(quests.player, flag.value);
+                resizeHands(player.Player, flag.value);
             }
         }
         public static void OnPrePlayerDead(PlayerLife playerLife)
@@ -188,11 +187,7 @@ namespace SpeedMann.Unturnov.Helper
         
         public static CaseSize getCaseSize(Player player)
         {
-            if (Conf.CaseSizes.Count < 1)
-            {
-                Logger.LogError("No CaseSizes Defined!");
-                return null;
-            }
+
             short caseLvl;
             if (!player.quests.getFlag(Conf.CaseUpgradeFlagId, out caseLvl))
             {
@@ -205,14 +200,18 @@ namespace SpeedMann.Unturnov.Helper
         {
             CaseSize caseSize = getCaseSize(player);
             if (caseSize == null)
+            {
                 return;
+            }
             resizeHands(player, caseSize);
         }
         private static void resizeHands(Player player, short caseLvl)
         {
             CaseSize caseSize = GetCaseSize(player, caseLvl);
             if (caseSize == null)
+            {
                 return;
+            }
             resizeHands(player, caseSize);
         }
         public static void resizeHands(Player player, CaseSize caseSize)
@@ -241,6 +240,11 @@ namespace SpeedMann.Unturnov.Helper
         }
         private static CaseSize GetCaseSize(Player player, short caseLvl)
         {
+            if (Conf.CaseSizes.Count < 1)
+            {
+                Logger.LogError("No CaseSizes Defined!");
+                return null;
+            }
             if (caseLvl < 0)
             {
                 caseLvl = 0;

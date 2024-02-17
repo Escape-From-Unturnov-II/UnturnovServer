@@ -311,7 +311,7 @@ namespace SpeedMann.Unturnov
 
             ScavRunControler.OnFlagChanged(player, flag);
             TeleportControler.OnFlagChanged(player, flag);
-
+            SecureCaseControler.OnFlagChanged(player, flag);
             quests.getFlag(flagId, out short newValue);
             shouldAllow = flagValue == newValue; 
         }
