@@ -155,7 +155,9 @@
     <Compile Include="Controlers\TeleportControler.cs" />
     <Compile Include="Helper\UnturnedPrivateFields.cs" />
     <Compile Include="Models\BarricadeWrapper.cs" />
-    <Compile Include="Models\Config\CaseContent.cs" />
+    <Compile Include="Models\Config\ItemExtensions\ReplaceFullDescription.cs" />
+    <Compile Include="Models\Config\ItemStackConfig.cs" />
+    <Compile Include="Models\Config\SecureCase\CaseContent.cs" />
     <Compile Include="Models\Config\DeathAdditionConfig.cs" />
     <Compile Include="Models\Config\Hideout\FoundationSet.cs" />
     <Compile Include="Models\Config\Hideout\HideoutConfig.cs" />
@@ -170,8 +172,8 @@
     <Compile Include="Models\Config\QuestExtensions\QuestCooldown.cs" />
     <Compile Include="Models\Config\Teleports\RaidTeleport.cs" />
     <Compile Include="Models\Config\ScavMode\ScavConfig.cs" />
-    <Compile Include="Models\Config\SecureCaseConfig.cs" />
-    <Compile Include="Models\Config\CaseSize.cs" />
+    <Compile Include="Models\Config\SecureCase\SecureCaseConfig.cs" />
+    <Compile Include="Models\Config\SecureCase\CaseSize.cs" />
     <Compile Include="Models\Config\NotificationUIConfig.cs" />
     <Compile Include="Models\Config\ScavMode\ScavSpawnTableSet.cs" />
     <Compile Include="Models\Config\Teleports\TeleportConfig.cs" />
@@ -182,6 +184,7 @@
     <Compile Include="Models\Hideout\Hideout.cs" />
     <Compile Include="Models\InternalMagReloadState.cs" />
     <Compile Include="Models\Config\ItemExtensions\ItemExtension.cs" />
+    <Compile Include="Models\InventoryItemWrapper.cs" />
     <Compile Include="Models\ItemJarWrapper.cs" />
     <Compile Include="Models\Config\ItemExtensions\EmptyMagazineExtension.cs" />
     <Compile Include="Models\Config\QuestExtensions\QuestEquipment.cs" />
@@ -206,7 +209,6 @@
     <Compile Include="Models\Config\Teleports\TeleportDescription.cs" />
     <Compile Include="Commands\ScavCommands.cs" />
     <Compile Include="Helper\UnturnedPatches.cs" />
-    <Compile Include="Models\Config\ItemExtensions\CombineDescription.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Unturnov.cs" />
     <Compile Include="UnturnovConfiguration.cs" />

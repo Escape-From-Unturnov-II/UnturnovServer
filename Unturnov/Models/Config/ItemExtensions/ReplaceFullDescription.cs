@@ -7,17 +7,16 @@ using System.Xml.Serialization;
 
 namespace SpeedMann.Unturnov.Models
 {
-    public class CombineDescription : ItemExtension
+    public class ReplaceFullDescription : ItemExtension 
     {
-        [XmlAttribute("RequiredAmount")]
-        public ushort RequiredAmount;
+        [XmlIgnore]
+        public byte RequiredAmount;
         public ItemExtension Result;
-
-        public CombineDescription()
+        public ReplaceFullDescription()
         {
 
         }
-        public CombineDescription(ushort supplyId, ushort requiredAmount, ushort resultId)
+        public ReplaceFullDescription(ushort supplyId,ushort resultId, byte requiredAmount = 0)
         {
             Id = supplyId;
             RequiredAmount = requiredAmount;

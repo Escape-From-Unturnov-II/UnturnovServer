@@ -208,7 +208,7 @@ namespace SpeedMann.Unturnov
             UnloadMagControler.Init(Conf.UnloadMagBlueprints);
             HideoutControler.Init(Conf.HideoutConfig);
             AirdropControler.Init(Conf.AirdropSignals);
-            ItemStackController.Init(Conf.StackableItems, Conf.AutoCombine);
+            ItemStackController.Init(Conf.ItemStackConfig);
         }
         private void Update()
         {

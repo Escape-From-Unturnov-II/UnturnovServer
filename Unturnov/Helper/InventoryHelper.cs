@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Security.Cryptography;
 using MySqlX.XDevAPI.Relational;
 using Rocket.API;
+using Rocket.Core.Assets;
 using Rocket.Core.Logging;
 using Rocket.Core.Plugins;
 using Rocket.Unturned.Chat;
@@ -53,6 +55,25 @@ namespace SpeedMann.Unturnov
 				gun.state[17] = mag.quality;
 			}
 		}
+		public static bool IsCompatible(ItemGunAsset itemGunAsset, ItemMagazineAsset itemMagazineAsset)
+		{
+			if(itemGunAsset == null || itemMagazineAsset == null)
+			{
+				return false;
+			}
+
+            foreach (byte magCalliber in itemMagazineAsset.calibers)
+            {
+                foreach (byte gunMagCalliber in itemGunAsset.magazineCalibers)
+                {
+                    if (magCalliber == gunMagCalliber)
+                    {
+						return true;
+                    }
+                }
+            }
+			return false;
+        }
 		public static Item getMagFromGun(PlayerEquipment gun)
 		{
 			if (gun != null && gun.state.Length >= 18 && gun.useable is UseableGun)
@@ -78,7 +99,11 @@ namespace SpeedMann.Unturnov
 				}
             }
 			return null;
-		}
+        }
+        public static void getAttachments(byte[] state, out ushort sight, out ushort tactical, out ushort grip, out ushort barrel, out ushort magazine)
+		{
+            Attachments.parseFromItemState(state, out sight, out tactical, out grip, out barrel, out magazine);
+        }
 		public static void removeMagFromGun(Item gun)
 		{
 			if(gun != null && gun.state.Length >= 18)
@@ -224,11 +249,11 @@ namespace SpeedMann.Unturnov
             }
 			return amount;
         }
-        public static void forceAddItem(UnturnedPlayer player, Item item, byte x, byte y, byte page, byte rot)
+        public static void forceAddItem(PlayerInventory inventory, Item item, byte x, byte y, byte page, byte rot)
 		{
-            if (!player.Inventory.tryAddItem(item, x, y, page, rot))
+            if (!inventory.tryAddItem(item, x, y, page, rot))
             {
-                player.Inventory.forceAddItem(item, false);
+                inventory.forceAddItem(item, false);
             }
         }
         public static bool tryAddItem(UnturnedPlayer player, Item item, byte startPage, byte endPage = 6)
@@ -491,19 +516,39 @@ namespace SpeedMann.Unturnov
 
 			return true;
         }
-        public static void FillExisting(Player player, ushort id, byte stackSize, ref byte amount)
+        public static void FillExisting(PlayerInventory inventory, ushort id, byte stackSize, ref byte remainingAmount, out bool filledStack)
         {
-            searchAmount(player.inventory, out List<InventorySearch> foundItems, id);
+            searchAmount(inventory, out List<InventorySearch> foundItems, id);
+			FillExisting(inventory, foundItems, stackSize, ref remainingAmount, out filledStack);
+        }
+        public static void FillExisting(PlayerInventory inventory, List<InventorySearch> foundItems, byte stackSize, ref byte remainingAmount, out bool filledStack)
+        {
+            filledStack = false;
             foreach (InventorySearch foundItem in foundItems)
             {
                 if (foundItem.jar.item.amount < stackSize)
                 {
-                    byte addedAmount = CalculateAddedAmount(amount, foundItem.jar.item.amount, stackSize);
-                    amount -= addedAmount;
+                    byte addedAmount = CalculateAddedAmount(remainingAmount, foundItem.jar.item.amount, stackSize);
+                    remainingAmount -= addedAmount;
                     byte newAmount = (byte)(foundItem.jar.item.amount + addedAmount);
-                    player.inventory.sendUpdateAmount(foundItem.page, foundItem.jar.x, foundItem.jar.y, newAmount);
+                    inventory.sendUpdateAmount(foundItem.page, foundItem.jar.x, foundItem.jar.y, newAmount);
+
+                    if (foundItem.jar.item.amount == stackSize)
+                    {
+                        filledStack = true;
+                    }
                 }
             }
+        }
+        public static void ReplaceItem(PlayerInventory inventory, byte page, byte index, ushort replacementId)
+		{
+            inventory.removeItem(page, index);
+            inventory.forceAddItem(new Item(replacementId, 1, 100), false);
+        }
+        public static void ReplaceItem(PlayerInventory inventory, InventorySearch itemToReplace, ushort replacementId)
+        {
+			byte index = inventory.getIndex(itemToReplace.page, itemToReplace.jar.x, itemToReplace.jar.y);
+			ReplaceItem(inventory, itemToReplace.page, index, replacementId);
         }
         public static byte CalculateAddedAmount(byte availableAmount, byte currentAmount, byte stackSize)
         {

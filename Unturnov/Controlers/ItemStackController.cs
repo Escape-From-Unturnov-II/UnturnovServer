@@ -1,4 +1,5 @@
 ﻿using Google.Protobuf.WellKnownTypes;
+using MySqlX.XDevAPI.Relational;
 using Rocket.Core.Assets;
 using Rocket.Core.Logging;
 using Rocket.Unturned.Enumerations;
@@ -17,13 +18,15 @@ namespace SpeedMann.Unturnov.Controlers
 {
     internal class ItemStackController
     {
+        private static ItemStackConfig Conf;
         private static Dictionary<ushort, byte> ItemStackSizes = new Dictionary<ushort, byte>();
-        private static Dictionary<ushort, CombineDescription> AutoCombineDict;
+        private static Dictionary<ushort, ReplaceFullDescription> AutoReplaceDict;
 
-        internal static void Init(List<ItemExtensionAmount> stackableItems, List<CombineDescription> autoCombine)
+        internal static void Init(ItemStackConfig config)
         {
-            ItemStackSizes = CreateDictionaryFromItemExtensions(stackableItems);
-            AutoCombineDict = CreateDictionaryFromAutoCombine(autoCombine);
+            Conf = config;
+            ItemStackSizes = CreateDictionaryFromItemExtensions(config.StackableItems);
+            AutoReplaceDict = CreateDictionaryFromAutoCombine(config.ReplaceFull);
         }
         public static void OnCraft(UnturnedPlayer player, Blueprint blueprint, out bool shouldAddBypass, ref bool shouldAllow)
         {
@@ -42,7 +45,7 @@ namespace SpeedMann.Unturnov.Controlers
 
             foreach (BlueprintOutput outP in blueprint.outputs)
             {
-                if (AutoCombineDict.ContainsKey(outP.id))
+                if (AutoReplaceDict.ContainsKey(outP.id))
                 {
                     shouldAddBypass = true;
                     return;
@@ -65,7 +68,7 @@ namespace SpeedMann.Unturnov.Controlers
             }
             if (ItemStackSizes.TryGetValue(id, out byte stackSize))
             {
-                HandleStackableItemRewards(player, id, amount, stackSize);
+                HandleStackableItemRewards(player.inventory, id, amount, stackSize);
                 success = true;
                 return;
             }
@@ -84,78 +87,146 @@ namespace SpeedMann.Unturnov.Controlers
             byte index_1 = inventory.items[page_1].getIndex(x_1, y_1);
             ItemJar itemJar_0 = inventory.items[page_0].getItem(index_0);
             ItemJar itemJar_1 = inventory.items[page_1].getItem(index_1);
-
             if (itemJar_0 == null
-                || itemJar_1 == null
-                || itemJar_0.item.id != itemJar_1.item.id
-                || !ItemStackSizes.TryGetValue(itemJar_0.item.id, out byte stackSize))
+                || itemJar_1 == null)
             {
                 return;
             }
-            shouldAllow = false;
-            InventoryHelper.stackItem(inventory, itemJar_0, page_0, itemJar_1, page_1, index_1, stackSize);
+            InventoryItemWrapper item_0 = new InventoryItemWrapper(itemJar_0, page_0, index_0);
+            InventoryItemWrapper item_1 = new InventoryItemWrapper(itemJar_1, page_1, index_1);
+
+            if (ItemStackSizes.Count > 0 
+                && TryStackItem(inventory, item_0, item_1))
+            {
+                shouldAllow = false;
+                return;
+            }
+
+            if (item_0.asset == null
+                || item_1.asset == null)
+            {
+                return;
+            }
+
+            if (Conf.AutoAddMagazines
+                && TryAddMagazine(inventory, item_0, item_1))
+            {
+                shouldAllow = false;
+                return;
+            }
+
         }
 
         public static void OnItemSwapped(PlayerInventory inventory, byte page_0, byte x_0, byte y_0, byte rot_0, byte page_1, byte x_1, byte y_1, byte rot_1, ref bool shouldAllow)
         {
             OnItemDragged(inventory, page_0, x_0, y_0, page_1, x_1, y_1, rot_1, ref shouldAllow);
         }
-        public static void OnInventoryUpdated(UnturnedPlayer player, InventoryGroup inventoryGroup, byte inventoryIndex, ItemJar itemJ)
+        public static void CombineItems(PlayerInventory inventory, ushort itemId, int requiredAmount)
         {
-            if (!AutoCombineDict.TryGetValue(itemJ.item.id, out CombineDescription combine))
+            if (!AutoReplaceDict.TryGetValue(itemId, out ReplaceFullDescription replace))
             {
                 return;
             }
-            int foundAmmount = InventoryHelper.searchAmount(player.Inventory, out List<InventorySearch> foundItems, itemJ.item.id);
+            int foundAmount = InventoryHelper.searchAmount(inventory, out List<InventorySearch> foundItems, itemId);
 
-            if (foundAmmount < combine.RequiredAmount)
+            if (foundAmount < requiredAmount)
             {
                 return;
             }
-            int results = foundAmmount / combine.RequiredAmount;
-            int ammmountToRemove = results * combine.RequiredAmount;
+            int results = foundAmount / replace.RequiredAmount;
+            int ammmountToRemove = results * replace.RequiredAmount;
 
             foreach (InventorySearch item in foundItems)
             {
                 ammmountToRemove -= item.jar.item.amount;
                 if (ammmountToRemove >= 0)
                 {
-                    byte index = player.Inventory.getIndex(item.page, item.jar.x, item.jar.y);
-                    player.Inventory.removeItem(item.page, index);
+                    byte index = inventory.getIndex(item.page, item.jar.x, item.jar.y);
+                    inventory.removeItem(item.page, index);
                 }
                 else
                 {
                     ammmountToRemove *= -1;
-                    player.Inventory.sendUpdateAmount(item.page, item.jar.x, item.jar.y, (byte)ammmountToRemove);
+                    inventory.sendUpdateAmount(item.page, item.jar.x, item.jar.y, (byte)ammmountToRemove);
                     break;
                 }
 
             }
             for (byte i = 0; i < results; i++)
             {
-                player.Inventory.forceAddItem(new Item(combine.Result.Id, 1, 100), false);
+                inventory.forceAddItem(new Item(replace.Result.Id, 1, 100), false);
             }
-            Logger.Log($"combined {results}x {itemJ.item.id} to {combine.Result.Id}");
         }
-        private static Dictionary<ushort, CombineDescription> CreateDictionaryFromAutoCombine(List<CombineDescription> autoCombine)
+        private static void ReplaceItem(PlayerInventory inventory, InventorySearch itemToReplace)
         {
-            Dictionary<ushort, CombineDescription> autoCombineDict = new Dictionary<ushort, CombineDescription>();
+            if (!AutoReplaceDict.TryGetValue(itemToReplace.jar.item.id, out ReplaceFullDescription replace))
+            {
+                return;
+            }
+            HandleStackableItemRewards(inventory, itemToReplace.jar.item.id, 1, replace.RequiredAmount);
+        }
+        private static bool TryStackItem(PlayerInventory inventory, InventoryItemWrapper item_0, InventoryItemWrapper item_1)
+        {
+            if (item_0.itemJar.item.id != item_1.itemJar.item.id
+                || !ItemStackSizes.TryGetValue(item_0.itemJar.item.id, out byte stackSize))
+            {
+                return false;
+            }
+            InventoryHelper.stackItem(inventory, item_0.itemJar, item_0.page, item_1.itemJar, item_1.page, item_1.index, stackSize);
+            return true;
+        }
+        private static bool TryAddMagazine(PlayerInventory inventory, InventoryItemWrapper item_0, InventoryItemWrapper item_1)
+        {
+            if(item_0.asset.type != EItemType.GUN 
+                || item_1.asset.type != EItemType.MAGAZINE)
+            {
+                return false;
+            }
+            ItemGunAsset gunAsset = item_0.asset as ItemGunAsset;
+            ItemMagazineAsset magAsset = item_1.asset as ItemMagazineAsset;
+            if (!InventoryHelper.IsCompatible(gunAsset, magAsset))
+            {
+                return false;
+            }
+
+            Item oldMagazine = InventoryHelper.getMagFromGun(item_0.itemJar.item);
+            InventoryHelper.setMagForGun(item_0.itemJar.item, item_1.itemJar.item);
+            inventory.removeItem(item_1.page, item_1.index);
+            if (oldMagazine != null)
+            {
+                InventoryHelper.forceAddItem(inventory, oldMagazine, item_1.page, item_1.itemJar.x, item_1.itemJar.y, item_1.itemJar.rot);
+            }
+            return true;
+        }
+        private static Dictionary<ushort, ReplaceFullDescription> CreateDictionaryFromAutoCombine(List<ReplaceFullDescription> autoCombine)
+        {
+            Dictionary<ushort, ReplaceFullDescription> autoCombineDict = new Dictionary<ushort, ReplaceFullDescription>();
             if (autoCombine != null)
             {
-                foreach (CombineDescription craftDesc in autoCombine)
+                foreach (ReplaceFullDescription replaceDesc in autoCombine)
                 {
-                    if (craftDesc.Id == 0)
+                    if (replaceDesc.Id == 0)
                     {
                         Logger.LogWarning("Resource Item with invalid Id");
                         continue;
                     }
 
-                    if (autoCombineDict.ContainsKey(craftDesc.Id))
+                    if (autoCombineDict.ContainsKey(replaceDesc.Id))
                     {
-                        Logger.LogWarning("Resource Item with Id:" + craftDesc.Id + " is a duplicate!");
+                        Logger.LogWarning("Resource Item with Id:" + replaceDesc.Id + " is a duplicate!");
                         continue;
                     }
-                    autoCombineDict.Add(craftDesc.Id, craftDesc);
+                    if (replaceDesc.RequiredAmount < 1)
+                    {
+                        ItemAsset itemAsset = Assets.find(EAssetType.ITEM, replaceDesc.Id) as ItemAsset;
+                        if (itemAsset == null)
+                        {
+                            Logger.LogWarning($"Could not get item amount of ReplaceDescription with Id: {replaceDesc.Id}, it was skipped!");
+                            continue;
+                        }
+                        replaceDesc.RequiredAmount = itemAsset.amount;
+                    }
+                    autoCombineDict.Add(replaceDesc.Id, replaceDesc);
                 }
             }
             return autoCombineDict;
@@ -196,9 +267,22 @@ namespace SpeedMann.Unturnov.Controlers
             return itemExtensionsDict;
         }
 
-        private static void HandleStackableItemRewards(Player player, ushort id, byte amount, byte stackSize)
+        private static void HandleStackableItemRewards(PlayerInventory inventory, ushort id, byte amount, byte stackSize)
         {
-            InventoryHelper.FillExisting(player, id, stackSize, ref amount);
+            HandleStackableItemRewardsInner(inventory, id, amount, stackSize, out bool filledStack);
+
+            while (filledStack && AutoReplaceDict.TryGetValue(id, out ReplaceFullDescription replace))
+            {
+                //TODO: find all full stack and call handleStackable again
+                //amount = InventoryHelper.searchAmount(inventory, out List<InventorySearch> foundItems, id);
+                //InventoryHelper.FillExisting(foundItems)
+            } 
+
+            
+        }
+        private static void HandleStackableItemRewardsInner(PlayerInventory inventory, ushort id, byte amount, byte stackSize, out bool filledStack)
+        {
+            InventoryHelper.FillExisting(inventory, id, amount, ref amount, out filledStack);
             while (amount > 0)
             {
                 byte itemAmount = stackSize;
@@ -208,9 +292,8 @@ namespace SpeedMann.Unturnov.Controlers
                 }
                 amount -= itemAmount;
                 Item item = new Item(id, itemAmount, 100);
-                player.inventory.forceAddItem(item, auto: true);
+                inventory.forceAddItem(item, auto: true);
             }
-
         }
         private static void HandleStackSplitting(PlayerInventory inventory, ushort itemId)
         {

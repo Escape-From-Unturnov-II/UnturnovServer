@@ -25,9 +25,8 @@ namespace SpeedMann.Unturnov
         public List<EmptyMagazineExtension> UnloadMagBlueprints;
         public List<AirdropSignal> AirdropSignals;
 
-        [XmlArrayItem(ElementName = "Item")]
-        public List<ItemExtensionAmount> StackableItems;
-        public List<CombineDescription> AutoCombine;
+        public ItemStackConfig ItemStackConfig = new ItemStackConfig();
+
         [XmlArrayItem(ElementName = "Item")]
         public List<ItemExtension> GunModdingResults;
 
@@ -1067,7 +1066,8 @@ namespace SpeedMann.Unturnov
             {
                 new AirdropSignal(38107, 0, 10),
             };
-            StackableItems = new List<ItemExtensionAmount>
+            ItemStackConfig = new ItemStackConfig();
+            ItemStackConfig.StackableItems = new List<ItemExtensionAmount>
             {
                 #region RUB
                 // 10
@@ -1078,67 +1078,27 @@ namespace SpeedMann.Unturnov
                 #endregion
 
             };
-            AutoCombine = new List<CombineDescription>
+            ItemStackConfig.ReplaceFull = new List<ReplaceFullDescription>
             {
                 #region RUB
                 // 5/10
-                new CombineDescription(37001, 2, 37002),
+                new ReplaceFullDescription(37001, 37002),
                 // 10/50
-                new CombineDescription(37002, 5, 37003),
+                new ReplaceFullDescription(37002, 37003),
                 // 50/100
-                new CombineDescription(37003, 2, 37004),
+                new ReplaceFullDescription(37003, 37004),
                 // 100/500
-                new CombineDescription(37004, 5, 37005),
+                new ReplaceFullDescription(37004, 37005),
                 // 500/1000
-                new CombineDescription(37005, 2, 37006),
+                new ReplaceFullDescription(37005, 37006),
                 // 1000/5000
-                new CombineDescription(37006, 5, 37007),
+                new ReplaceFullDescription(37006, 37007),
                 // 5000/10000
-                new CombineDescription(37007, 2, 37008),
+                new ReplaceFullDescription(37007, 37008),
                 // 10000/50000
-                new CombineDescription(37008, 5, 37009),
+                new ReplaceFullDescription(37008, 37009),
                 // 50000/100000
-                new CombineDescription(37009, 2, 37010),
-                #endregion
-                #region USD
-                // 1/5
-                new CombineDescription(37011, 5, 37013),
-                // 2/10
-                new CombineDescription(37012, 5, 37014),
-                // 5/10
-                new CombineDescription(37013, 2, 37014),
-                // 10/50
-                new CombineDescription(37014, 5, 37016),
-                // 20/100
-                new CombineDescription(37015, 5, 37017),
-                // 50/100
-                new CombineDescription(37016, 2, 37017),
-                // 100/500
-                new CombineDescription(37017, 5, 37018),
-                // 500/1000
-                new CombineDescription(37018, 2, 37019),
-                // 1000/5000
-                new CombineDescription(37019, 5, 37020),
-                #endregion
-                #region EUR
-                // 5/10
-                new CombineDescription(37021, 2, 37022),
-                // 10/50
-                new CombineDescription(37022, 5, 37024),
-                // 20/100
-                new CombineDescription(37023, 5, 37025),
-                // 50/100
-                new CombineDescription(37024, 2, 37025),
-                // 100/500
-                new CombineDescription(37025, 5, 37027),
-                // 200/1000
-                new CombineDescription(37026, 5, 37028),
-                // 500/1000
-                new CombineDescription(37027, 2, 37028),
-                // 1000/5000
-                new CombineDescription(37028, 5, 37029),
-                // 5000/10000
-                new CombineDescription(37029, 2, 37030),
+                new ReplaceFullDescription(37009, 37010)
                 #endregion
             };
             GunModdingResults = new List<ItemExtension>
@@ -2068,7 +2028,7 @@ namespace SpeedMann.Unturnov
         {
             addNames(DeathDropConfig.DeathDrops);
             addNames(GunModdingResults);
-            addNames(StackableItems);
+            addNames(ItemStackConfig.StackableItems);
 
             foreach (PlacementRestriction restriction in PlacementRestrictionConfig.Restrictions)
             {
@@ -2078,7 +2038,7 @@ namespace SpeedMann.Unturnov
             {
                 addNames(foundationSet.Foundations);
             }
-            foreach (CombineDescription combDesc in AutoCombine)
+            foreach (ReplaceDescription combDesc in ItemStackConfig.ReplaceFull)
             {
                 addName(combDesc);
                 addName(combDesc.Result);
