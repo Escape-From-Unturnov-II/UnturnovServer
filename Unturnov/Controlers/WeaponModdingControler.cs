@@ -31,7 +31,9 @@ namespace SpeedMann.Unturnov.Controlers
             UnturnedPlayer player = UnturnedPlayer.FromPlayer(inventory.player);
             if (GunModdingDict.ContainsKey(item.id) && ModdedGunAttachments.ContainsKey(player.CSteamID))
             {
-                autoEquipClothing = autoEquipUseable = autoEquipWeapon = false;
+                autoEquipClothing = false;
+                autoEquipUseable = false;
+                autoEquipWeapon = false;
             }
         }
         internal static void HandleAttachmentsOfCraftedGuns(UnturnedPlayer player, InventoryGroup inventoryGroup, byte inventoryIndex, ItemJar P)

@@ -226,7 +226,7 @@ namespace SpeedMann.Unturnov.Helper
         {
             if (Conf.Notification_UI.Enabled)
             {
-                EffectControler.spawnUI(Conf.Notification_UI.UI_Id, Conf.Notification_UI.UI_Key, player.CSteamID);
+                EffectControler.spawnUI(Conf.Notification_UI.UI_Id, Conf.Notification_UI.UI_Key, player);
             }
             else
             {

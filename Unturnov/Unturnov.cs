@@ -417,7 +417,6 @@ namespace SpeedMann.Unturnov
                 ReplaceBypass.Remove(player.CSteamID);
                 return;
             }
-            ItemStackController.OnInventoryUpdated(player, inventoryGroup, inventoryIndex, itemJ);
 
             WeaponModdingControler.HandleAttachmentsOfCraftedGuns(player, inventoryGroup, inventoryIndex, itemJ);
 

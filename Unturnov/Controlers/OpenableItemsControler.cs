@@ -310,7 +310,7 @@ namespace SpeedMann.Unturnov.Helper
         {
             if (Unturnov.Conf.OpenableItemsConfig.Notification_UI.Enabled)
             {
-                EffectControler.spawnUI(Unturnov.Conf.OpenableItemsConfig.Notification_UI.UI_Id, Unturnov.Conf.OpenableItemsConfig.Notification_UI.UI_Key, player.CSteamID);
+                EffectControler.spawnUI(Unturnov.Conf.OpenableItemsConfig.Notification_UI.UI_Id, Unturnov.Conf.OpenableItemsConfig.Notification_UI.UI_Key, player);
             }
             else
             {

@@ -1,19 +1,12 @@
 ﻿using Rocket.API;
-using Rocket.Core.Logging;
 using Rocket.Unturned.Chat;
 using Rocket.Unturned.Player;
 using SDG.NetTransport;
-using SDG.Unturned;
 using SpeedMann.Unturnov.Controlers;
 using SpeedMann.Unturnov.Helper;
-using SpeedMann.Unturnov.Models;
 using SpeedMann.Unturnov.Models.Hideout;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
 using Logger = Rocket.Core.Logging.Logger;
 
@@ -106,7 +99,7 @@ namespace SpeedMann.Unturnov.Commands
 
                         break;
                     case "change":
-                        EffectControler.hideBorders(player.CSteamID);
+                        EffectControler.hideBorders(player);
 
                         HideoutControler.freeHideout(player);
                         HideoutControler.claimHideout(player);
@@ -116,7 +109,7 @@ namespace SpeedMann.Unturnov.Commands
                             UnturnedChat.Say(caller, $"Could not find new Hideout!", Color.red);
                             break;
                         }
-                        EffectControler.spawnBorders(player.CSteamID, hideout);
+                        EffectControler.spawnBorders(player, hideout);
 
                         UnturnedChat.Say(caller, $"Changed Hideout to {hideout.bounds[0]} {hideout.bounds[1]}", Color.cyan);
                         break;
@@ -130,17 +123,17 @@ namespace SpeedMann.Unturnov.Commands
                         switch (param)
                         {
                             case "show":
-                                EffectControler.hideBorders(player.CSteamID);
+                                EffectControler.hideBorders(player);
 
                                 hideout = HideoutControler.getHideout(player.CSteamID);
                                 if (hideout == null)
                                 {
                                     UnturnedChat.Say(caller, $"you have no hideout!", Color.red);
                                 }
-                                EffectControler.spawnBorders(player.CSteamID, hideout);
+                                EffectControler.spawnBorders(player, hideout);
                                 break;
                             case "hide":
-                                EffectControler.hideBorders(player.CSteamID);
+                                EffectControler.hideBorders(player);
                                 break;
                             default:
                                 UnturnedChat.Say(caller, $"border {param} is invalid. Try border <show|hide>", Color.red);

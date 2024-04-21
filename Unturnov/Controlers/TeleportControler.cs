@@ -234,9 +234,10 @@ namespace SpeedMann.Unturnov.Controlers
         }
         private static void TeleportPlayer(UnturnedPlayer player, TeleportDestination destination, ushort flagId, bool enterRaid = true)
         {
-            destination.findDestination(out Vector3 position, out float rotation);
+            //TODO: should be init on start 
+            destination.SetupTeleportDestination();
 
-            player.Teleport(position, rotation != 0 ? rotation : MeasurementTool.angleToByte(player.Rotation));
+            player.Teleport(destination.Position, destination.Rotation != 0 ? destination.Rotation : MeasurementTool.angleToByte(player.Rotation));
             if (!enterRaid)
             {
                 player.Player.quests.sendSetFlag(flagId, teleportReady);
@@ -246,7 +247,7 @@ namespace SpeedMann.Unturnov.Controlers
                 player.Player.quests.sendSetFlag(flagId, inRaid);
             }
 
-            Logger.Log($"{player.DisplayName} was teleported to {destination.NodeName} [{position.x}, {position.y}, {position.z}]");
+            Logger.Log($"{player.DisplayName} was teleported to {destination.NodeName} [{destination.Position.x}, {destination.Position.y}, {destination.Position.z}]");
         }
         private static void TeleportSquad(UnturnedPlayer caller, TeleportDestination destination, ushort flagId)
         {

@@ -58,8 +58,9 @@ namespace SpeedMann.Unturnov.Helper
 
             if (!tryGetObjectOrBarricadeBelow(point, restriction, asset, owner, out BarricadeDrop barricadeFoundation, out ObjectAsset objectFoundation))
             {
+                UnturnedPlayer uPlayer = UnturnedPlayer.FromCSteamID(new CSteamID(owner));
                 shouldAllow = false;
-                EffectControler.spawnUI(Conf.Notification_UI.UI_Id, Conf.Notification_UI.UI_Key, new CSteamID(owner));
+                EffectControler.spawnUI(Conf.Notification_UI.UI_Id, Conf.Notification_UI.UI_Key, uPlayer);
                 return;
             }
 

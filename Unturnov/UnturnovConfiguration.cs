@@ -2038,11 +2038,6 @@ namespace SpeedMann.Unturnov
             {
                 addNames(foundationSet.Foundations);
             }
-            foreach (ReplaceDescription combDesc in ItemStackConfig.ReplaceFull)
-            {
-                addName(combDesc);
-                addName(combDesc.Result);
-            }
 
             foreach(EmptyMagazineExtension magazineExtension in UnloadMagBlueprints)
             {

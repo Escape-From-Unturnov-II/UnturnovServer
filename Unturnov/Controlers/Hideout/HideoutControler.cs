@@ -73,12 +73,12 @@ namespace SpeedMann.Unturnov.Controlers
             }
 
 
-            CSteamID playerId = new CSteamID(owner);
-            if (!claimedHideouts.TryGetValue(playerId, out Hideout hideout) || hideout == null)
+            UnturnedPlayer uPlayer = UnturnedPlayer.FromCSteamID(new CSteamID(owner)); 
+            if (!claimedHideouts.TryGetValue(uPlayer.CSteamID, out Hideout hideout) || hideout == null)
             {
                 shouldAllow = false;
-                UnturnedChat.Say(playerId, Util.Translate("no_hideout"), Color.red);
-                Logger.Log($"Hideout of {playerId} not found!");
+                UnturnedChat.Say(uPlayer, Util.Translate("no_hideout"), Color.red);
+                Logger.Log($"Hideout of {uPlayer.CSteamID} not found!");
                 return;
             }
                 
@@ -86,17 +86,17 @@ namespace SpeedMann.Unturnov.Controlers
             if (!hideout.isReady())
             {
                 shouldAllow = false;
-                UnturnedChat.Say(playerId, Util.Translate("hideout_not_ready"), Color.red);
-                Logger.Log($"Hideout of {playerId} not ready!");
+                UnturnedChat.Say(uPlayer, Util.Translate("hideout_not_ready"), Color.red);
+                Logger.Log($"Hideout of {uPlayer.CSteamID} not ready!");
                 return;
             }
             if (!hideout.isInBounds(point))
             {
-                EffectControler.spawnUI(Conf.Notification_UI.UI_Id, Conf.Notification_UI.UI_Key, playerId);
+                EffectControler.spawnUI(Conf.Notification_UI.UI_Id, Conf.Notification_UI.UI_Key, uPlayer);
                 shouldAllow = false;
                 Vector3 lower = hideout.bounds[0];
                 Vector3 upper = hideout.bounds[1];
-                UnturnedChat.Say(playerId, Util.Translate("hideout_out_of_bounds"), Color.red);
+                UnturnedChat.Say(uPlayer, Util.Translate("hideout_out_of_bounds"), Color.red);
                 
                 Logger.Log($"placed at {point}, hideout bounds: lower x: {lower.x} y: {lower.y} z: {lower.z} upper x: {upper.x} y: {upper.y} z: {upper.z}");
                 return;
